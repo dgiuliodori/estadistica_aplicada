@@ -1,0 +1,124 @@
+
+/* Minimalist styles.css */
+
+/* General styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+/* Header styling */
+header {
+    background-color: #2c3e50;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 1.5em;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Navigation bar */
+nav {
+    background-color: #34495e;
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+    position: sticky;
+    top: 50px; /* Below the header */
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    gap: 20px;
+}
+
+nav li {
+    margin: 0;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px 15px;
+    transition: background-color 0.3s;
+    border-radius: 4px;
+}
+
+nav a:hover {
+    background-color: #1abc9c;
+}
+
+/* Main container */
+#container {
+    max-width: 1200px;
+    margin: 100px auto 0 auto; /* Adjusted for header and nav height */
+    padding: 20px;
+}
+
+/* Card style for sections */
+.card {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Typography */
+h2 {
+    color: #2c3e50;
+    font-size: 1.8em;
+    margin-bottom: 0.5em;
+}
+
+p {
+    color: #555;
+    font-size: 1em;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 15px;
+    background-color: #34495e;
+    color: #fff;
+    font-size: 0.9em;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Buttons and links */
+button, .btn {
+    background-color: #1abc9c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 1em;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+button:hover, .btn:hover {
+    background-color: #16a085;
+}
