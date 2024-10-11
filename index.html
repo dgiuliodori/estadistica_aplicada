@@ -1,39 +1,46 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Inicio - Estadística Aplicada</title>
-    <!-- Enlazamos el CSS externo -->
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="minimalist_styles.css">
 </head>
-<body class="home"> <!-- Agregamos la clase 'home' al body -->
+<body>
     <header>
         <h1>Estadística Aplicada</h1>
     </header>
     <nav>
         <ul>
-            <li><a href="index.html"><i class="fas fa-home"></i> Inicio</a></li>
-            <li><a href="anova.html"><i class="fas fa-chart-bar"></i> Análisis de Varianza</a></li>
-            <li><a href="analisis_regresion.html"><i class="fas fa-chart-bar"></i> Análisis de Regresión</a></li>
-            <li><a href="potencia_prueba.html"><i class="fas fa-chart-bar"></i> Potencia de una Prueba</a></li>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="anova.html">Análisis de Varianza</a></li>
+            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
+            <li><a href="potencia_prueba.html">Potencia de una Prueba</a></li>
         </ul>
     </nav>
     <div id="container">
-        <div id="sidebar">
-            <!-- Aquí se cargarán los parámetros -->
+        <div class="card">
+            <h2>Bienvenido a Estadística Aplicada</h2>
+            <p>Explore nuestras herramientas para el análisis estadístico, incluyendo Análisis de Varianza, Regresión Lineal y cálculos de Potencia de Prueba.</p>
         </div>
-        <div id="content">
-            <div class="welcome-message">
-                <h2>Bienvenido a Estadística Aplicada</h2>
-                <p>Seleccione una opción del menú para comenzar a explorar las diferentes herramientas y análisis disponibles.</p>
-            </div>
+        <div class="card">
+            <h2>Análisis de Varianza</h2>
+            <p>Realice pruebas de ANOVA para evaluar diferencias significativas entre grupos.</p>
+            <a href="anova.html" class="btn">Ir a ANOVA</a>
+        </div>
+        <div class="card">
+            <h2>Análisis de Regresión</h2>
+            <p>Explore relaciones entre variables y ajuste modelos de regresión lineal.</p>
+            <a href="analisis_regresion.html" class="btn">Ir a Regresión</a>
+        </div>
+        <div class="card">
+            <h2>Potencia de una Prueba</h2>
+            <p>Calcule la potencia estadística para diferentes tipos de pruebas y escenarios.</p>
+            <a href="potencia_prueba.html" class="btn">Ir a Potencia de Prueba</a>
         </div>
     </div>
     <footer>
         &copy; 2024 Estadística Aplicada
     </footer>
-    <!-- Incluimos las librerías necesarias -->
-
 </body>
 </html>
-
