@@ -24,15 +24,25 @@
         </div>
         <div id="content">
             <!-- Aquí se cargarán las gráficas y resultados -->
+            <div id="resultadosANOVA" class="resultado">
+                <!-- Contenido generado dinámicamente -->
+            </div>
+            <div id="graficaBoxplot" style="width: 100%; height: 400px;"></div>
+            <div id="graficaMedias" style="width: 100%; height: 400px;"></div>
+            <div id="graficaQQPlotANOVA" style="width: 100%; height: 400px;"></div>
         </div>
     </div>
     <footer>
         &copy; 2024 Estadística Aplicada
     </footer>
     <!-- Incluimos las librerías necesarias -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+    <!-- math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.0.0/math.min.js"></script>
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
     <!-- Enlazamos el JavaScript específico para esta sección -->
     <script src="anova.js"></script>
 </body>

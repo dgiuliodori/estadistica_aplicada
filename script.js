@@ -37,6 +37,14 @@ function mostrarPotenciaPrueba() {
     sidebarDiv.innerHTML = `
         <h2>Parámetros</h2>
         <div class="parametros">
+            <label>
+                Tipo de Prueba:
+                <select id="tipoPrueba">
+                    <option value="1">Prueba Izquierda</option>
+                    <option value="2">Prueba Derecha</option>
+                    <option value="3">Prueba Bilateral</option>
+                </select>
+            </label>
             <div class="slider-container">
                 <label for="mu0Slider">Media bajo H₀ (μ₀): <span id="mu0Value" class="slider-value">80</span></label>
                 <input type="range" id="mu0Slider" min="50" max="110" step="0.1" value="80">
@@ -53,14 +61,6 @@ function mostrarPotenciaPrueba() {
                 <label for="alfaSlider">Nivel de Significancia (α): <span id="alfaValue" class="slider-value">0.05</span></label>
                 <input type="range" id="alfaSlider" min="0.001" max="0.2" step="0.001" value="0.05">
             </div>
-            <label>
-                Tipo de Prueba:
-                <select id="tipoPrueba">
-                    <option value="1">Prueba Izquierda</option>
-                    <option value="2">Prueba Derecha</option>
-                    <option value="3">Prueba Bilateral</option>
-                </select>
-            </label>
             <div class="slider-container">
                 <label for="mu1Slider">Media bajo H₁ (μ₁): <span id="mu1Value" class="slider-value">75</span></label>
                 <input type="range" id="mu1Slider" min="50" max="110" step="0.1" value="75">
@@ -185,8 +185,8 @@ function mostrarResultadosPotencia(mu0, sigma, n, alfa, tipo, mu1, potencia_sing
         ecuacion = `
         \\begin{eqnarray}
         \\phi(\\mu_{1})&=&1-\\beta(\\mu_{1})=P(X \\leq X_{crit} \\vert E(X)=\\mu_{1}) \\\\
-        &=&P\\bigg(\\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg) \\\\
-        &=&P\\bigg(Z \\leq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg)
+        &=&P\\bigg(\\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg) \\\\
+        &=&P\\bigg(Z \\leq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg)
         \\end{eqnarray}
         `;
     } else if (tipo === 2) {
@@ -194,8 +194,8 @@ function mostrarResultadosPotencia(mu0, sigma, n, alfa, tipo, mu1, potencia_sing
         ecuacion = `
         \\begin{eqnarray}
         \\phi(\\mu_{1})&=&1-\\beta(\\mu_{1})=P(X \\geq X_{crit} \\vert E(X)=\\mu_{1}) \\\\
-        &=&P\\bigg(\\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\geq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg) \\\\
-        &=&P\\bigg(Z \\geq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg)
+        &=&P\\bigg(\\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\geq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg) \\\\
+        &=&P\\bigg(Z \\geq \\frac{X_{crit}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg)
         \\end{eqnarray}
         `;
     } else if (tipo === 3) {
@@ -203,8 +203,8 @@ function mostrarResultadosPotencia(mu0, sigma, n, alfa, tipo, mu1, potencia_sing
         ecuacion = `
         \\begin{eqnarray}
         \\phi(\\mu_{1})&=&1-\\beta(\\mu_{1})=1-P(X_{crit1} \\leq X \\leq X_{crit2} \\vert E(X)=\\mu_{1}) \\\\
-        &=&1-P\\bigg( \\frac{X_{crit1}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X_{crit2}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg) \\\\
-        &=&1-P\\bigg( \\frac{X_{crit1}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq Z \\leq \\frac{X_{crit2}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\bigg)
+        &=&1-P\\bigg( \\frac{X_{crit1}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq \\frac{X_{crit2}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg) \\\\
+        &=&1-P\\bigg( \\frac{X_{crit1}-\\mu_{1}}{\\sigma/\\sqrt{n}} \\leq Z \\leq \\frac{X_{crit2}-\\mu_{1}}{\\sigma/\\sqrt{n}}  \\vert E(X)=\\mu_{1}\\bigg)
         \\end{eqnarray}
         `;
     }
