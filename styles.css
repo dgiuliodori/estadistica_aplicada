@@ -66,7 +66,7 @@ nav ul {
     list-style-type: none;
     padding: 0;
     margin: 0;
-    text-align: center;
+    text-align: right;
 }
 
 nav li {
@@ -402,4 +402,38 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
     --bg-color: #181818;
     --text-color: #f4f4f4;
     --header-color: #1f1f1f;
+}
+
+
+/* Estilos específicos para Prueba de Hipótesis sobre la Varianza */
+.prueba-varianza-parametros {
+    /* Puedes añadir estilos específicos si lo deseas */
+}
+
+.prueba-varianza-parametros .slider-container,
+.prueba-varianza-parametros .input-container {
+    margin-bottom: 15px;
+}
+
+.prueba-varianza-parametros .slider-container label,
+.prueba-varianza-parametros .input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.prueba-varianza-parametros .slider-container input[type="range"] {
+    width: 100%;
+}
+
+.prueba-varianza-parametros .slider-value {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.prueba-varianza-parametros .input-container select {
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
 }

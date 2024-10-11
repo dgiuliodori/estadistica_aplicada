@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba de Hipótesis - Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Estadística Aplicada</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="prueba_media.html">PH sobre la Media</a></li>
+            <li><a href="prueba_varianza.html">PH sobre la Varianza</a></li>
+            <li><a href="anova.html">Análisis de Varianza</a></li>
+            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
+            <li><a href="potencia_prueba.html">Potencia de una Prueba</a></li>
+             <!-- Nuevo enlace -->
+        </ul>
+    </nav>
+    <div id="container" class="prueba-hipotesis-media-container">
+        <div id="sidebar">
+            <h2>Parámetros</h2>
+            <div class="parametros">
+                <div class="input-container">
+                    <label for="tipoTest">Tipo de Prueba:</label>
+                    <select id="tipoTest">
+                        <option value="right-tailed">Una Cola Derecha</option>
+                        <option value="left-tailed">Una Cola Izquierda</option>
+                        <option value="two-tailed">Dos Colas</option>
+                    </select>
+                </div>
+                <!-- Parámetros como sliders -->
+                <div class="slider-container">
+                    <label for="mu0">Valor bajo Hipótesis Nula (μ₀): <span id="mu0Value">50</span></label>
+                    <input type="range" id="mu0" min="0" max="100" step="0.1" value="50">
+                </div>
+                <div class="slider-container">
+                    <label for="sigma">Desviación Estándar (σ): <span id="sigmaValue">10</span></label>
+                    <input type="range" id="sigma" min="1" max="50" step="0.1" value="10">
+                </div>
+                <div class="slider-container">
+                    <label for="xBar">Media Muestral (x̄): <span id="xBarValue">55</span></label>
+                    <input type="range" id="xBar" min="0" max="100" step="0.1" value="55">
+                </div>
+                <div class="slider-container">
+                    <label for="n">Tamaño de Muestra (n): <span id="nValue">30</span></label>
+                    <input type="range" id="n" min="1" max="100" step="1" value="30">
+                </div>
+                <div class="slider-container">
+                    <label for="alphaSlider">Nivel de Significancia (α): <span id="alphaValue">0.05</span></label>
+                    <input type="range" id="alphaSlider" min="0.01" max="0.50" step="0.01" value="0.05">
+                </div>
+                <!-- Tipo de Prueba como select -->
+                
+            </div>
+        </div>
+        <div id="content">
+            <div id="resultadosPrueba" class="resultado">
+                <!-- Aquí se mostrarán los resultados -->
+            </div>
+            <div id="graficaDistribucion" style="width: 100%; height: 400px;"></div>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada
+    </footer>
+    <!-- Incluimos las librerías necesarias -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+    <!-- Enlazamos el JavaScript específico para esta sección -->
+    <script src="prueba_media.js"></script>
+</body>
+</html>
