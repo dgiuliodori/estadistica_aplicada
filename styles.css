@@ -15,7 +15,7 @@ body, html {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Roboto', sans-serif;
     background-color: #f4f4f4;
     overflow: auto;
 }
@@ -302,6 +302,7 @@ th {
 .info {
     margin-bottom: 20px;
 }
+
 
 /* Estilizar botones dentro de la barra lateral (opcional) */
 #sidebar button {
