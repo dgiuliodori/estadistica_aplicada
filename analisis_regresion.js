@@ -33,6 +33,9 @@ function iniciarAnalisisRegresion() {
                 <label for="nSlider">Tamaño de la Muestra (n): <span id="nValue" class="slider-value">100</span></label>
                 <input type="range" id="nSlider" min="10" max="1000" step="10" value="100">
             </div>
+        <div class="card">
+            <a href="supuestos_regresión.html" class="btn">Análisis de los Supuestos</a>
+             </div>
             <p id="errorMsg" class="error"></p>
         </div>
     `;

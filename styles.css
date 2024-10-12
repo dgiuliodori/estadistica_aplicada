@@ -437,3 +437,109 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
     width: 100%;
     box-sizing: border-box;
 }
+
+/* Estilos específicos para Análisis de Regresión */
+.regresion-parametros {
+    padding: 10px;
+}
+
+.regresion-parametros .slider-container,
+.regresion-parametros .input-container {
+    margin-bottom: 15px;
+}
+
+.regresion-parametros .slider-container label,
+.regresion-parametros .input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.regresion-parametros .slider-container input[type="range"] {
+    width: 100%;
+}
+
+.slider-value {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.regresion-parametros .input-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+#resetSupuestos {
+    padding: 8px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#resetSupuestos:hover {
+    background-color: #c82333;
+}
+
+#graficosSupuestos .grafico {
+    margin-bottom: 30px;
+}
+
+#graficosSupuestos .grafico h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #sidebar {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    #content {
+        width: 100%;
+        padding: 10px;
+    }
+}
+
+/* Estilos para el botón */
+.btn {
+    display: inline-block; /* Permitir margen y padding */
+    padding: 12px 24px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    font-weight: 600; /* Negrita */
+    color: #ffffff; /* Texto blanco */
+    background: linear-gradient(45deg, #2575fc, #2575fc); /* Fondo con degradado */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes muy redondeados */
+    text-decoration: none; /* Sin subrayado */
+    cursor: pointer; /* Cursor de puntero al pasar */
+    transition: background 0.3s, transform 0.2s; /* Transiciones suaves */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+/* Efecto al pasar el cursor sobre el botón */
+.btn:hover {
+    background: linear-gradient(45deg, #686d77, #686d77); /* Degradado invertido */
+    transform: translateY(-2px); /* Levantar ligeramente */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Aumentar la sombra */
+}
+
+/* Efecto al hacer clic en el botón */
+.btn:active {
+    transform: translateY(0px); /* Volver a la posición original */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Reducir la sombra */
+}
+
+/* Efecto de enfoque para accesibilidad */
+.btn:focus {
+    outline: none; /* Quitar el contorno predeterminado */
+    box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.5); /* Sombra azul para indicar enfoque */
+}
