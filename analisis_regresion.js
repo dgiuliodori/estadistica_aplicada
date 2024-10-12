@@ -34,7 +34,7 @@ function iniciarAnalisisRegresion() {
                 <input type="range" id="nSlider" min="10" max="1000" step="10" value="100">
             </div>
         <div class="card">
-            <a href="supuestos_regresión.html" class="btn">Análisis de los Supuestos</a>
+            <a href="supuestos_regresion.html" class="btn">Análisis de los Supuestos</a>
              </div>
             <p id="errorMsg" class="error"></p>
         </div>
