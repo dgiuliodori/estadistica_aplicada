@@ -1,44 +1,59 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Inicio - Estadística Aplicada</title>
     <link rel="stylesheet" type="text/css" href="minimalist_styles.css">
+    <style>
+        /* Agregamos el estilo para organizar los botones en un grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+            gap: 20px; /* Espaciado entre los elementos */
+            margin-top: 20px;
+        }
+
+        .grid-container .card {
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Estadística Aplicada</h1>
     </header>
     <div id="container">
-        <div class="card">
-            <h2>Bienvenido a Estadística Aplicada</h2>
-            <p>Explore nuestras herramientas para el análisis estadístico, incluyendo Análisis de Varianza, Regresión Lineal y cálculos de Potencia de Prueba.</p>
-        </div>
-        <div class="card">
-            <h2>Prueba de Hipótesis sobre la Media Poblacional</h2>
-            <p>Realice pruebas de hipótesis para evaluar la media poblacional.</p>
-            <a href="prueba_media.html" class="btn">Ir a Prueba de Hipótesis sobre la Media</a>
-        </div>
-        <div class="card">
-            <h2>Prueba de Hipótesis sobre la Varianza Poblacional</h2>
-            <p>Realice pruebas de hipótesis para evaluar la varianza poblacional.</p>
-            <a href="prueba_varianza.html" class="btn">Ir a Prueba de Hipótesis sobre la Varianza</a>
-        </div>
-        <div class="card">
-            <h2>Análisis de Varianza</h2>
-            <p>Realice pruebas de ANOVA para evaluar diferencias significativas entre grupos.</p>
-            <a href="anova.html" class="btn">Ir a ANOVA</a>
-        </div>
-        <div class="card">
-            <h2>Potencia de una Prueba</h2>
-            <p>Calcule la potencia estadística para diferentes tipos de pruebas y escenarios.</p>
-            <a href="potencia_prueba.html" class="btn">Ir a Potencia de Prueba</a>
-        </div>
-        <div class="card">
-            <h2>Análisis de Regresión</h2>
-            <p>Explore relaciones entre variables y ajuste modelos de regresión lineal.</p>
-            <a href="analisis_regresion.html" class="btn">Ir a Regresión</a>
+        <div class="grid-container">
+            <div class="card">
+                <h2>Simulaciones del Teorema Central del Límite</h2>
+                <p>Simulaciones con distintas distribuciones de X.</p>
+                <a href="tcl.html" class="btn">Ir a Teorema Central del Límite</a>
+            </div>
+            <div class="card">
+                <h2>Prueba de Hipótesis sobre la Media Poblacional</h2>
+                <p>Realice pruebas de hipótesis para evaluar la media poblacional.</p>
+                <a href="prueba_media.html" class="btn">Ir a Prueba de Hipótesis sobre la Media</a>
+            </div>
+            <div class="card">
+                <h2>Prueba de Hipótesis sobre la Varianza Poblacional</h2>
+                <p>Realice pruebas de hipótesis para evaluar la varianza poblacional.</p>
+                <a href="prueba_varianza.html" class="btn">Ir a Prueba de Hipótesis sobre la Varianza</a>
+            </div>
+            <div class="card">
+                <h2>Análisis de Varianza</h2>
+                <p>Realice pruebas de ANOVA para evaluar diferencias significativas entre grupos.</p>
+                <a href="anova.html" class="btn">Ir a ANOVA</a>
+            </div>
+            <div class="card">
+                <h2>Potencia de una Prueba</h2>
+                <p>Calcule la potencia estadística para diferentes tipos de pruebas y escenarios.</p>
+                <a href="potencia_prueba.html" class="btn">Ir a Potencia de Prueba</a>
+            </div>
+            <div class="card">
+                <h2>Análisis de Regresión</h2>
+                <p>Explore relaciones entre variables y ajuste modelos de regresión lineal.</p>
+                <a href="analisis_regresion.html" class="btn">Ir a Análisis de Regresión</a>
+            </div>
         </div>
     </div>
     <footer>

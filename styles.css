@@ -71,6 +71,7 @@ nav ul {
 
 nav li {
     display: inline-block;
+    position: relative;
     margin: 0 10px;
 }
 
@@ -79,10 +80,47 @@ nav a {
     text-decoration: none;
     font-size: 18px;
     transition: color 0.3s;
+    padding: 5px;
+    display: block;
 }
+
 nav a:hover {
     color: #181832;
 }
+
+nav ul ul {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #f9f9f9;
+    padding: 0;
+    list-style-type: none;
+    z-index: 1000;
+}
+
+nav ul ul li {
+    display: block;
+}
+
+nav ul ul li a {
+    color: #181832;
+    padding: 10px;
+    background-color: #f9f9f9;
+    width: 150px;
+    text-align: left;
+}
+
+nav ul ul li a:hover {
+    background-color: #ccc;
+}
+
+nav li:hover > ul {
+    display: block;
+}
+
+
+
 
 #container {
     display: flex;
@@ -316,8 +354,11 @@ th {
     color: white;
     font-size: 18px;
     cursor: pointer;
+    overflow-y: auto;
     transition: background-color 0.3s, box-shadow 0.3s;
 }
+
+
 #sidebar button:hover {
     background-color: #21a1f1;
     box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
@@ -492,8 +533,31 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
     color: #333;
 }
 
+
+   /* Responsividad */
+   @media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    #sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+
+    nav ul {
+        text-align: center;
+    }
+
+    nav li {
+        display: block;
+        margin: 5px 0;
+    }
+}
+
 /* Responsividad */
-@media (max-width: 768px) {
+/* @media (max-width: 768px) {
     #container {
         flex-direction: column;
     }
@@ -507,7 +571,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
         width: 100%;
         padding: 10px;
     }
-}
+} */
 
 /* Estilos para el botón */
 .btn {
@@ -543,3 +607,95 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
     outline: none; /* Quitar el contorno predeterminado */
     box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.5); /* Sombra azul para indicar enfoque */
 }
+
+
+
+
+
+/* Botón de Simulación */
+#iniciarSimulacion {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#iniciarSimulacion i {
+    margin-right: 8px;
+}
+
+#iniciarSimulacion:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+}
+
+#iniciarSimulacion:active {
+    transform: translateY(0px);
+}
+
+/* Gráficos */
+#graphs {
+    flex: 2;
+    min-width: 300px;
+}
+
+.grafico {
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.grafico h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+/* Footer */
+footer {
+    background-color: #333; /* Gris oscuro */
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #controls {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}
+
+
+        /* Gráficos */
+        .grafico {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .grafico h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }

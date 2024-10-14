@@ -122,7 +122,7 @@ function generarDatosRegresion(intercepto, pendiente, desviacionErrores, tamanoP
         if (violarNormalidad) {
             // Introducir outliers o errores no normales
             if (Math.random() < 0.25) { // % de los puntos son outliers
-                yi += jStat.uniform.sample(-100, 100);
+                yi += jStat.uniform.sample(-10, 10);
             }
         }
         xPoblacion.push(xi);
