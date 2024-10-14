@@ -145,12 +145,12 @@ function mostrarResultadosVarianza(sigma0, s, n, chi2, chi2CriticalLower, chi2Cr
                     <td>${n}</td>
                 </tr>
                 <tr>
-                    <td>Estadístico de Prueba (χ²)</td>
-                    <td>${chi2Formatted}</td>
+                    <td>Grados de Libertad (n-1)</td>
+                    <td>${n-1}</td>
                 </tr>
                 <tr>
-                    <td>Valor Crítico Inferior (χ²₁)</td>
-                    <td>${chi2CritLowerFormatted}</td>
+                    <td>Estadístico de Prueba (χ²)</td>
+                    <td>${chi2Formatted}</td>
                 </tr>
                 <tr>
                     <td>Valor Crítico Superior (χ²₂)</td>
@@ -178,7 +178,7 @@ function mostrarResultadosVarianza(sigma0, s, n, chi2, chi2CriticalLower, chi2Cr
 function crearGraficoVarianza(chi2, chi2CriticalLower, chi2CriticalUpper, alpha, tipoTest, df) {
     const data = [];
     const layout = {
-        title: `Distribución Chi-Cuadrado (df = ${df})`,
+        title: `Distribución Chi-Cuadrado (gl = ${df})`,
         xaxis: { title: 'Valor de χ²' },
         yaxis: { title: 'Densidad' },
         shapes: []
@@ -258,8 +258,8 @@ function crearGraficoVarianza(chi2, chi2CriticalLower, chi2CriticalUpper, alpha,
     // Definir las áreas del p-valor en verde
     if (tipoTest === 'two-tailed') {
         // Determinar cuál cola tiene el p-valor menor
-        const cdfLower = jStat.chisquare.cdf(chi2, df);
-        const cdfUpper = 1 - jStat.chisquare.cdf(chi2, df);
+
+        
         if (cdfLower < cdfUpper) {
             // Área a la izquierda
             const pValueArea1 = {

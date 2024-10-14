@@ -109,6 +109,8 @@ function actualizarPrueba() {
 
     // Crear gráfico
     crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest);
+
+    crearGraficoMediaMuestral(mu0,se,xBar);
 }
 
 // Función para mostrar los resultados en la página
@@ -290,11 +292,11 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
         // Determinar cuál cola tiene el p-valor menor
         const cdfLower = jStat.normal.cdf(z, 0, 1);
         const cdfUpper = 1 - jStat.normal.cdf(z, 0, 1);
-        if (cdfLower < cdfUpper) {
+    //    if (cdfLower < cdfUpper) {
             // Área a la izquierda
             const pValueArea1 = {
-                x: xValues.filter(x => x <= z),
-                y: yValues.slice(0, xValues.findIndex(x => x > z)),
+                x: xValues.filter(x => x <= -z),
+                y: yValues.slice(0, xValues.findIndex(x => x > -z)),
                 fill: 'tozeroy',
                 type: 'scatter',
                 mode: 'none',
@@ -302,7 +304,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
                 name: 'p-Valor Izquierda'
             };
             data.push(pValueArea1);
-        } else {
+  //      } else {
             // Área a la derecha
             const pValueArea2 = {
                 x: xValues.filter(x => x >= z),
@@ -314,7 +316,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
                 name: 'p-Valor Derecha'
             };
             data.push(pValueArea2);
-        }
+   //     }
     } else if (tipoTest === 'left-tailed') {
         // Área a la izquierda
         const pValueArea = {
@@ -344,7 +346,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
     // Añadir el estadístico observado
     data.push({
         x: [z],
-        y: [jStat.normal.pdf(z, 0, 1)],
+        y: [0],
         type: 'scatter',
         mode: 'markers',
         name: 'Estadístico Observado',
@@ -353,6 +355,60 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
 
     // Plotear el gráfico
     Plotly.newPlot('graficaDistribucion', data, layout);
+
+}
+
+
+function crearGraficoMediaMuestral(mu0, se, xBar) {
+    const data = [];
+    const layout = {
+        title: 'Distribución de la Media Muestral',
+        xaxis: { title: 'Media Muestral (x̄)' },
+        yaxis: { title: 'Densidad' }
+    };
+
+    // Definir el rango para el gráfico
+    const xMin = mu0 - 4 * se;
+    const xMax = mu0 + 4 * se;
+    const step = (xMax - xMin) / 1000;
+    const xValues = [];
+    const yValues = [];
+
+    for (let x = xMin; x <= xMax; x += step) {
+        xValues.push(x);
+        yValues.push(jStat.normal.pdf(x, mu0, se));
+    }
+
+    // Crear la curva de la distribución de la media muestral
+    data.push({
+        x: xValues,
+        y: yValues,
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Distribución de la Media Muestral',
+        line: { color: '#1f77b4' }
+    });
+
+    data.push({
+        x: [xBar],
+        y: [0],
+        type: 'scatter',
+        mode: 'markers',
+        name: 'Media Muestral',
+        marker: { color: 'green', size: 10 }
+    });
+
+    data.push({
+        x: [mu0],
+        y: [0],
+        type: 'scatter',
+        mode: 'markers',
+        name: 'Media Bajo H₀',
+        marker: { color: 'red', size: 10 }
+    });
+
+    // Plotear el gráfico
+    Plotly.newPlot('graficaMediaMuestral', data, layout);
 }
 
 // Iniciar la sección de Prueba de Hipótesis cuando la página carga
