@@ -60,6 +60,9 @@ h1 {
 nav {
     background-color: #646464;
     padding: 10px;
+    margin-left: 300px; /* Añade este margen izquierdo */
+    width: calc(100% - 300px); /* Ajusta el ancho para ocupar el espacio restante */
+    box-sizing: border-box; /* Asegura que el padding y el borde se incluyan en el cálculo del ancho */
 }
 
 nav ul {

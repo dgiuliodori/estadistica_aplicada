@@ -14,7 +14,7 @@ function iniciarAnalisisRegresion() {
         <h2>Parámetros</h2>
         <div class="parametros">
             <div class="slider-container">
-                <label for="beta0Slider">Intercepto (β₀): <span id="beta0Value" class="slider-value">2.0</span></label>
+                <label for="beta0Slider">Constante (β₀): <span id="beta0Value" class="slider-value">2.0</span></label>
                 <input type="range" id="beta0Slider" min="-5" max="5" step="0.1" value="2.0">
             </div>
             <div class="slider-container">
@@ -240,24 +240,24 @@ function actualizarAnalisis() {
                     <th>Coeficiente</th>
                     <th>Error Estándar</th>
                     <th>t</th>
-                    <th>p</th>
+                    <th>p-valor</th>
                     <th>Intervalo de Confianza (95%)</th>
                 </tr>
                 <tr>
-                    <td>b₁ (Pendiente)</td>
-                    <td>${beta1_est.toFixed(4)}</td>
-                    <td>${se_beta1.toFixed(4)}</td>
-                    <td>${t_beta1.toFixed(4)}</td>
-                    <td>${p_value_beta1.toFixed(4)}</td>
-                    <td>[${ci_beta1[0].toFixed(4)}, ${ci_beta1[1].toFixed(4)}]</td>
-                </tr>
-                <tr>
-                    <td>b₀ (Intercepto)</td>
+                    <td> Constante (b₀) </td>
                     <td>${beta0_est.toFixed(4)}</td>
                     <td>${se_beta0.toFixed(4)}</td>
                     <td>${t_beta0.toFixed(4)}</td>
                     <td>${p_value_beta0.toFixed(4)}</td>
                     <td>[${ci_beta0[0].toFixed(4)}, ${ci_beta0[1].toFixed(4)}]</td>
+                </tr>
+                <tr>
+                    <td> Pendiente (b₁)</td>
+                    <td>${beta1_est.toFixed(4)}</td>
+                    <td>${se_beta1.toFixed(4)}</td>
+                    <td>${t_beta1.toFixed(4)}</td>
+                    <td>${p_value_beta1.toFixed(4)}</td>
+                    <td>[${ci_beta1[0].toFixed(4)}, ${ci_beta1[1].toFixed(4)}]</td>
                 </tr>
             </table>
         </div>
