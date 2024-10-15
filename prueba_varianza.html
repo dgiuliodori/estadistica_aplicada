@@ -38,22 +38,47 @@
                         <option value="two-tailed">Dos Colas</option> -->
                     </select>
                 </div>
-                <div class="slider-container">
-                    <label for="sigma0">Valor bajo Hipótesis Nula (σ₀²): <span id="sigma0Value" class="slider-value">25</span></label>
-                    <input type="range" id="sigma0" min="1" max="100" step="1" value="25">
+
+                <div class="input-container">
+                    <label for="sigma0Input">Valor bajo Hipótesis Nula (σ₀²):</label>
+                    <input type="number" id="sigma0Input" value="25" step="1">
                 </div>
                 <div class="slider-container">
-                    <label for="s">Varianza Muestral (s²): <span id="sValue" class="slider-value">30</span></label>
-                    <input type="range" id="s" min="1" max="100" step="1" value="30">
+                    <label for="sigma0Slider">Valor bajo Hipótesis Nula (σ₀²): <span id="sigma0Value">25</span></label>
+                    <input type="range" id="sigma0Slider" step="1" value="25">
+                </div>
+
+                <div class="input-container">
+                    <label for="sInput">Varianza Muestral (s²):</label>
+                    <input type="number" id="sInput" value="22" step="1">
                 </div>
                 <div class="slider-container">
-                    <label for="n">Tamaño de Muestra (n): <span id="nValue" class="slider-value">7</span></label>
-                    <input type="range" id="n" min="2" max="100" step="1" value="7">
+                    <label for="sSlider">Varianza Muestral (s²): <span id="sValue">22</span></label>
+                    <input type="range" id="sSlider" step="1" value="22">
+                </div>
+
+                <div class="input-container">
+                    <label for="nInput">Tamaño de Muestra (n):</label>
+                    <input type="number" id="nInput" value="7" step="1">
                 </div>
                 <div class="slider-container">
+                    <label for="nSlider">Tamaño de Muestra (n): <span id="nValue">7</span></label>
+                    <input type="range" id="nSlider" step="1" value="7">
+                </div>
+
+                <div class="input-container">
+                    <label for="alphaInput">Nivel de Significancia (α):</label>
+                    <input type="number" id="alphaInput" value="0.05" step="0.01">
+                </div>
+                <div class="slider-container">
+                    <label for="alphaSlider">Nivel de Significancia (α): <span id="alphaValue">0.05</span></label>
+                    <input type="range" id="alphaSlider" step="0.01" value="0.05">
+                </div>
+
+<!--                 <div class="slider-container">
                     <label for="alphaSlider">Nivel de Significancia (α): <span id="alphaValue" class="slider-value">0.05</span></label>
                     <input type="range" id="alphaSlider" min="0.01" max="0.20" step="0.01" value="0.05">
-                </div>
+                </div> -->
                 
             </div>
         </div>

@@ -535,7 +535,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
 
 
    /* Responsividad */
-   @media (max-width: 768px) {
+   /* @media (max-width: 768px) {
     .main-container {
         flex-direction: column;
     }
@@ -554,7 +554,7 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus {
         display: block;
         margin: 5px 0;
     }
-}
+} */
 
 /* Responsividad */
 /* @media (max-width: 768px) {

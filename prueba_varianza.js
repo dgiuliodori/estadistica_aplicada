@@ -3,33 +3,190 @@
 // Función para iniciar la sección de Prueba de Hipótesis sobre la Varianza
 function iniciarPruebaHipotesisVarianza() {
     // Obtener elementos de entrada
-    const sigma0Slider = document.getElementById('sigma0');
-    const sigma0Value = document.getElementById('sigma0Value');
-    const sSlider = document.getElementById('s');
+    const sigma0Input = document.getElementById('sigma0Input');
+    const sigma0Slider = document.getElementById('sigma0Slider');
+    const sInput = document.getElementById('sInput');
+    const sSlider = document.getElementById('sSlider');
+    // const sigma0Value = document.getElementById('sigma0Value');
+    // const sSlider = document.getElementById('s');
     const sValue = document.getElementById('sValue');
-    const nSlider = document.getElementById('n');
+    const nInput = document.getElementById('nInput');
+    const nSlider = document.getElementById('nSlider');
     const nValue = document.getElementById('nValue');
     const alphaSlider = document.getElementById('alphaSlider');
     const alphaValue = document.getElementById('alphaValue');
     const tipoTestSelect = document.getElementById('tipoTest');
     
+    sigma0Slider.min = "1";
+    sigma0Slider.max = "100";
+    sigma0Input.min = "1";
+    sigma0Input.max = "100";
+    sSlider.min = "1";
+    sSlider.max = "100";
+    sInput.min = "1";
+    sInput.max = "100";
+    nSlider.min = "2";
+    nSlider.max = "100";
+    nInput.min = "2";
+    nInput.max = "100";
+    alphaSlider.min = "0.01";
+    alphaSlider.max = "0.5";
+    alphaInput.min = "0.01";
+    alphaInput.max = "0.5";
+
+
+    // Sincronizar los valores iniciales
+    sigma0Input.value = sigma0Slider.value;
+    sigma0Value.innerText = parseFloat(sigma0Slider.value).toFixed(1);
+
+    sInput.value = sSlider.value;
+    sValue.innerText = parseFloat(sSlider.value).toFixed(1);
+
+    nInput.value = nSlider.value;
+    nValue.innerText = parseFloat(nSlider.value).toFixed(1);
+
+    alphaInput.value = alphaSlider.value;
+    alphaValue.innerText = parseFloat(alphaSlider.value).toFixed(2);
+
     // Añadir eventos para actualizar cuando cambien los parámetros
+
+    //-------------------------------------------------------------------------------------------------//
+    // MEDIA POBLACIONA (H0)
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    sigma0Input.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(sigma0Slider.min)) {
+                sigma0Slider.min = value;
+            }
+            if (value > parseFloat(sigma0Slider.max)) {
+                sigma0Slider.max = value;
+            }
+
+            sigma0Slider.value = value;
+            sigma0Value.innerText = value.toFixed(1);
+            actualizarPruebaVarianza();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     sigma0Slider.addEventListener('input', function() {
-        sigma0Value.innerText = parseFloat(this.value).toFixed(2);
+        let value = parseFloat(this.value);
+        sigma0Input.value = value;
+        sigma0Value.innerText = value.toFixed(1);
         actualizarPruebaVarianza();
     });
+
+
+    //-------------------------------------------------------------------------------------------------//
+    // VARIANZA MUESTRAL - sSlider
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    sInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(sSlider.min)) {
+                sSlider.min = value;
+            }
+            if (value > parseFloat(sSlider.max)) {
+                sSlider.max = value;
+            }
+
+            sSlider.value = value;
+            sValue.innerText = value.toFixed(1);
+            actualizarPruebaVarianza();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     sSlider.addEventListener('input', function() {
-        sValue.innerText = parseFloat(this.value).toFixed(2);
+        let value = parseFloat(this.value);
+        sInput.value = value;
+        sValue.innerText = value.toFixed(1);
         actualizarPruebaVarianza();
     });
+
+    //-------------------------------------------------------------------------------------------------//
+    // TAMAÑO DE LA MUESTRA - nSlider
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    nInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(nSlider.min)) {
+                nSlider.min = value;
+            }
+            if (value > parseFloat(nSlider.max)) {
+                nSlider.max = value;
+            }
+
+            nSlider.value = value;
+            nValue.innerText = value.toFixed(0);
+            actualizarPruebaVarianza();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     nSlider.addEventListener('input', function() {
-        nValue.innerText = parseInt(this.value);
+        let value = parseFloat(this.value);
+        nInput.value = value;
+        nValue.innerText = value.toFixed(0);
         actualizarPruebaVarianza();
     });
+
+
+    //-------------------------------------------------------------------------------------------------//
+    // NIVEL DE SIGNIFICANCIA - alphaSlider
+    //-------------------------------------------------------------------------------------------------//
+
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    alphaInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(alphaSlider.min)) {
+                alphaSlider.min = value;
+            }
+            if (value > parseFloat(alphaSlider.max)) {
+                alphaSlider.max = value;
+            }
+
+            alphaSlider.value = value;
+            alphaValue.innerText = value.toFixed(2);
+            actualizarPruebaVarianza();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     alphaSlider.addEventListener('input', function() {
-        alphaValue.innerText = parseFloat(this.value).toFixed(2);
+        let value = parseFloat(this.value);
+        alphaInput.value = value;
+        alphaValue.innerText = value.toFixed(2);
         actualizarPruebaVarianza();
     });
+
+
+    // alphaSlider.addEventListener('input', function() {
+    //     alphaValue.innerText = parseFloat(this.value).toFixed(2);
+    //     actualizarPruebaVarianza();
+    // });
+
     tipoTestSelect.addEventListener('change', actualizarPruebaVarianza);
     
     // Realizar el análisis inicial
@@ -39,10 +196,10 @@ function iniciarPruebaHipotesisVarianza() {
 // Función para actualizar la Prueba de Hipótesis sobre la Varianza
 function actualizarPruebaVarianza() {
     // Obtener valores de los parámetros
-    const sigma0 = parseFloat(document.getElementById('sigma0').value);
-    const s = parseFloat(document.getElementById('s').value);
-    const n = parseInt(document.getElementById('n').value);
-    const alpha = parseFloat(document.getElementById('alphaSlider').value);
+    const sigma0 = parseFloat(document.getElementById('sigma0Input').value);
+    const s = parseFloat(document.getElementById('sInput').value);
+    const n = parseInt(document.getElementById('nInput').value);
+    const alpha = parseFloat(document.getElementById('alphaInput').value);
     const tipoTest = document.getElementById('tipoTest').value;
     
     // Validaciones básicas
@@ -181,7 +338,38 @@ function crearGraficoVarianza(chi2, chi2CriticalLower, chi2CriticalUpper, alpha,
         title: `Distribución Chi-Cuadrado (gl = ${df})`,
         xaxis: { title: 'Valor de χ²' },
         yaxis: { title: 'Densidad' },
-        shapes: []
+        shapes: [],
+        annotations: [ // Añadimos las anotaciones aquí
+            {
+                x: chi2,
+                // y: jStat.normal.pdf(xBar, mu0, se),
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `Obs = ${chi2.toFixed(1)}`,
+                showarrow: true,
+                arrowhead: 1,
+                ax: 40,
+                ay: 25,
+                font: {
+                    color: 'green'
+                }
+            },
+            {
+                x: chi2CriticalUpper,
+                y: 0, 
+                xref: 'x',
+                yref: 'y',
+                text: `χ² = ${chi2CriticalUpper.toFixed(1)}`,
+                showarrow: true,
+                arrowhead: 1,
+                ax: 50,
+                ay: 10,
+                font: {
+                    color: 'red'
+                }
+            },
+        ]
     };
     
     // Definir el rango para el gráfico
@@ -314,12 +502,16 @@ function crearGraficoVarianza(chi2, chi2CriticalLower, chi2CriticalUpper, alpha,
     // Añadir el estadístico observado
     data.push({
         x: [chi2],
-        y: [jStat.chisquare.pdf(chi2, df)],
+        // y: [jStat.chisquare.pdf(chi2, df)],
+        y: 0,
         type: 'scatter',
         mode: 'markers',
         name: 'Estadístico Observado',
         marker: { color: 'green', size: 10 }
     });
+
+
+    
     
     // Plotear el gráfico
     Plotly.newPlot('graficaDistribucionVarianza', data, layout);

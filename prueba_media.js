@@ -1,12 +1,18 @@
-// prueba_hipotesis_media.js
+// prueba_media.js
 
 // Función para iniciar la sección de Prueba de Hipótesis sobre la Media
 function iniciarPruebaHipotesisMedia() {
     // Obtener elementos de entrada
-    const mu0Slider = document.getElementById('mu0');
-    const sigmaSlider = document.getElementById('sigma');
-    const xBarSlider = document.getElementById('xBar');
-    const nSlider = document.getElementById('n');
+    const mu0Input = document.getElementById('mu0Input');
+    const mu0Slider = document.getElementById('mu0Slider');
+    const sigmaInput = document.getElementById('sigmaInput');
+    const sigmaSlider = document.getElementById('sigmaSlider');
+    
+    const xBarInput = document.getElementById('xBarInput');
+    const xBarSlider = document.getElementById('xBarSlider');
+    const nInput = document.getElementById('nInput');
+    const nSlider = document.getElementById('nSlider');
+    const alphaInput = document.getElementById('alphaInput');
     const alphaSlider = document.getElementById('alphaSlider');
     const tipoTestSelect = document.getElementById('tipoTest');
 
@@ -17,31 +23,216 @@ function iniciarPruebaHipotesisMedia() {
     const nValue = document.getElementById('nValue');
     const alphaValue = document.getElementById('alphaValue');
 
+    // Establecer valores iniciales y límites
+    mu0Slider.min = "0";
+    mu0Slider.max = "100";
+    mu0Input.min = "0";
+    mu0Input.max = "100";
+    sigmaSlider.min = "1";
+    sigmaSlider.max = "100";
+    sigmaInput.min = "1";
+    sigmaInput.max = "100";
+    xBarSlider.min = "0";
+    xBarSlider.max = "100";
+    xBarInput.min = "0";
+    xBarInput.max = "100";
+    nSlider.min = "10";
+    nSlider.max = "100";
+    nInput.min = "10";
+    nInput.max = "100";
+    alphaSlider.min = "0.01";
+    alphaSlider.max = "0.5";
+    alphaInput.min = "0.01";
+    alphaInput.max = "0.5";
+
+    
+    // Sincronizar los valores iniciales
+    mu0Input.value = mu0Slider.value;
+    mu0Value.innerText = parseFloat(mu0Slider.value).toFixed(1);
+
+    sigmaInput.value = sigmaSlider.value;
+    sigmaValue.innerText = parseFloat(sigmaSlider.value).toFixed(1);
+
+    xBarInput.value = xBarSlider.value;
+    xBarValue.innerText = parseFloat(xBarSlider.value).toFixed(1);
+
+    nInput.value = nSlider.value;
+    nValue.innerText = parseFloat(nSlider.value).toFixed(1);
+
+    alphaInput.value = alphaSlider.value;
+    alphaValue.innerText = parseFloat(alphaSlider.value).toFixed(2);
+
     // Añadir eventos para actualizar cuando cambien los parámetros
+
+    //-------------------------------------------------------------------------------------------------//
+    // MEDIA POBLACIONA (H0)
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    mu0Input.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(mu0Slider.min)) {
+                mu0Slider.min = value;
+            }
+            if (value > parseFloat(mu0Slider.max)) {
+                mu0Slider.max = value;
+            }
+
+            mu0Slider.value = value;
+            mu0Value.innerText = value.toFixed(1);
+            actualizarPrueba();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     mu0Slider.addEventListener('input', function() {
-        mu0Value.innerText = parseFloat(this.value).toFixed(1);
+        let value = parseFloat(this.value);
+        mu0Input.value = value;
+        mu0Value.innerText = value.toFixed(1);
         actualizarPrueba();
     });
 
+    //-------------------------------------------------------------------------------------------------//
+    // SIGMA - DESVIACIÓN ESTÁNDARD
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    sigmaInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(sigmaSlider.min)) {
+                sigmaSlider.min = value;
+            }
+            if (value > parseFloat(sigmaSlider.max)) {
+                sigmaSlider.max = value;
+            }
+
+            sigmaSlider.value = value;
+            sigmaValue.innerText = value.toFixed(1);
+            actualizarPrueba();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     sigmaSlider.addEventListener('input', function() {
-        sigmaValue.innerText = parseFloat(this.value).toFixed(1);
+        let value = parseFloat(this.value);
+        sigmaInput.value = value;
+        sigmaValue.innerText = value.toFixed(1);
         actualizarPrueba();
     });
 
+    //-------------------------------------------------------------------------------------------------//
+    // MEDIA MUESTRAL - xBarSlider
+    //-------------------------------------------------------------------------------------------------//
+
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    xBarInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(xBarSlider.min)) {
+                xBarSlider.min = value;
+            }
+            if (value > parseFloat(xBarSlider.max)) {
+                xBarSlider.max = value;
+            }
+
+            xBarSlider.value = value;
+            xBarValue.innerText = value.toFixed(1);
+            actualizarPrueba();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     xBarSlider.addEventListener('input', function() {
-        xBarValue.innerText = parseFloat(this.value).toFixed(1);
+        let value = parseFloat(this.value);
+        xBarInput.value = value;
+        xBarValue.innerText = value.toFixed(1);
         actualizarPrueba();
     });
 
+
+    //-------------------------------------------------------------------------------------------------//
+    // TAMAÑO DE LA MUESTRA - nSlider
+    //-------------------------------------------------------------------------------------------------//
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    nInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(nSlider.min)) {
+                nSlider.min = value;
+            }
+            if (value > parseFloat(nSlider.max)) {
+                nSlider.max = value;
+            }
+
+            nSlider.value = value;
+            nValue.innerText = value.toFixed(1);
+            actualizarPrueba();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     nSlider.addEventListener('input', function() {
-        nValue.innerText = parseInt(this.value);
+        let value = parseFloat(this.value);
+        nInput.value = value;
+        nValue.innerText = value.toFixed(1);
         actualizarPrueba();
     });
 
+
+    //-------------------------------------------------------------------------------------------------//
+    // NIVEL DE SIGNIFICANCIA - alphaSlider
+    //-------------------------------------------------------------------------------------------------//
+
+
+    // Evento para actualizar el slider cuando cambia el input numérico
+    alphaInput.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+
+        // Validar si el valor es un número
+        if (!isNaN(value)) {
+            // Ajustar el slider para incluir el valor si está fuera del rango actual
+            if (value < parseFloat(alphaSlider.min)) {
+                alphaSlider.min = value;
+            }
+            if (value > parseFloat(alphaSlider.max)) {
+                alphaSlider.max = value;
+            }
+
+            alphaSlider.value = value;
+            alphaValue.innerText = value.toFixed(2);
+            actualizarPrueba();
+        }
+    });
+
+    // Evento para actualizar el input numérico cuando cambia el slider
     alphaSlider.addEventListener('input', function() {
-        alphaValue.innerText = parseFloat(this.value).toFixed(2);
+        let value = parseFloat(this.value);
+        alphaInput.value = value;
+        alphaValue.innerText = value.toFixed(2);
         actualizarPrueba();
     });
+
+
+    // alphaSlider.addEventListener('input', function() {
+    //     alphaValue.innerText = parseFloat(this.value).toFixed(2);
+    //     actualizarPrueba();
+    // });
 
     tipoTestSelect.addEventListener('change', function() {
         actualizarPrueba();
@@ -54,11 +245,11 @@ function iniciarPruebaHipotesisMedia() {
 // Función para actualizar la Prueba de Hipótesis
 function actualizarPrueba() {
     // Obtener valores de los parámetros
-    const mu0 = parseFloat(document.getElementById('mu0').value);
-    const sigma = parseFloat(document.getElementById('sigma').value);
-    const xBar = parseFloat(document.getElementById('xBar').value);
-    const n = parseInt(document.getElementById('n').value);
-    const alpha = parseFloat(document.getElementById('alphaSlider').value);
+    const mu0 = parseFloat(document.getElementById('mu0Input').value);
+    const sigma = parseFloat(document.getElementById('sigmaInput').value);
+    const xBar = parseFloat(document.getElementById('xBarInput').value);
+    const n = parseInt(document.getElementById('nInput').value);
+    const alpha = parseFloat(document.getElementById('alphaInput').value);
     const tipoTest = document.getElementById('tipoTest').value;
 
     // Validaciones básicas
@@ -110,7 +301,7 @@ function actualizarPrueba() {
     // Crear gráfico
     crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest);
 
-    crearGraficoMediaMuestral(mu0,se,xBar);
+    crearGraficoMediaMuestral(mu0, se, xBar);
 }
 
 // Función para mostrar los resultados en la página
@@ -213,7 +404,8 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
         title: 'Distribución del Estadístico de Prueba',
         xaxis: { title: 'Valor de z' },
         yaxis: { title: 'Densidad' },
-        shapes: []
+        shapes: [], // Añadimos esta línea para incluir formas (líneas verticales)
+        annotations: [] // Añadimos esta línea para incluir anotaciones de texto
     };
 
     // Definir el rango para el gráfico
@@ -248,7 +440,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
             type: 'scatter',
             mode: 'none',
             fillcolor: 'rgba(255, 0, 0, 0.3)', // Rojo semitransparente
-            name: 'Error Tipo I Izquierda'
+            name: 'Región Crítica Izquierda'
         };
         // Área a la derecha
         const errorTipoI2 = {
@@ -258,7 +450,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
             type: 'scatter',
             mode: 'none',
             fillcolor: 'rgba(255, 0, 0, 0.3)', // Rojo semitransparente
-            name: 'Error Tipo I Derecha'
+            name: 'Región Crítica Derecha'
         };
         data.push(errorTipoI1, errorTipoI2);
     } else if (tipoTest === 'left-tailed') {
@@ -270,7 +462,7 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
             type: 'scatter',
             mode: 'none',
             fillcolor: 'rgba(255, 0, 0, 0.3)', // Rojo semitransparente
-            name: 'Error Tipo I'
+            name: 'Región Crítica'
         };
         data.push(errorTipoI);
     } else if (tipoTest === 'right-tailed') {
@@ -282,41 +474,34 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
             type: 'scatter',
             mode: 'none',
             fillcolor: 'rgba(255, 0, 0, 0.3)', // Rojo semitransparente
-            name: 'Error Tipo I'
+            name: 'Región Crítica'
         };
         data.push(errorTipoI);
     }
 
     // Definir las áreas del p-valor en verde
     if (tipoTest === 'two-tailed') {
-        // Determinar cuál cola tiene el p-valor menor
-        const cdfLower = jStat.normal.cdf(z, 0, 1);
-        const cdfUpper = 1 - jStat.normal.cdf(z, 0, 1);
-    //    if (cdfLower < cdfUpper) {
-            // Área a la izquierda
-            const pValueArea1 = {
-                x: xValues.filter(x => x <= -z),
-                y: yValues.slice(0, xValues.findIndex(x => x > -z)),
-                fill: 'tozeroy',
-                type: 'scatter',
-                mode: 'none',
-                fillcolor: 'rgba(0, 255, 0, 0.3)', // Verde semitransparente
-                name: 'p-Valor Izquierda'
-            };
-            data.push(pValueArea1);
-  //      } else {
-            // Área a la derecha
-            const pValueArea2 = {
-                x: xValues.filter(x => x >= z),
-                y: yValues.slice(xValues.findIndex(x => x >= z)),
-                fill: 'tozeroy',
-                type: 'scatter',
-                mode: 'none',
-                fillcolor: 'rgba(0, 255, 0, 0.3)', // Verde semitransparente
-                name: 'p-Valor Derecha'
-            };
-            data.push(pValueArea2);
-   //     }
+        // Área a la izquierda
+        const pValueArea1 = {
+            x: xValues.filter(x => x <= -Math.abs(z)),
+            y: yValues.slice(0, xValues.findIndex(x => x > -Math.abs(z))),
+            fill: 'tozeroy',
+            type: 'scatter',
+            mode: 'none',
+            fillcolor: 'rgba(0, 255, 0, 0.3)', // Verde semitransparente
+            name: 'p-Valor Izquierda'
+        };
+        // Área a la derecha
+        const pValueArea2 = {
+            x: xValues.filter(x => x >= Math.abs(z)),
+            y: yValues.slice(xValues.findIndex(x => x >= Math.abs(z))),
+            fill: 'tozeroy',
+            type: 'scatter',
+            mode: 'none',
+            fillcolor: 'rgba(0, 255, 0, 0.3)', // Verde semitransparente
+            name: 'p-Valor Derecha'
+        };
+        data.push(pValueArea1, pValueArea2);
     } else if (tipoTest === 'left-tailed') {
         // Área a la izquierda
         const pValueArea = {
@@ -347,24 +532,252 @@ function crearGrafico(z, zCriticalLower, zCriticalUpper, alpha, tipoTest) {
     data.push({
         x: [z],
         y: [0],
+        // y: [jStat.normal.pdf(z, 0, 1)],
         type: 'scatter',
         mode: 'markers',
-        name: 'Estadístico Observado',
-        marker: { color: 'green', size: 10 }
+        name: 'Estadístico Observado (z)',
+        marker: { color: 'black', size: 8 }
     });
+
+    // Añadir líneas verticales y anotaciones para los valores críticos
+    if (tipoTest === 'two-tailed') {
+        // Línea y anotación para zCriticalLower
+        if (zCriticalLower !== null) {
+            layout.shapes.push({
+                type: 'line',
+                x0: zCriticalLower,
+                y0: 0,
+                x1: zCriticalLower,
+                y1: 0,
+                // y1: jStat.normal.pdf(zCriticalLower, 0, 1),
+                line: {
+                    color: 'red',
+                    width: 1,
+                    dash: 'solid'
+                }
+            });
+            layout.annotations.push({
+                x: zCriticalLower,
+                // y: jStat.normal.pdf(zCriticalLower, 0, 1),
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z₁ = ${zCriticalLower.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: -40,
+                ay: 10,
+                font: {
+                    color: 'red'
+                }
+
+            });
+            layout.annotations.push({
+                x: z,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z = ${z.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: z < 0 ? -40 : 40, // Ajusta la dirección de la flecha según el signo de z
+                ay: 20,
+                font: {
+                    color: 'black'
+                }
+            });
+        }
+
+        // Línea y anotación para zCriticalUpper
+        if (zCriticalUpper !== null) {
+            layout.shapes.push({
+                type: 'line',
+                x0: zCriticalUpper,
+                y0: 0,
+                x1: zCriticalUpper,
+                y1: jStat.normal.pdf(zCriticalUpper, 0, 1),
+                line: {
+                    color: 'red',
+                    width: 1,
+                    dash: 'solid'
+                }
+            });
+            layout.annotations.push({
+                x: zCriticalUpper,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z₂ = ${zCriticalUpper.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: 40,
+                ay: 10,
+                font: {
+                    color: 'red'
+                }
+            });
+        }
+
+    } else if (tipoTest === 'left-tailed') {
+        // Línea y anotación para zCriticalLower
+        if (zCriticalLower !== null) {
+            layout.shapes.push({
+                type: 'line',
+                x0: zCriticalLower,
+                y0: 0,
+                x1: zCriticalLower,
+                y1: jStat.normal.pdf(zCriticalLower, 0, 1),
+                line: {
+                    color: 'red',
+                    width: 1,
+                    dash: 'solid'
+                }
+            });
+            layout.annotations.push({
+                x: zCriticalLower,
+                // y: jStat.normal.pdf(zCriticalLower, 0, 1),
+                y: 0,
+                xref: 'x', 
+                yref: 'y',
+                text: `z₁ = ${zCriticalLower.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: -40,
+                ay: 10,
+                font: {
+                    color: 'red'
+                }
+            });
+            layout.annotations.push({
+                x: z,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z = ${z.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: z < 0 ? -40 : 40, // Ajusta la dirección de la flecha según el signo de z
+                ay: -10,
+                font: {
+                    color: 'black'
+                }
+            });
+        }
+
+    } else if (tipoTest === 'right-tailed') {
+        // Línea y anotación para zCriticalUpper
+        if (zCriticalUpper !== null) {
+            layout.shapes.push({
+                type: 'line',
+                x0: zCriticalUpper,
+                y0: 0,
+                x1: zCriticalUpper,
+                y1: jStat.normal.pdf(zCriticalUpper, 0, 1),
+                line: {
+                    color: 'red',
+                    width: 1,
+                    dash: 'solid'
+                }
+            });
+            layout.annotations.push({
+                x: zCriticalUpper,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z₂ = ${zCriticalUpper.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: 40,
+                ay: 10,
+                font: {
+                    color: 'red'
+                }
+            });
+            layout.annotations.push({
+                x: z,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `z = ${z.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: z < 0 ? -40 : 40, // Ajusta la dirección de la flecha según el signo de z
+                ay: 20,
+                font: {
+                    color: 'black'
+                }
+            });
+        }
+    }
 
     // Plotear el gráfico
     Plotly.newPlot('graficaDistribucion', data, layout);
-
 }
-
 
 function crearGraficoMediaMuestral(mu0, se, xBar) {
     const data = [];
     const layout = {
         title: 'Distribución de la Media Muestral',
         xaxis: { title: 'Media Muestral (x̄)' },
-        yaxis: { title: 'Densidad' }
+        yaxis: { title: 'Densidad' },
+        shapes: [ // Añadimos las líneas verticales aquí
+            {
+                type: 'line',
+                x0: mu0,
+                y0: 0,
+                x1: mu0,
+                y1: jStat.normal.pdf(mu0, mu0, se),
+                line: {
+                    color: 'red',
+                    width: 1,
+                    dash: 'solid'
+                }
+            },
+            {
+                type: 'line',
+                x0: xBar,
+                y0: 0,
+                x1: xBar,
+                y1: jStat.normal.pdf(xBar, mu0, se),
+                line: {
+                    color: 'green',
+                    width: 1,
+                    dash: 'solid'
+                }
+            }
+        ],
+        annotations: [ // Añadimos las anotaciones aquí
+            {
+                x: mu0,
+                // y: jStat.normal.pdf(mu0, mu0, se),
+                y: 0, 
+                xref: 'x',
+                yref: 'y',
+                text: `μ₀ = ${mu0.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: -40,
+                ay: -25,
+                font: {
+                    color: 'red'
+                }
+            },
+            {
+                x: xBar,
+                // y: jStat.normal.pdf(xBar, mu0, se),
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `x̄ = ${xBar.toFixed(2)}`,
+                showarrow: true,
+                arrowhead: 2,
+                ax: 40,
+                ay: 15,
+                font: {
+                    color: 'green'
+                }
+            }
+        ]
     };
 
     // Definir el rango para el gráfico
@@ -389,22 +802,25 @@ function crearGraficoMediaMuestral(mu0, se, xBar) {
         line: { color: '#1f77b4' }
     });
 
+    // Añadir la media muestral observada
     data.push({
         x: [xBar],
+        // y: [jStat.normal.pdf(xBar, mu0, se)],
         y: [0],
         type: 'scatter',
         mode: 'markers',
-        name: 'Media Muestral',
-        marker: { color: 'green', size: 10 }
+        name: 'Media Muestral Observada',
+        marker: { color: 'green', size: 8 }
     });
 
+    // Añadir la media bajo H₀
     data.push({
         x: [mu0],
         y: [0],
         type: 'scatter',
         mode: 'markers',
         name: 'Media Bajo H₀',
-        marker: { color: 'red', size: 10 }
+        marker: { color: 'red', size: 8 }
     });
 
     // Plotear el gráfico
