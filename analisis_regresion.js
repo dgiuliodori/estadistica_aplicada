@@ -36,6 +36,10 @@ function iniciarAnalisisRegresion() {
         <div class="card">
             <a href="supuestos_regresion.html" class="btn">Análisis de los Supuestos</a>
              </div>
+             </br>
+             <div class="card">
+            <a href="variable_dummy.html" class="btn">Variables Dicotómicas</a>
+             </div>
             <p id="errorMsg" class="error"></p>
         </div>
     `;
@@ -200,7 +204,7 @@ function actualizarAnalisis() {
                     <th>df</th>
                     <th>MS</th>
                     <th>F(${df_model}, ${df_residual})</th>
-                    <th>p-value</th>
+                    <th>p-valor</th>
                 </tr>
                 <tr>
                     <td>Model</td>
@@ -233,7 +237,7 @@ function actualizarAnalisis() {
                 <li>R² ajustado = ${adj_R2.toFixed(4)}</li>
                 <li>Error Estándar de la Estimación (Root MSE) = ${s.toFixed(4)}</li>
             </ul>
-            <h3>Coeficientes</h3>
+            <h3>Resultados del Modelo de Regresión</h3>
             <table class="tabla-resumen">
                 <tr>
                     <th></th>

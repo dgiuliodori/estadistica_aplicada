@@ -1,31 +1,10 @@
-// script.js
+// potencia_prueba.js
 
 // JavaScript
 
 let datosGlobales = []; // Variable para almacenar los datos generados
 
-// Eventos para las pestañas del menú de navegación
-document.getElementById('regresion-lineal').addEventListener('click', function(event) {
-    event.preventDefault(); // Evita el comportamiento por defecto del enlace
-    mostrarFormularioParametros();
-});
-
-document.getElementById('analisis-interactivo').addEventListener('click', function(event) {
-    event.preventDefault();
-    mostrarAnalisisInteractivo();
-});
-
-document.getElementById('potencia-prueba').addEventListener('click', function(event) {
-    event.preventDefault();
-    mostrarPotenciaPrueba();
-});
-
-
-
-
-// Funciones existentes para Regresión Lineal Simple y Análisis Interactivo...
-
-// Nueva función para mostrar la sección de Potencia de una Prueba con parámetros en barra lateral
+// Función para mostrar la sección de Potencia de una Prueba con parámetros en barra lateral
 function mostrarPotenciaPrueba() {
     const sidebarDiv = document.getElementById('sidebar');
     const contentDiv = document.getElementById('content');
@@ -45,26 +24,54 @@ function mostrarPotenciaPrueba() {
                     <option value="3">Prueba Bilateral</option>
                 </select>
             </label>
-            <div class="slider-container">
-                <label for="mu0Slider">Media bajo H₀ (μ₀): <span id="mu0Value" class="slider-value">80</span></label>
+
+            <br>
+            <div class="parametro-container">
+                <label for="mu0Input">Media bajo H₀ (μ₀):</label>
+                <input type="number" id="mu0Input" value="80" step="0.1" min="50">
                 <input type="range" id="mu0Slider" min="50" max="110" step="0.1" value="80">
+                <span id="mu0Value">80</span>
             </div>
-            <div class="slider-container">
-                <label for="sigmaSlider">Desviación Estándar Poblacional (σ): <span id="sigmaValue" class="slider-value">15</span></label>
+            <br>
+
+            <br>
+            <div class="parametro-container">
+                <label for="sigmaInput">Desv. Estándar Poblacional (σ):</label>
+                <input type="number" id="sigmaInput" value="15" step="0.1" min="1">
+                <label for="sigmaSlider">Desv. Estándar Poblacional (σ): <span id="nValue">15</span></label>
                 <input type="range" id="sigmaSlider" min="1" max="30" step="0.1" value="15">
+                <span id="sigmaValue">15</span>
             </div>
-            <div class="slider-container">
-                <label for="nSlider">Tamaño de Muestra (n): <span id="nValue" class="slider-value">64</span></label>
-                <input type="range" id="nSlider" min="5" max="200" step="1" value="64">
+            <br>
+
+            <br>
+            <div class="parametro-container">
+                <label for="nInput">Tamaño de Muestra (n):</label>
+                <input type="number" id="nInput" value="30" step="1" min="1">
+                <label for="nSlider">Tamaño de Muestra (n): <span id="nValue">30</span></label>
+                <input type="range" id="nSlider" min="2" max="1000" step="1" value="30">
+                <span id="nValue">30</span>
             </div>
-            <div class="slider-container">
-                <label for="alfaSlider">Nivel de Significancia (α): <span id="alfaValue" class="slider-value">0.05</span></label>
+            <br>
+
+            <br>
+            <div class="parametro-container">
+                <label for="alfaInput">Nivel de Significancia (α):</label>
+                <input type="number" id="alfaInput" value="0.05" step="0.001" min="0.2">
                 <input type="range" id="alfaSlider" min="0.001" max="0.2" step="0.001" value="0.05">
+                <span id="alfaValue">0.05</span>
             </div>
-            <div class="slider-container">
-                <label for="mu1Slider">Media bajo H₁ (μ₁): <span id="mu1Value" class="slider-value">75</span></label>
+            <br>
+
+            <br>
+            <div class="parametro-container">
+                <label for="mu1Input">Media bajo H₁ (μ₁):</label>
+                <input type="number" id="mu1Input" value="75" step="0.1" min="50">
                 <input type="range" id="mu1Slider" min="50" max="110" step="0.1" value="75">
+                <span id="mu1Value">75</span>
             </div>
+            <br>
+
             <p id="errorMsg" class="error"></p>
         </div>
     `;
@@ -75,46 +82,290 @@ function mostrarPotenciaPrueba() {
         </div>
     `;
 
-    // Añadir eventos a los sliders y select
-    document.getElementById('mu0Slider').addEventListener('input', calcularPotenciaPrueba);
-    document.getElementById('sigmaSlider').addEventListener('input', calcularPotenciaPrueba);
-    document.getElementById('nSlider').addEventListener('input', calcularPotenciaPrueba);
-    document.getElementById('alfaSlider').addEventListener('input', calcularPotenciaPrueba);
-    document.getElementById('tipoPrueba').addEventListener('change', calcularPotenciaPrueba);
-    document.getElementById('mu1Slider').addEventListener('input', calcularPotenciaPrueba);
+    // Obtener referencias a los elementos
+    const mu0Slider = document.getElementById('mu0Slider');
+    const mu0Input = document.getElementById('mu0Input'); // Nuevo
+    const sigmaSlider = document.getElementById('sigmaSlider');
+    const sigmaInput = document.getElementById('sigmaInput'); // Nuevo
+    const nSlider = document.getElementById('nSlider');
+    const nInput = document.getElementById('nInput'); // Nuevo
+    const alfaSlider = document.getElementById('alfaSlider');
+    const tipoPruebaSelect = document.getElementById('tipoPrueba');
+    const mu1Slider = document.getElementById('mu1Slider');
+    const mu1Input = document.getElementById('mu1Input'); // Nuevo
 
-    // Actualizar los valores mostrados
-    document.getElementById('mu0Slider').addEventListener('input', function() {
-        document.getElementById('mu0Value').innerText = parseFloat(this.value).toFixed(1);
+    // Elementos para mostrar los valores actuales
+    const mu0Value = document.getElementById('mu0Value');
+    const sigmaValue = document.getElementById('sigmaValue');
+    const nValue = document.getElementById('nValue');
+    const alfaValue = document.getElementById('alfaValue');
+    const mu1Value = document.getElementById('mu1Value');
+
+    // Añadir eventos a los sliders y select
+    // mu0Slider.addEventListener('input', function() {
+    //     mu0Value.innerText = parseFloat(this.value).toFixed(1);
+    //     calcularPotenciaPrueba();
+    // });
+
+    // sigmaSlider.addEventListener('input', function() {
+    //     sigmaValue.innerText = parseFloat(this.value).toFixed(1);
+    //     calcularPotenciaPrueba();
+    // });
+
+    // alfaSlider.addEventListener('input', function() {
+    //     alfaValue.innerText = parseFloat(this.value).toFixed(3);
+    //     calcularPotenciaPrueba();
+    // });
+
+    // mu1Slider.addEventListener('input', function() {
+    //     mu1Value.innerText = parseFloat(this.value).toFixed(1);
+    //     calcularPotenciaPrueba();
+    // });
+
+    tipoPruebaSelect.addEventListener('change', calcularPotenciaPrueba);
+
+
+
+    // Sincronizar el input numérico y el slider
+
+    //-------------------------------------------------------------------------------------------------//
+    // TAMAÑO DE LA MUESTRA - n
+    //-------------------------------------------------------------------------------------------------//
+
+    nInput.addEventListener('change', function() {
+        let value = parseFloat(this.value);
+
+        if (!isNaN(value)) {
+            if (value < 2) {
+                value = 2;
+                this.value = value;
+                // Opcionalmente, puedes mostrar un mensaje de advertencia al usuario
+                // document.getElementById('errorMsg').innerText = 'El valor mínimo permitido para μ₀ es 50.';
+            } else {
+                // Si no hay error, aseguramos que el mensaje de error esté vacío
+                document.getElementById('errorMsg').innerText = '';
+            }
+
+            // Actualizamos los límites del slider si es necesario
+            if (value < parseFloat(nSlider.min)) {
+                nSlider.min = value;
+            }
+            if (value > parseFloat(nSlider.max)) {
+                nSlider.max = value;
+            }
+
+            nSlider.value = value;
+            nValue.innerText = value;
+            calcularPotenciaPrueba();
+        }
     });
-    document.getElementById('sigmaSlider').addEventListener('input', function() {
-        document.getElementById('sigmaValue').innerText = parseFloat(this.value).toFixed(1);
+
+    nSlider.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (value < 2) {
+            value = 2;
+            this.value = value;
+        }
+        nInput.value = value;
+        nValue.innerText = value;
+        calcularPotenciaPrueba();
     });
-    document.getElementById('nSlider').addEventListener('input', function() {
-        document.getElementById('nValue').innerText = parseInt(this.value);
+
+    // Calcular potencia inicial
+    calcularPotenciaPrueba();
+
+    //-------------------------------------------------------------------------------------------------//
+    // MEDIA POBLACIONAL BAJO H0
+    //-------------------------------------------------------------------------------------------------//
+
+    mu0Input.addEventListener('change', function() {
+        let value = parseFloat(this.value);
+
+        if (!isNaN(value)) {
+            if (value < 50) {
+                value = 50;
+                this.value = value;
+                // Opcionalmente, puedes mostrar un mensaje de advertencia al usuario
+                // document.getElementById('errorMsg').innerText = 'El valor mínimo permitido para μ₀ es 50.';
+            } else {
+                // Si no hay error, aseguramos que el mensaje de error esté vacío
+                document.getElementById('errorMsg').innerText = '';
+            }
+
+            // Actualizamos los límites del slider si es necesario
+            if (value < parseFloat(mu0Slider.min)) {
+                mu0Slider.min = value;
+            }
+            if (value > parseFloat(mu0Slider.max)) {
+                mu0Slider.max = value;
+            }
+
+            mu0Slider.value = value;
+            mu0Value.innerText = value;
+            calcularPotenciaPrueba();
+        }
     });
-    document.getElementById('alfaSlider').addEventListener('input', function() {
-        document.getElementById('alfaValue').innerText = parseFloat(this.value).toFixed(3);
+
+    mu0Slider.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (value < 50) {
+            value = 50;
+            this.value = value;
+        }
+        mu0Input.value = value;
+        mu0Value.innerText = value;
+        calcularPotenciaPrueba();
     });
-    document.getElementById('mu1Slider').addEventListener('input', function() {
-        document.getElementById('mu1Value').innerText = parseFloat(this.value).toFixed(1);
+
+
+    //-------------------------------------------------------------------------------------------------//
+    // DESVIACIÓN ESTÁNDAR - sigma
+    //-------------------------------------------------------------------------------------------------//
+
+    sigmaInput.addEventListener('change', function() {
+        let value = parseFloat(this.value);
+
+        if (!isNaN(value)) {
+            if (value < 1) {
+                value = 1;
+                this.value = value;
+                // Opcionalmente, puedes mostrar un mensaje de advertencia al usuario
+                // document.getElementById('errorMsg').innerText = 'El valor mínimo permitido para μ₀ es 50.';
+            } else {
+                // Si no hay error, aseguramos que el mensaje de error esté vacío
+                document.getElementById('errorMsg').innerText = '';
+            }
+
+            // Actualizamos los límites del slider si es necesario
+            if (value < parseFloat(sigmaSlider.min)) {
+                sigmaSlider.min = value;
+            }
+            if (value > parseFloat(sigmaSlider.max)) {
+                sigmaSlider.max = value;
+            }
+
+            sigmaSlider.value = value;
+            sigmaValue.innerText = value;
+            calcularPotenciaPrueba();
+        }
     });
+
+    sigmaSlider.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (value < 1) {
+            value = 1;
+            this.value = value;
+        }
+        sigmaInput.value = value;
+        sigmaValue.innerText = value;
+        calcularPotenciaPrueba();
+    });
+
+
+    //-------------------------------------------------------------------------------------------------//
+    // SIGNIFICANCIA - alfa
+    //-------------------------------------------------------------------------------------------------//
+
+    alfaInput.addEventListener('change', function() {
+        let value = parseFloat(this.value);
+
+        if (!isNaN(value)) {
+            if (value < 0.001) {
+                value = 0.001;
+                this.value = value;
+                // Opcionalmente, puedes mostrar un mensaje de advertencia al usuario
+                // document.getElementById('errorMsg').innerText = 'El valor mínimo permitido para μ₀ es 50.';
+            } else {
+                // Si no hay error, aseguramos que el mensaje de error esté vacío
+                document.getElementById('errorMsg').innerText = '';
+            }
+
+            // Actualizamos los límites del slider si es necesario
+            if (value < parseFloat(alfaSlider.min)) {
+                alfaSlider.min = value;
+            }
+            if (value > parseFloat(alfaSlider.max)) {
+                alfaSlider.max = value;
+            }
+
+            alfaSlider.value = value;
+            alfaValue.innerText = value;
+            calcularPotenciaPrueba();
+        }
+    });
+
+    alfaSlider.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (value < 0.001) {
+            value = 0.001;
+            this.value = value;
+        }
+        alfaInput.value = value;
+        alfaValue.innerText = value;
+        calcularPotenciaPrueba();
+    });
+
+
+    //-------------------------------------------------------------------------------------------------//
+    // MEDIA POBLACIONAL BAJO H1
+    //-------------------------------------------------------------------------------------------------//
+
+    mu1Input.addEventListener('change', function() {
+        let value = parseFloat(this.value);
+
+        if (!isNaN(value)) {
+            if (value < 50) {
+                value = 50;
+                this.value = value;
+                // Opcionalmente, puedes mostrar un mensaje de advertencia al usuario
+                // document.getElementById('errorMsg').innerText = 'El valor mínimo permitido para μ₀ es 50.';
+            } else {
+                // Si no hay error, aseguramos que el mensaje de error esté vacío
+                document.getElementById('errorMsg').innerText = '';
+            }
+
+            // Actualizamos los límites del slider si es necesario
+            if (value < parseFloat(mu1Slider.min)) {
+                mu1Slider.min = value;
+            }
+            if (value > parseFloat(mu1Slider.max)) {
+                mu1Slider.max = value;
+            }
+
+            mu1Slider.value = value;
+            mu1Value.innerText = value;
+            calcularPotenciaPrueba();
+        }
+    });
+
+    mu1Slider.addEventListener('input', function() {
+        let value = parseFloat(this.value);
+        if (value < 50) {
+            value = 50;
+            this.value = value;
+        }
+        mu1Input.value = value;
+        mu1Value.innerText = value;
+        calcularPotenciaPrueba();
+    });
+
 
     // Calcular potencia inicial
     calcularPotenciaPrueba();
 }
 
 function calcularPotenciaPrueba() {
-    const mu0 = parseFloat(document.getElementById('mu0Slider').value);
-    const sigma = parseFloat(document.getElementById('sigmaSlider').value);
-    const n = parseInt(document.getElementById('nSlider').value);
-    const alfa = parseFloat(document.getElementById('alfaSlider').value);
+    const mu0 = parseFloat(document.getElementById('mu0Input').value);
+    const sigma = parseFloat(document.getElementById('sigmaInput').value);
+    const n = parseInt(document.getElementById('nInput').value); // Tomamos el valor del input numérico
+    const alfa = parseFloat(document.getElementById('alfaInput').value);
     const tipo = parseInt(document.getElementById('tipoPrueba').value);
-    const mu1 = parseFloat(document.getElementById('mu1Slider').value);
+    const mu1 = parseFloat(document.getElementById('mu1Input').value);
 
     // Validación de entradas
-    if (isNaN(mu0) || isNaN(sigma) || isNaN(n) || isNaN(alfa) || isNaN(mu1) || sigma <= 0 || n <= 0 || alfa <= 0 || alfa >= 1) {
-        document.getElementById('errorMsg').innerText = 'Por favor, ingrese valores válidos.';
+    if (isNaN(mu0) || mu0 < 50 || isNaN(sigma) || isNaN(n) || isNaN(alfa) || isNaN(mu1) ||
+        sigma <= 0 || n <= 1 || alfa <= 0 || alfa >= 1 || sigma < 1) {
+        document.getElementById('errorMsg').innerText = 'Por favor, ingrese valores válidos. μ₀ debe ser al menos 50.';
         return;
     } else {
         document.getElementById('errorMsg').innerText = '';
@@ -494,32 +745,45 @@ function mostrarResultadosPotencia(mu0, sigma, n, alfa, tipo, mu1, potencia_sing
         xaxis: { title: 'Valor de la media muestral' },
         yaxis: { title: 'Densidad de probabilidad' },
         margin: { l: 50, r: 20, t: 50, b: 50 },
-        shapes: shapes
+        shapes: shapes,
+        annotations: [
+            {
+                x: mu1,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `μ₁ = ${mu1}`,
+                showarrow: true,
+                arrowhead: 1,
+                ax: -40,
+                ay: 10,
+                font: {
+                    size: 12,
+                    color: 'green'
+                },
+                arrowcolor: 'green'
+            },
+            {
+                x: mu0,
+                y: 0,
+                xref: 'x',
+                yref: 'y',
+                text: `μ₀ = ${mu0}`,
+                showarrow: true,
+                arrowhead: 1,
+                ax: 40,
+                ay: 10,
+                font: {
+                    size: 12,
+                    color: 'blue'
+                },
+                arrowcolor: 'blue'
+            }
+        ]
     };
 
     Plotly.newPlot('graficoDistribuciones', data, layoutDistribuciones);
 }
 
-// Función existente para mostrar el formulario de parámetros inicial
-function mostrarFormularioParametros() {
-    // Implementación previa o vacía si no está disponible
-    const sidebarDiv = document.getElementById('sidebar');
-    const contentDiv = document.getElementById('content');
-
-    sidebarDiv.innerHTML = '<h2>Bienvenido</h2><p>Seleccione una opción del menú para comenzar.</p>';
-    contentDiv.innerHTML = '<p>Contenido inicial.</p>';
-}
-
-// Función existente para mostrar el análisis interactivo
-function mostrarAnalisisInteractivo() {
-    // Implementación previa o vacía si no está disponible
-    const sidebarDiv = document.getElementById('sidebar');
-    const contentDiv = document.getElementById('content');
-
-    sidebarDiv.innerHTML = '<h2>Análisis Interactivo</h2><p>Contenido de la barra lateral para el análisis interactivo.</p>';
-    contentDiv.innerHTML = '<p>Contenido principal para el análisis interactivo.</p>';
-}
-
-
-// Iniciar la aplicación mostrando la primera pestaña por defecto
-mostrarFormularioParametros();
+// Iniciar la aplicación mostrando la sección de Potencia de una Prueba
+mostrarPotenciaPrueba();
