@@ -11,41 +11,12 @@
     <!-- Incluimos la biblioteca jStat -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
     <!-- Estilos para la tabla y centrado de gráficos -->
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        h3 {
-            text-align: center;
-        }
-        .centrado {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .grafico {
-            width: 100%;
-            margin: 0 auto;
-            text-align: center;
-        }
-    </style>
 </head>
 <body>
     <header>
-        <h1>Muestreo Probabilístico - Comparación entre Muestreo Aleatorio Simple y por Conglomerados</h1>
+        <h1>Muestreo por Comparación entre Muestreo Aleatorio Simple y por Conglomerados</h1>
     </header>
-    <    <nav>
+    <nav>
         <ul>
             <li><a href="index.html">Inicio</a></li>
             <li><a href="tcl.html">Teorema Central del Límite</a></li>
@@ -88,7 +59,7 @@
             <input type="number" id="propAsociados" value="30" min="0" max="100">
             <label for="propTitulares">Titulares (%): </label>
             <input type="number" id="propTitulares" value="20" min="0" max="100">
-            <h3>Tamaño de Muestra para cada Método</h3>
+            <h3>Tamaño de Muestra</h3>
             <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>):</label>
             <input type="number" id="tamanoMuestraAleatorio" value="100" min="10">
             <label for="numConglomerados">Número de Universidades a Muestrear (n<sub>C</sub>):</label>
@@ -97,7 +68,7 @@
             <input type="number" id="numSimulaciones" value="500" min="1">
             <button id="iniciarSimulacion">Generar Nueva Simulación</button>
         </aside>
-    </div>
+    
 
     <!-- Gráficos -->
     <main id="content">
@@ -115,8 +86,9 @@
         <!-- Tabla comparativa -->
         <div id="resultadosSimulacion"></div>
     </main>
+</div>
     <footer>
-        &copy; 2024 Estadística Aplicada - tu_correo@dominio.com
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar
     </footer>
     <script>
         // Variables globales
