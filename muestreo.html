@@ -11,18 +11,17 @@
     <!-- Incluimos la biblioteca jStat -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
     <!-- Estilos para la tabla -->
-
 </head>
 <body>
     <header>
-        <h1>Muestreo por estratificación</h1>
+        <h1>Muestreo por Estratificación</h1>
     </header>
     <nav>
         <ul>
             <li><a href="index.html">Inicio</a></li>
             <li><a href="tcl.html">Teorema Central del Límite</a></li>
             <li>
-                <a >Pruebas de Hipótesis</a>
+                <a>Pruebas de Hipótesis</a>
                 <ul>
                     <li><a href="prueba_media.html">Media Poblacional</a></li>
                     <li><a href="prueba_varianza.html">Varianza Poblacional</a></li>
@@ -31,15 +30,15 @@
                 </ul>
             </li>
             <li>
-                <a >Muestreo</a>
+                <a>Muestreo</a>
                 <ul>
                     <li><a href="muestreo.html">Estratificado</a></li>
                     <li><a href="Muestreo_conglomerado.html">Conglomerado</a></li>
                 </ul>
             </li>
-                <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
+            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
             <li>
-                <a >Series Temporales</a>
+                <a>Series Temporales</a>
                 <ul>
                     <li><a href="regresion_espuria.html">Regresión Espúria</a></li>
                 </ul>
@@ -49,21 +48,32 @@
     <div class="parametros">
         <aside id="sidebar">
             <h2>Parámetros</h2>
-            <label for="tamanoPoblacion">Tamaño de la Población (N): </label>
-            <input type="number" id="tamanoPoblacion" value="5000" min="100" max="100000">
+            <!-- Tamaño de la Población -->
+            <label for="tamanoPoblacion">Tamaño de la Población (N): <span id="tamanoPoblacionValor">5000</span></label>
+            <input type="range" id="tamanoPoblacion" min="100" max="100000" value="5000" step="1000">
+
+            <!-- Proporción de Mujeres -->
             <h3>Proporción de Mujeres en la Población</h3>
-            <label for="proporcionMujeres">Proporción de Mujeres (%): </label>
-            <input type="number" id="proporcionMujeres" value="55" min="0" max="100">
+            <label for="proporcionMujeres">Proporción de Mujeres (%): <span id="proporcionMujeresValor">55</span></label>
+            <input type="range" id="proporcionMujeres" min="0" max="100" value="55" step="1">
+
+            <!-- Tamaño de Muestra para cada Método -->
             <h3>Tamaño de Muestra para cada Método</h3>
-            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>):</label>
-            <input type="number" id="tamanoMuestraAleatorio" value="50" min="10">
-            <label for="tamanoMuestraEstratificado">Muestreo Estratificado (n<sub>E</sub>):</label>
-            <input type="number" id="tamanoMuestraEstratificado" value="50" min="10">
-            <label for="tamanoMuestraSistematico">Muestreo Sistemático (n<sub>S</sub>):</label>
-            <input type="number" id="tamanoMuestraSistematico" value="50" min="10">
-            <label for="numSimulaciones">Número de Simulaciones (M):</label>
-            <input type="number" id="numSimulaciones" value="500" min="1">
-            <button id="iniciarSimulacion">Generar Nueva Simulación</button>
+            <!-- Muestreo Aleatorio Simple -->
+            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>): <span id="tamanoMuestraAleatorioValor">50</span></label>
+            <input type="range" id="tamanoMuestraAleatorio" min="10" max="1000" value="50" step="10">
+
+            <!-- Muestreo Estratificado -->
+            <label for="tamanoMuestraEstratificado">Muestreo Estratificado (n<sub>E</sub>): <span id="tamanoMuestraEstratificadoValor">50</span></label>
+            <input type="range" id="tamanoMuestraEstratificado" min="10" max="1000" value="50" step="10">
+
+            <!-- Muestreo Sistemático -->
+            <label for="tamanoMuestraSistematico">Muestreo Sistemático (n<sub>S</sub>): <span id="tamanoMuestraSistematicoValor">50</span></label>
+            <input type="range" id="tamanoMuestraSistematico" min="10" max="1000" value="50" step="10">
+
+            <!-- Número de Simulaciones -->
+            <label for="numSimulaciones">Número de Simulaciones (M): <span id="numSimulacionesValor">500</span></label>
+            <input type="range" id="numSimulaciones" min="1" max="1000" value="500" step="10">
         </aside>
     </div>
 
@@ -79,14 +89,14 @@
         <div class="grafico">
             <div style="display: flex; justify-content: space-between;">
                 <div style="width: 48%;">
-                <h3>Distribución de las Medias Muestrales de Altura (Monte Carlo)</h3>
-                <div id="graficoMediasAltura" style="width: 100%; height: 400px;"></div>
+                    <h3>Distribución de las Medias Muestrales de Altura (Monte Carlo)</h3>
+                    <div id="graficoMediasAltura" style="width: 100%; height: 400px;"></div>
+                </div>
+                <div style="width: 48%;">
+                    <h3>Distribución de las Medias Muestrales de Peso (Monte Carlo)</h3>
+                    <div id="graficoMediasPeso" style="width: 100%; height: 400px;"></div>
+                </div>
             </div>
-            <div style="width: 48%;">
-                <h3>Distribución de las Medias Muestrales de Peso (Monte Carlo)</h3>
-                <div id="graficoMediasPeso" style="width: 100%; height: 400px;"></div>
-            </div>
-        </div>
         </div>
         <!-- Tabla comparativa para Aleatorio Simple y Estratificado -->
         <div id="resultadosAleatorioEstratificado"></div>
@@ -134,14 +144,22 @@
             aplicarMuestreos(); // Ejecutar la simulación al cargar la página
 
             // Agregar eventos a los campos de entrada
-            document.getElementById('tamanoPoblacion').addEventListener('input', actualizar);
-            document.getElementById('proporcionMujeres').addEventListener('input', actualizar);
-            document.getElementById('tamanoMuestraAleatorio').addEventListener('input', actualizar);
-            document.getElementById('tamanoMuestraEstratificado').addEventListener('input', actualizar);
-            document.getElementById('tamanoMuestraSistematico').addEventListener('input', actualizar); // Evento añadido
-            document.getElementById('numSimulaciones').addEventListener('input', actualizar);
-            // Agregar el event listener del botón
-            document.getElementById('iniciarSimulacion').addEventListener('click', generarNuevaSimulacion);
+            const inputs = document.querySelectorAll('#sidebar input[type="range"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    actualizarValorDisplay(this.id, this.value);
+                    actualizar();
+                });
+            });
+        }
+
+        // Función para actualizar los valores mostrados al lado de los sliders
+        function actualizarValorDisplay(id, valor) {
+            const spanId = id + 'Valor';
+            const span = document.getElementById(spanId);
+            if (span) {
+                span.textContent = valor;
+            }
         }
 
         // Función para actualizar parámetros
@@ -150,7 +168,7 @@
             proporcionMujeres = parseFloat(document.getElementById('proporcionMujeres').value);
             n_aleatorio = parseInt(document.getElementById('tamanoMuestraAleatorio').value);
             n_estratificado = parseInt(document.getElementById('tamanoMuestraEstratificado').value);
-            n_sistematico = parseInt(document.getElementById('tamanoMuestraSistematico').value); // Obtener valor de muestreo sistemático
+            n_sistematico = parseInt(document.getElementById('tamanoMuestraSistematico').value);
             M = parseInt(document.getElementById('numSimulaciones').value);
         }
 
@@ -161,11 +179,6 @@
             calcularEstadisticosPoblacionales();
             graficarPoblacion();
             aplicarMuestreos(); // Ejecutar la simulación al cambiar cualquier parámetro
-        }
-
-        // Función para generar una nueva simulación sin cambiar parámetros
-        function generarNuevaSimulacion() {
-            aplicarMuestreos();
         }
 
         // Función para generar la población
@@ -226,7 +239,6 @@
         }
 
         // Función para graficar la población
-        // Función para graficar la población con Altura en el eje horizontal y Peso en el vertical
         function graficarPoblacion() {
             let hombresData = poblacion.filter(ind => ind.Hombre === 1);
             let mujeresData = poblacion.filter(ind => ind.Hombre === 0);
@@ -277,7 +289,7 @@
                 'Sistematico': []
             };
 
-            // Mostrar mensaje de carga
+            // Mostrar mensajes de carga
             document.getElementById('resultadosAleatorioEstratificado').innerHTML = '<p>Realizando simulaciones de Aleatorio Simple y Estratificado, por favor espera...</p>';
             document.getElementById('resultadosAleatorioSistematico').innerHTML = '<p>Realizando simulaciones de Aleatorio Simple y Sistemático, por favor espera...</p>';
 
