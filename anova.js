@@ -18,7 +18,7 @@ function iniciarANOVA() {
         <div class="parametros">
             <div class="slider-container">
                 <label for="mean1">Media Tratamiento 1: <span id="mu1Value" class="slider-value">10</span></label>
-                <input type="range" id="mean1" min="0" max="30" step="1" value="10">
+                <input type="range" id="mean1" min="0" max="30" step="1" value="12">
             </div>
             <div class="slider-container">
                 <label for="mean2">Media Tratamiento 2: <span id="mu2Value" class="slider-value">10</span></label>
@@ -26,7 +26,7 @@ function iniciarANOVA() {
             </div>
             <div class="slider-container">
                 <label for="mean3">Media Tratamiento 3: <span id="mu3Value" class="slider-value">10</span></label>
-                <input type="range" id="mean3" min="0" max="30" step="1" value="10">
+                <input type="range" id="mean3" min="0" max="30" step="1" value="8">
             </div>
             <div class="slider-container">
                 <label for="n1Slider">Tamaño de Muestra Tratamiento 1 (n₁): <span id="n1Value" class="slider-value">10</span></label>
