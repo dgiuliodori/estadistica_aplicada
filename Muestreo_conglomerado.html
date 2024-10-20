@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Muestreo Probabilístico - Comparación entre Muestreo Aleatorio Simple y por Conglomerados</title>
+    <title>Estadística Aplicada</title>
     <!-- Enlazamos el CSS externo -->
     <link rel="stylesheet" type="text/css" href="styles.css">
     <!-- Incluimos las librerías necesarias -->
@@ -14,7 +14,7 @@
 </head>
 <body>
     <header>
-        <h1>Muestreo por Comparación entre Muestreo Aleatorio Simple y por Conglomerados</h1>
+        <h1>Muestreo por Conglomerados</h1>
     </header>
     <nav>
         <ul>
@@ -48,27 +48,41 @@
     <div class="parametros">
         <aside id="sidebar">
             <h2>Parámetros</h2>
-            <label for="numUniversidades">Número de Universidades (U): </label>
-            <input type="number" id="numUniversidades" value="30" min="10" max="100">
-            <label for="tamanoPromedioUni">Tamaño Promedio por Universidad: </label>
-            <input type="number" id="tamanoPromedioUni" value="100" min="10" max="1000">
+            <!-- Número de Universidades -->
+            <label for="numUniversidades">Número de Universidades (U): <span id="numUniversidadesValor">30</span></label>
+            <input type="range" id="numUniversidades" min="10" max="100" value="30" step="1">
+
+            <!-- Tamaño Promedio por Universidad -->
+            <label for="tamanoPromedioUni">Tamaño Promedio por Universidad: <span id="tamanoPromedioUniValor">100</span></label>
+            <input type="range" id="tamanoPromedioUni" min="10" max="1000" value="100" step="10">
+
             <h3>Proporciones de Jerarquías</h3>
-            <label for="propAsistentes">Asistentes (%): </label>
-            <input type="number" id="propAsistentes" value="50" min="0" max="100">
-            <label for="propAsociados">Asociados (%): </label>
-            <input type="number" id="propAsociados" value="30" min="0" max="100">
-            <label for="propTitulares">Titulares (%): </label>
-            <input type="number" id="propTitulares" value="20" min="0" max="100">
+            <!-- Proporción de Asistentes -->
+            <label for="propAsistentes">Asistentes (%): <span id="propAsistentesValor">50</span></label>
+            <input type="range" id="propAsistentes" min="0" max="100" value="50" step="1">
+
+            <!-- Proporción de Asociados -->
+            <label for="propAsociados">Asociados (%): <span id="propAsociadosValor">30</span></label>
+            <input type="range" id="propAsociados" min="0" max="100" value="30" step="1">
+
+            <!-- Proporción de Titulares -->
+            <label for="propTitulares">Titulares (%): <span id="propTitularesValor">20</span></label>
+            <input type="range" id="propTitulares" min="0" max="100" value="20" step="1">
+
             <h3>Tamaño de Muestra</h3>
-            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>):</label>
-            <input type="number" id="tamanoMuestraAleatorio" value="100" min="10">
-            <label for="numConglomerados">Número de Universidades a Muestrear (n<sub>C</sub>):</label>
-            <input type="number" id="numConglomerados" value="10" min="1">
-            <label for="numSimulaciones">Número de Simulaciones (M):</label>
-            <input type="number" id="numSimulaciones" value="500" min="1">
-            <button id="iniciarSimulacion">Generar Nueva Simulación</button>
+            <!-- Tamaño de la muestra para muestreo aleatorio simple -->
+            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>): <span id="tamanoMuestraAleatorioValor">100</span></label>
+            <input type="range" id="tamanoMuestraAleatorio" min="10" max="1000" value="100" step="10">
+
+            <!-- Número de conglomerados -->
+            <label for="numConglomerados">Número de Universidades a Muestrear (n<sub>C</sub>): <span id="numConglomeradosValor">10</span></label>
+            <input type="range" id="numConglomerados" min="1" max="U" value="10" step="1">
+
+            <!-- Número de simulaciones -->
+            <label for="numSimulaciones">Número de Simulaciones (M): <span id="numSimulacionesValor">500</span></label>
+            <input type="range" id="numSimulaciones" min="1" max="1000" value="500" step="10">
         </aside>
-    
+    </div>
 
     <!-- Gráficos -->
     <main id="content">
@@ -86,10 +100,11 @@
         <!-- Tabla comparativa -->
         <div id="resultadosSimulacion"></div>
     </main>
-</div>
+
     <footer>
         &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar
     </footer>
+
     <script>
         // Variables globales
         let poblacion = [];
@@ -115,16 +130,22 @@
             aplicarMuestreos(); // Ejecutar la simulación al cargar la página
 
             // Agregar eventos a los campos de entrada
-            document.getElementById('numUniversidades').addEventListener('input', actualizar);
-            document.getElementById('tamanoPromedioUni').addEventListener('input', actualizar);
-            document.getElementById('propAsistentes').addEventListener('input', actualizar);
-            document.getElementById('propAsociados').addEventListener('input', actualizar);
-            document.getElementById('propTitulares').addEventListener('input', actualizar);
-            document.getElementById('tamanoMuestraAleatorio').addEventListener('input', actualizar);
-            document.getElementById('numConglomerados').addEventListener('input', actualizar);
-            document.getElementById('numSimulaciones').addEventListener('input', actualizar);
-            // Agregar el event listener del botón
-            document.getElementById('iniciarSimulacion').addEventListener('click', generarNuevaSimulacion);
+            const inputs = document.querySelectorAll('#sidebar input[type="range"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    actualizarValorDisplay(this.id, this.value);
+                    actualizar();
+                });
+            });
+        }
+
+        // Función para actualizar los valores mostrados al lado de los sliders
+        function actualizarValorDisplay(id, valor) {
+            const spanId = id + 'Valor';
+            const span = document.getElementById(spanId);
+            if (span) {
+                span.textContent = valor;
+            }
         }
 
         // Función para actualizar parámetros
@@ -146,11 +167,6 @@
             calcularEstadisticosPoblacionales();
             graficarPoblacion();
             aplicarMuestreos(); // Ejecutar la simulación al cambiar cualquier parámetro
-        }
-
-        // Función para generar una nueva simulación sin cambiar parámetros
-        function generarNuevaSimulacion() {
-            aplicarMuestreos();
         }
 
         // Función para generar la población
