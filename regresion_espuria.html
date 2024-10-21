@@ -91,12 +91,20 @@
                 <h5>Regresión Espuria</h5>
                 <div class="slider-container">
                     <label for="pendienteEspuria">Pendiente:</label>
-                    <input type="range" id="pendienteEspuria" min="-5" max="5" step="0.1" value="1">
+                    <input 
+                        type="range" 
+                        id="pendienteEspuria" 
+                        min="-5" 
+                        max="5" 
+                        step="0.1" 
+                        value="1" 
+                        disabled
+                    >
                     <span id="pendienteEspuriaValor" class="slider-value">1.0</span>
                 </div>
                 <div class="slider-container">
                     <label for="interceptoEspuria">Ordenada al origen:</label>
-                    <input type="range" id="interceptoEspuria" min="-10" max="10" step="0.1" value="0">
+                    <input type="range" id="interceptoEspuria" min="-10" max="10" step="0.1" value="0" disabled>
                     <span id="interceptoEspuriaValor" class="slider-value">0.0</span>
                 </div>
                 
@@ -104,17 +112,17 @@
                 <h5>Cointegración</h5>
                 <div class="slider-container">
                     <label for="pendienteCointeg">Pendiente:</label>
-                    <input type="range" id="pendienteCointeg" min="-5" max="5" step="0.1" value="1">
+                    <input type="range" id="pendienteCointeg" min="-5" max="5" step="0.1" value="1" disabled>
                     <span id="pendienteCointegValor" class="slider-value">1.0</span>
                 </div>
                 <div class="slider-container">
                     <label for="interceptoCointeg">Ordenada al origen:</label>
-                    <input type="range" id="interceptoCointeg" min="-10" max="10" step="0.1" value="0">
+                    <input type="range" id="interceptoCointeg" min="-10" max="10" step="0.1" value="0" disabled>
                     <span id="interceptoCointegValor" class="slider-value">0.0</span>
                 </div>
                 <div class="slider-container">
                     <label for="desviacionCointeg">Desviación estándar del ruido blanco:</label>
-                    <input type="range" id="desviacionCointeg" min="0.1" max="5" step="0.1" value="1">
+                    <input type="range" id="desviacionCointeg" min="0.1" max="5" step="0.1" value="1" disabled>
                     <span id="desviacionCointegValor" class="slider-value">1.0</span>
                 </div>
             </div>
