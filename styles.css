@@ -79,7 +79,7 @@ nav li {
 }
 
 nav a {
-    color: #ffffff;
+    color: #ededed;
     text-decoration: none;
     font-size: 18px;
     transition: color 0.3s;
@@ -96,7 +96,7 @@ nav ul ul {
     position: absolute;
     top: 100%;
     left: 0;
-    background-color: #f9f9f9;
+    background-color: #d7d7d7;
     padding: 0;
     list-style-type: none;
     z-index: 1000;
@@ -109,7 +109,7 @@ nav ul ul li {
 nav ul ul li a {
     color: #181832;
     padding: 10px;
-    background-color: #f9f9f9;
+    background-color: #d7d7d7;
     width: 150px;
     text-align: left;
 }
