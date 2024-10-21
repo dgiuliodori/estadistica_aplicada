@@ -8,7 +8,7 @@
     <!-- Incluimos la biblioteca mathjs y jStat -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" defer></script>
     <!-- Luego otros scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -56,14 +56,20 @@
                     <li><a href="muestreo.html">Estratificado</a></li>
                     <li><a href="Muestreo_conglomerado.html">Conglomerado</a></li>
                 </ul>
-            </li>
-                <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
+            <li>
+                <a >Modelos</a>
+                <ul>
+                    <li><a href="analisis_regresion.html">Modelo de Regresión Lineal</a></li>
+                    <li><a href="logit.html">Modelo de Regresión Logística</a></li>
+                </ul>
+            </li>                
             <li>
                 <a >Series Temporales</a>
                 <ul>
                     <li><a href="regresion_espuria.html">Regresión Espúria</a></li>
                 </ul>
             </li>
+            <li><a href="acerca_de.html">Acerca de</a></li>
         </ul>
     </nav>
     <div class="parametros">
@@ -91,15 +97,7 @@
                 <h5>Regresión Espuria</h5>
                 <div class="slider-container">
                     <label for="pendienteEspuria">Pendiente:</label>
-                    <input 
-                        type="range" 
-                        id="pendienteEspuria" 
-                        min="-5" 
-                        max="5" 
-                        step="0.1" 
-                        value="1" 
-                        disabled
-                    >
+                    <input type="range" id="pendienteEspuria" min="-5" max="5" step="0.1" value="1" disabled>
                     <span id="pendienteEspuriaValor" class="slider-value">1.0</span>
                 </div>
                 <div class="slider-container">
@@ -120,11 +118,6 @@
                     <input type="range" id="interceptoCointeg" min="-10" max="10" step="0.1" value="0" disabled>
                     <span id="interceptoCointegValor" class="slider-value">0.0</span>
                 </div>
-                <div class="slider-container">
-                    <label for="desviacionCointeg">Desviación estándar del ruido blanco:</label>
-                    <input type="range" id="desviacionCointeg" min="0.1" max="5" step="0.1" value="1" disabled>
-                    <span id="desviacionCointegValor" class="slider-value">1.0</span>
-                </div>
             </div>
         </aside>
     </div>
@@ -137,8 +130,24 @@
 
         <!-- Sección Interactiva -->
         <section id="interactivo" class="mt-5">
-            <h2>Simulación Interactiva</h2>
+            <div class="equations" >
+                <h2>Proceso Estocástico Generador de Datos</h2>
+                \[
+                \begin{cases}
+                x_{t}= x_{t-1} + \epsilon_{t}, ~~~ \epsilon_{t} \sim N(0,1) \\
+                y_{t}= y_{t-1} + \epsilon^{*}_{t}, ~~~ \epsilon^{*}_{t} \sim N(0,1)
+                \end{cases}
+                \]
 
+                \begin{equation} 
+                y_{t}=\beta_{0}+\beta_{1} x_{t} + u_{t}
+                \end{equation}
+
+                donde, 
+
+
+
+            </div>
             <!-- Caso 1: Regresión Espuria -->
             <div class="row">
                 <div class="grafico">
@@ -149,7 +158,7 @@
                 </div>
             </div>
             <div class="resultados">
-                <h4>Resultados de la Regresión Espuria</h4>
+                <h4>Estimación por Mínimos Cuadrados Ordinarios - Regresión Espuria</h4>
                 <div id="tablaRegresionEspuria"></div>
             </div>
             <div class="resultados">
@@ -159,6 +168,15 @@
         </br>
             <!-- Caso 2: Cointegración -->
             <div class="row">
+                <div class="equations" >
+                    <h2>Proceso Estocástico Generador de Datos</h2>
+                    \[
+                    \begin{cases}
+                    x_{t}= x_{t-1} + \epsilon_{t}, ~~~ \epsilon_{t} \sim N(0,1) \\
+                    y_{t}= \beta_{0} + \beta_{1} x_{t}  + \epsilon^{*}_{t}, ~~~ \epsilon_{t}^{*} \sim N(0,1) \\
+                    \end{cases}
+                    \]
+                </div>
                 <div class="grafico">
                     <h3>Evolución de las Series Temporales - Cointegración</h3>
                     <div id="graficoSeriesCointegracion_div" style="width: 100%; height: 400px;">
@@ -167,7 +185,7 @@
                 </div>
             </div>
             <div class="resultados">
-                <h4>Resultados de la Regresión con Cointegración</h4>
+                <h4>Estimación por Mínimos Cuadrados Ordinarios - Datos Cointegrados</h4>
                 <div id="tablaRegresionCointegracion"></div>
             </div>
             <div class="resultados">
@@ -181,7 +199,7 @@
 
     </main>
     <footer>
-        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
     </footer>
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -203,17 +221,17 @@
         }
 
         // Función para generar series cointegradas
-        function generarSerieCointegrada(n, pendiente, intercepto, desviacion) {
+        function generarSerieCointegrada(n, pendiente, intercepto) {
             let serie1 = [intercepto];
             let serie2 = [intercepto];
             let burnIn = 50; // Número de observaciones a descartar
             let totalObservaciones = n + burnIn;
             for (let i = 1; i < totalObservaciones; i++) {
                 let epsilon1 = jStat.normal.sample(0, 1);
-                let epsilon2 = jStat.normal.sample(0, desviacion);
+                let epsilon2 = jStat.normal.sample(0, 1);
                 serie1.push(pendiente * serie1[i - 1] + epsilon1);
                 // Serie 2 depende de serie 1 más un error estacionario
-                serie2.push(pendiente * serie1[i - 1] + epsilon2); // Cointegradas
+                serie2.push(pendiente * serie1[i] + epsilon2); // Cointegradas
             }
             // Eliminar las primeras 50 observaciones
             return { serie1: serie1.slice(burnIn), serie2: serie2.slice(burnIn) };
@@ -322,17 +340,17 @@
             // Parámetros Cointegración
             let pendienteCointeg = parseFloat(document.getElementById('pendienteCointeg').value);
             let interceptoCointeg = parseFloat(document.getElementById('interceptoCointeg').value);
-            let desviacionCointeg = parseFloat(document.getElementById('desviacionCointeg').value);
+           // let desviacionCointeg = parseFloat(document.getElementById('desviacionCointeg').value);
         
             // Validaciones básicas
             if (isNaN(n) || n < 10) {
                 alert('Por favor, ingresa un número válido de puntos (mínimo 10).');
                 return;
             }
-            if (isNaN(pendienteEspuria) || isNaN(interceptoEspuria) || isNaN(pendienteCointeg) || isNaN(interceptoCointeg) || isNaN(desviacionCointeg)) {
-                alert('Por favor, completa todos los parámetros numéricos correctamente.');
-                return;
-            }
+            // if (isNaN(pendienteEspuria) || isNaN(interceptoEspuria) || isNaN(pendienteCointeg) || isNaN(interceptoCointeg) || isNaN(desviacionCointeg)) {
+            //     alert('Por favor, completa todos los parámetros numéricos correctamente.');
+            //     return;
+            // }
         
             // Caso 1: Regresión Espuria
             let serie1Espuria = generarSerieRaizUnitaria(n, pendienteEspuria, interceptoEspuria);
@@ -352,13 +370,13 @@
                     labels: Array.from({length: n}, (_, i) => i + 1),
                     datasets: [
                         {
-                            label: 'Serie 1',
+                            label: 'x',
                             data: serie1Espuria,
                             borderColor: 'blue',
                             fill: false
                         },
                         {
-                            label: 'Serie 2',
+                            label: 'y',
                             data: serie2Espuria,
                             borderColor: 'red',
                             fill: false
@@ -390,7 +408,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Ecuación de la recta</td>
+                        <td>Ecuación de la recta estimada</td>
                         <td>y = ${regresionEspuria.pendiente.toFixed(3)}x + ${regresionEspuria.intercepto.toFixed(3)}</td>
                     </tr>
                     <tr>
@@ -406,7 +424,7 @@
                         <td>${regresionEspuria.t_estadistico.toFixed(3)}</td>
                     </tr>
                     <tr>
-                        <td>Valor p del coeficiente</td>
+                        <td>-p-valor</td>
                         <td>${regresionEspuria.p_valor.toFixed(3)}</td>
                     </tr>
                 </tbody>
@@ -419,7 +437,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Estadístico t</th>
+                        <th>Estadístico observado</th>
                         <th>Valor crítico al ${nivelSignificancia}%</th>
                         <th>¿Residuos estacionarios?</th>
                     </tr>
@@ -436,7 +454,7 @@
             document.getElementById('tablaADFEspuria').innerHTML = htmlTablaADFEspuria;
 
             // Caso 2: Cointegración
-            let seriesCointegradas = generarSerieCointegrada(n, pendienteCointeg, interceptoCointeg, desviacionCointeg);
+            let seriesCointegradas = generarSerieCointegrada(n, pendienteCointeg, interceptoCointeg);
             let serie1Cointeg = seriesCointegradas.serie1;
             let serie2Cointeg = seriesCointegradas.serie2;
         
@@ -454,13 +472,13 @@
                     labels: Array.from({length: n}, (_, i) => i + 1),
                     datasets: [
                         {
-                            label: 'Serie 1',
+                            label: 'x',
                             data: serie1Cointeg,
                             borderColor: 'green',
                             fill: false
                         },
                         {
-                            label: 'Serie 2',
+                            label: 'y',
                             data: serie2Cointeg,
                             borderColor: 'purple',
                             fill: false
@@ -492,7 +510,7 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Ecuación de la recta</td>
+                        <td>Ecuación de la recta estimada</td>
                         <td>y = ${regresionCointeg.pendiente.toFixed(3)}x + ${regresionCointeg.intercepto.toFixed(3)}</td>
                     </tr>
                     <tr>
@@ -521,7 +539,7 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Estadístico t</th>
+                        <th>Estadístico observado</th>
                         <th>Valor crítico al ${nivelSignificancia}%</th>
                         <th>¿Residuos estacionarios?</th>
                     </tr>
@@ -552,8 +570,8 @@
                 {idInput: 'pendienteEspuria', idSpan: 'pendienteEspuriaValor'},
                 {idInput: 'interceptoEspuria', idSpan: 'interceptoEspuriaValor'},
                 {idInput: 'pendienteCointeg', idSpan: 'pendienteCointegValor'},
-                {idInput: 'interceptoCointeg', idSpan: 'interceptoCointegValor'},
-                {idInput: 'desviacionCointeg', idSpan: 'desviacionCointegValor'}
+                {idInput: 'interceptoCointeg', idSpan: 'interceptoCointegValor'}
+            //   {idInput: 'desviacionCointeg', idSpan: 'desviacionCointegValor'}
             ];
 
             sliders.forEach(function(slider) {
