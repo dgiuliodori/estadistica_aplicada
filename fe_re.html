@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <!-- Incluimos las librerías necesarias -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Incluimos la biblioteca jStat -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>Datos de Panel: Efectos Fijos vs Efectos Aleatorios</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="tcl.html">Teorema Central del Límite</a></li>
+            <li>
+                <a href="#">Pruebas de Hipótesis</a>
+                <ul>
+                    <li><a href="prueba_media.html">Media Poblacional</a></li>
+                    <li><a href="prueba_varianza.html">Varianza Poblacional</a></li>
+                </ul>
+            </li>
+            <li><a href="anova.html">Análisis de Varianza</a></li>
+            <li><a href="potencia_prueba.html">Potencia de una Prueba</a></li>
+            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
+        </ul>
+    </nav>
+    <div id="container">
+        <div id="sidebar">
+            <!-- Sección de Controles para Generación de Datos -->
+            <h2>Parámetros</h2>
+            <div class="regresion-parametros">
+                <label for="numIndividuos">Número de Individuos:</label>
+                <input type="number" id="numIndividuos" value="10" min="2" max="100" step="1">
+
+                <label for="numPeriodos">Número de Periodos de Tiempo:</label>
+                <input type="number" id="numPeriodos" value="5" min="2" max="20" step="1">
+
+                <label for="beta">Valor del Coeficiente β:</label>
+                <input type="number" id="beta" value="2" step="0.1">
+
+                <label for="varianzaError">Varianza del Error:</label>
+                <input type="number" id="varianzaError" value="1" min="0" step="0.1">
+
+                <label for="generacionDatos">Generación de Datos:</label>
+                <select id="generacionDatos">
+                    <option value="efectosFijos">Datos con Efectos Fijos</option>
+                    <option value="efectosAleatorios">Datos con Efectos Aleatorios</option>
+                </select>
+                <div class="slider-container2">
+                    <button type="button" id="btnGenerarDatos">Generar Datos</button>
+                </div>
+                <div class="slider-container2"> 
+                    <button type="button" id="btnEstimar">Estimación del Modelo</button>
+                </div>
+            </div>
+        </div>
+        <div id="content">
+            <!-- Gráfico de Datos de Panel -->
+            <!-- <div class="grafico">
+                <h3>Datos de Panel Generados</h3>
+                <div id="graficoPanel" style="width: 100%; height: 400px;"></div>
+            </div> -->
+
+            <!-- Tabla de Estadísticos Descriptivos -->
+            <div class="resultados" id="estadisticosDescriptivos">
+                <!-- <h2>Estadísticos Descriptivos de los Datos Generados</h2> -->
+                <!-- La tabla de estadísticos se insertará aquí dinámicamente -->
+            </div>
+
+            <!-- Sección de Controles para Estimación -->
+            
+
+            <!-- Resultados de la Estimación -->
+            <div class="resultados" id="resultadosEstimacion">
+                <!-- <h2>Resultados de la Estimación</h2> -->
+                <!-- Los resultados se insertarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+    <!-- <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar
+    </footer> -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            /*******************************
+             * Variables y Funciones
+             *******************************/
+            
+            // Variables globales
+            let numIndividuos = 10;
+            let numPeriodos = 5;
+            let beta = 2;
+            let varianzaError = 1;
+            let tipoGeneracion = 'efectosFijos';
+            let datosPanel = [];
+            let datosGenerados = false; // Variable para verificar si se han generado datos
+
+            // Variables para almacenar resultados
+            let resultadosEfectosFijos = null;
+            let resultadosEfectosAleatorios = null;
+
+            // Inicializar
+            inicializarPanel();
+
+            function inicializarPanel() {
+                // Agregar eventos a los controles
+                document.getElementById('btnGenerarDatos').addEventListener('click', generarDatos);
+                document.getElementById('btnEstimar').addEventListener('click', realizarEstimacion);
+            }
+
+            // Función para generar datos de panel
+            function generarDatos() {
+                console.log("Generando datos...");
+                // Obtener valores de los controles
+                numIndividuos = parseInt(document.getElementById('numIndividuos').value);
+                numPeriodos = parseInt(document.getElementById('numPeriodos').value);
+                beta = parseFloat(document.getElementById('beta').value);
+                varianzaError = parseFloat(document.getElementById('varianzaError').value);
+                tipoGeneracion = document.getElementById('generacionDatos').value;
+
+                datosPanel = [];
+                if (tipoGeneracion === 'efectosFijos') {
+                    // Generar datos con efectos fijos
+                    for (let i = 1; i <= numIndividuos; i++) {
+                        let efectoIndividual = Math.random() * 5; // Efecto fijo para cada individuo
+                        for (let t = 1; t <= numPeriodos; t++) {
+                            let x = Math.random() * 10;
+                            let error = jStat.normal.sample(0, Math.sqrt(varianzaError));
+                            let y = beta * x + efectoIndividual + error;
+                            datosPanel.push({ id: i, tiempo: t, x: x, y: y });
+                        }
+                    }
+                } else if (tipoGeneracion === 'efectosAleatorios') {
+                    // Generar datos con efectos aleatorios
+                    for (let i = 1; i <= numIndividuos; i++) {
+                        let efectoIndividual = jStat.normal.sample(0, 2); // Efecto aleatorio para cada individuo
+                        for (let t = 1; t <= numPeriodos; t++) {
+                            let x = Math.random() * 10;
+                            let error = jStat.normal.sample(0, Math.sqrt(varianzaError));
+                            let y = beta * x + efectoIndividual + error;
+                            datosPanel.push({ id: i, tiempo: t, x: x, y: y });
+                        }
+                    }
+                }
+
+                datosGenerados = true;
+
+                // Graficar datos
+                // graficarDatosPanel();
+
+                // Limpiar resultados anteriores
+                document.getElementById('resultadosEstimacion').innerHTML = '<h2>Resultados de la Estimación</h2>';
+                document.getElementById('estadisticosDescriptivos').innerHTML = '<h2>Estadísticos Descriptivos de los Datos Generados</h2>';
+
+                // Calcular y mostrar estadísticos descriptivos
+                mostrarEstadisticosDescriptivos();
+            }
+
+            // Función para realizar la estimación
+            function realizarEstimacion() {
+                console.log("Realizando estimación...");
+                if (!datosGenerados) {
+                    alert('Por favor, genera los datos primero.');
+                    return;
+                }
+
+                // Preparar Y
+                let Y = datosPanel.map(d => d.y);
+
+                // Estimar ambos modelos y almacenar los resultados
+                resultadosEfectosFijos = estimarModelo(Y, prepararMatrizEfectosFijos(), 'efectosFijos');
+                resultadosEfectosAleatorios = estimarModelo(Y, prepararMatrizEfectosAleatorios(), 'efectosAleatorios');
+
+                if (resultadosEfectosFijos && resultadosEfectosAleatorios) {
+                    // Mostrar resultados comparativos
+                    mostrarResultadosComparativos();
+                }
+            }
+
+            // Funciones para preparar matrices X
+            function prepararMatrizEfectosFijos() {
+                let X = datosPanel.map(d => [d.x]);
+                for (let i = 1; i <= numIndividuos; i++) {
+                    let dummy = datosPanel.map(d => (d.id === i ? 1 : 0));
+                    X.forEach((row, idx) => {
+                        row.push(dummy[idx]);
+                    });
+                }
+                return X;
+            }
+
+            function prepararMatrizEfectosAleatorios() {
+                return datosPanel.map(d => [1, d.x]);
+            }
+
+            // Función general para estimar el modelo
+            function estimarModelo(Y, X, tipo) {
+                try {
+                    let Xt = math.transpose(X);
+                    let XtX = math.multiply(Xt, X);
+                    let XtX_inv = math.inv(XtX);
+                    let XtY = math.multiply(Xt, Y);
+                    let betaEstimada = math.multiply(XtX_inv, XtY);
+
+                    let Y_estimada = math.multiply(X, betaEstimada);
+                    let residuales = math.subtract(Y, Y_estimada);
+                    let gradosLibertad = Y.length - betaEstimada.length;
+                    let sigma2 = math.dot(residuales, residuales) / gradosLibertad;
+                    let sigma2Matrix = math.multiply(sigma2, XtX_inv);
+                    let erroresEstandar = math.diag(sigma2Matrix).map(function(val) { return Math.sqrt(val); });
+
+                    let indiceBeta = (tipo === 'efectosFijos') ? 0 : 1;
+                    let betaEstimado = betaEstimada[indiceBeta];
+                    let sesgoBeta = betaEstimado - beta;
+                    let errorEstandar = erroresEstandar[indiceBeta];
+                    let intervaloConfianza = [betaEstimado - 1.96 * errorEstandar, betaEstimado + 1.96 * errorEstandar];
+
+                    return {
+                        betaEstimado: betaEstimado,
+                        errorEstandar: errorEstandar,
+                        sesgoBeta: sesgoBeta,
+                        intervaloConfianza: intervaloConfianza
+                    };
+                } catch (error) {
+                    console.error("Error en estimarModelo:", error);
+                    alert("Ocurrió un error durante la estimación. Revisa la consola para más detalles.");
+                    return null;
+                }
+            }
+
+            // Función para mostrar los resultados comparativos
+            function mostrarResultadosComparativos() {
+                let resultadosDiv = document.getElementById('resultadosEstimacion');
+                let html = `<h2>Resultados de la Estimación</h2>`;
+                html += `<table border="1">
+                    <tr>
+                        <th>Método</th>
+                        <th>β Estimado</th>
+                        <th>Error Estándar</th>
+                        <th>Sesgo</th>
+                        <th>Intervalo de Confianza 95%</th>
+                    </tr>`;
+                html += `<tr>
+                        <td>Efectos Fijos</td>
+                        <td>${resultadosEfectosFijos.betaEstimado.toFixed(4)}</td>
+                        <td>${resultadosEfectosFijos.errorEstandar.toFixed(4)}</td>
+                        <td>${resultadosEfectosFijos.sesgoBeta.toFixed(4)}</td>
+                        <td>[${resultadosEfectosFijos.intervaloConfianza[0].toFixed(4)}, ${resultadosEfectosFijos.intervaloConfianza[1].toFixed(4)}]</td>
+                    </tr>`;
+                html += `<tr>
+                        <td>Efectos Aleatorios</td>
+                        <td>${resultadosEfectosAleatorios.betaEstimado.toFixed(4)}</td>
+                        <td>${resultadosEfectosAleatorios.errorEstandar.toFixed(4)}</td>
+                        <td>${resultadosEfectosAleatorios.sesgoBeta.toFixed(4)}</td>
+                        <td>[${resultadosEfectosAleatorios.intervaloConfianza[0].toFixed(4)}, ${resultadosEfectosAleatorios.intervaloConfianza[1].toFixed(4)}]</td>
+                    </tr>`;
+                html += `</table>`;
+                resultadosDiv.innerHTML = html;
+            }
+
+            // Función para mostrar estadísticos descriptivos
+            function mostrarEstadisticosDescriptivos() {
+                let estadisticosDiv = document.getElementById('estadisticosDescriptivos');
+
+                // Calcular estadísticos para X e Y
+                let X = datosPanel.map(d => d.x);
+                let Y = datosPanel.map(d => d.y);
+
+                let estadisticosGenerales = calcularEstadisticos(X, Y);
+
+                // Construir la tabla
+                let html = `<h2>Estadísticos Descriptivos de los Datos Generados</h2>`;
+                html += `<h3>Estadísticos Generales</h3>`;
+                html += generarTablaEstadisticos('Generales', estadisticosGenerales);
+
+                estadisticosDiv.innerHTML = html;
+            }
+
+            // Función para calcular estadísticos
+            function calcularEstadisticos(X, Y) {
+                return {
+                    X: {
+                        media: jStat.mean(X),
+                        desviacion: jStat.stdev(X, true),
+                        minimo: Math.min(...X),
+                        maximo: Math.max(...X),
+                        mediana: jStat.median(X),
+                        asimetria: jStat.skewness(X),
+                        curtosis: jStat.kurtosis(X)
+                    },
+                    Y: {
+                        media: jStat.mean(Y),
+                        desviacion: jStat.stdev(Y, true),
+                        minimo: Math.min(...Y),
+                        maximo: Math.max(...Y),
+                        mediana: jStat.median(Y),
+                        asimetria: jStat.skewness(Y),
+                        curtosis: jStat.kurtosis(Y)
+                    }
+                };
+            }
+
+            // Función para generar la tabla HTML de estadísticos
+            function generarTablaEstadisticos(titulo, estadisticos) {
+                let html = `<table border="1">
+                    <tr>
+                        <th>Variable</th>
+                        <th>Media</th>
+                        <th>Desv. Estándar</th>
+                        <th>Mínimo</th>
+                        <th>Máximo</th>
+                        <th>Mediana</th>
+                        <th>Asimetría</th>
+                        <th>Curtosis</th>
+                    </tr>
+                    <tr>
+                        <td>X</td>
+                        <td>${estadisticos.X.media.toFixed(4)}</td>
+                        <td>${estadisticos.X.desviacion.toFixed(4)}</td>
+                        <td>${estadisticos.X.minimo.toFixed(4)}</td>
+                        <td>${estadisticos.X.maximo.toFixed(4)}</td>
+                        <td>${estadisticos.X.mediana.toFixed(4)}</td>
+                        <td>${estadisticos.X.asimetria.toFixed(4)}</td>
+                        <td>${estadisticos.X.curtosis.toFixed(4)}</td>
+                    </tr>
+                    <tr>
+                        <td>Y</td>
+                        <td>${estadisticos.Y.media.toFixed(4)}</td>
+                        <td>${estadisticos.Y.desviacion.toFixed(4)}</td>
+                        <td>${estadisticos.Y.minimo.toFixed(4)}</td>
+                        <td>${estadisticos.Y.maximo.toFixed(4)}</td>
+                        <td>${estadisticos.Y.mediana.toFixed(4)}</td>
+                        <td>${estadisticos.Y.asimetria.toFixed(4)}</td>
+                        <td>${estadisticos.Y.curtosis.toFixed(4)}</td>
+                    </tr>
+                </table>`;
+                return html;
+            }
+        });
+    </script>
+</body>
+</html>
