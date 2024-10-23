@@ -279,7 +279,7 @@ function generarDatosYModelo() {
                     <td>[${ci_beta0[0].toFixed(4)}, ${ci_beta0[1].toFixed(4)}]</td>
                 </tr>
                 <tr>
-                    <td> Pendiente (b₁)</td>
+                    <td> Variable (X₁)</td>
                     <td>${beta1_est.toFixed(4)}</td>
                     <td>${se_beta1.toFixed(4)}</td>
                     <td>${t_beta1.toFixed(4)}</td>
