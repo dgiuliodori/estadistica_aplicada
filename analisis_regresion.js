@@ -42,6 +42,18 @@ function iniciarAnalisisRegresion() {
                 <label for="xPredictInput">Valor de X para predecir:</label>
                 <input type="number" id="xPredictInput" value="5.0" step="0.1" min="0" max="10">
             </div>
+            <div class="slider-container">
+                <label for="mostrarIntervalosCheckbox">
+                    <input type="checkbox" id="mostrarIntervalosCheckbox" checked>
+                    Mostrar Intervalos de Confianza
+                </label>
+            </div>
+            <div class="slider-container">
+                <label for="mostrarIntervalosPrediccionCheckbox">
+                    <input type="checkbox" id="mostrarIntervalosPrediccionCheckbox" checked>
+                    Mostrar Intervalos de Predicción
+                </label>
+            </div>
             <div class="card">
                 <a href="supuestos_regresion.html" class="btn">Análisis de los Supuestos</a>
             </div>
@@ -107,6 +119,19 @@ function iniciarAnalisisRegresion() {
     const xPredictInput = document.getElementById('xPredictInput');
     xPredictInput.addEventListener('input', actualizarPrediccion);
     xPredictInput.addEventListener('change', actualizarPrediccion);
+
+    // Obtener referencias a los checkboxes
+    const mostrarIntervalosCheckbox = document.getElementById('mostrarIntervalosCheckbox');
+    const mostrarIntervalosPrediccionCheckbox = document.getElementById('mostrarIntervalosPrediccionCheckbox');
+
+    // Añadir eventos a los checkboxes para actualizar el gráfico cuando cambien su estado
+    mostrarIntervalosCheckbox.addEventListener('change', function() {
+        generarGraficaRegresion();
+    });
+
+    mostrarIntervalosPrediccionCheckbox.addEventListener('change', function() {
+        generarGraficaRegresion();
+    });
 
     // Realizar el análisis inicial
     generarDatosYModelo();
@@ -351,8 +376,6 @@ function actualizarPrediccion() {
 
 // Función para generar las gráficas que dependen del modelo y los datos
 function generarGraficasModelo() {
-    // Aquí generamos las gráficas que no dependen de x_predict
-
     // Gráfica de residuos vs valores ajustados
     const traceResiduos = {
         x: Y_est,
@@ -441,6 +464,10 @@ function generarGraficasModelo() {
 
 // Función para generar la gráfica de regresión, opcionalmente incluye el punto de predicción
 function generarGraficaRegresion(x_predict = null, y_predict = null) {
+    // Obtener el estado de los checkboxes
+    const mostrarIntervalos = document.getElementById('mostrarIntervalosCheckbox').checked;
+    const mostrarIntervalosPrediccion = document.getElementById('mostrarIntervalosPrediccionCheckbox').checked;
+
     // Definir el rango de X para las predicciones
     const x_min = Math.min(...X_muestra);
     const x_max = Math.max(...X_muestra);
@@ -464,8 +491,8 @@ function generarGraficaRegresion(x_predict = null, y_predict = null) {
         const y_hat = beta0_est + beta1_est * x;
         const SE_mean = s * Math.sqrt(1 / n_muestra + ((x - meanX) ** 2) / SXX);
         const SE_pred = s * Math.sqrt(1 + 1 / n_muestra + ((x - meanX) ** 2) / SXX);
-        const delta_mean = t_crit * SE_mean;
-        const delta_pred = t_crit * SE_pred;
+        const delta_mean = mostrarIntervalos ? t_crit * SE_mean : 0;
+        const delta_pred = mostrarIntervalosPrediccion ? t_crit * SE_pred : 0;
         y_hat_plot.push(y_hat);
         CI_mean_upper.push(y_hat + delta_mean);
         CI_mean_lower.push(y_hat - delta_mean);
@@ -510,59 +537,71 @@ function generarGraficaRegresion(x_predict = null, y_predict = null) {
         line: {color: 'red'}
     };
 
-    // Trazos para los intervalos de predicción
-    const tracePI_upper = {
-        x: x_plot,
-        y: PI_upper,
-        mode: 'lines',
-        line: {color: 'rgba(255,165,0,0.2)', width: 0},
-        name: 'Límite superior IP',
-        showlegend: false
-    };
+    // Trazos para los intervalos de predicción (si están habilitados)
+    let tracePI_upper, tracePI_lower;
+    if (mostrarIntervalosPrediccion) {
+        tracePI_upper = {
+            x: x_plot,
+            y: PI_upper,
+            mode: 'lines',
+            line: {color: 'rgba(255,165,0,0.2)', width: 0},
+            name: 'Límite superior IP',
+            showlegend: false
+        };
 
-    const tracePI_lower = {
-        x: x_plot,
-        y: PI_lower,
-        mode: 'lines',
-        line: {color: 'rgba(255,165,0,0.2)', width: 0},
-        fill: 'tonexty',
-        fillcolor: 'rgba(255,165,0,0.2)',
-        name: 'Intervalo de predicción',
-        showlegend: true
-    };
+        tracePI_lower = {
+            x: x_plot,
+            y: PI_lower,
+            mode: 'lines',
+            line: {color: 'rgba(255,165,0,0.2)', width: 0},
+            fill: 'tonexty',
+            fillcolor: 'rgba(255,165,0,0.2)',
+            name: 'Intervalo de predicción',
+            showlegend: true
+        };
+    }
 
-    // Trazos para los intervalos de confianza de la media
-    const traceCI_mean_upper = {
-        x: x_plot,
-        y: CI_mean_upper,
-        mode: 'lines',
-        line: {color: 'rgba(0,100,80,0.2)', width: 0},
-        name: 'Límite superior IC media',
-        showlegend: false
-    };
+    // Trazos para los intervalos de confianza de la media (si están habilitados)
+    let traceCI_mean_upper, traceCI_mean_lower;
+    if (mostrarIntervalos) {
+        traceCI_mean_upper = {
+            x: x_plot,
+            y: CI_mean_upper,
+            mode: 'lines',
+            line: {color: 'rgba(0,100,80,0.2)', width: 0},
+            name: 'Límite superior IC media',
+            showlegend: false
+        };
 
-    const traceCI_mean_lower = {
-        x: x_plot,
-        y: CI_mean_lower,
-        mode: 'lines',
-        line: {color: 'rgba(0,100,80,0.2)', width: 0},
-        fill: 'tonexty',
-        fillcolor: 'rgba(0,100,80,0.2)',
-        name: 'Intervalo de confianza de la media',
-        showlegend: true
-    };
+        traceCI_mean_lower = {
+            x: x_plot,
+            y: CI_mean_lower,
+            mode: 'lines',
+            line: {color: 'rgba(0,100,80,0.2)', width: 0},
+            fill: 'tonexty',
+            fillcolor: 'rgba(0,100,80,0.2)',
+            name: 'Intervalo de confianza de la media',
+            showlegend: true
+        };
+    }
 
     // Datos a graficar
     const dataRegresion = [
-        tracePI_upper,
-        tracePI_lower,
-        traceCI_mean_upper,
-        traceCI_mean_lower,
         tracePoblacion,
         traceMuestra,
         lineaPoblacional,
         lineaMuestral
     ];
+
+    // Incluir intervalos de confianza si están habilitados
+    if (mostrarIntervalos) {
+        dataRegresion.push(traceCI_mean_upper, traceCI_mean_lower);
+    }
+
+    // Incluir intervalos de predicción si están habilitados
+    if (mostrarIntervalosPrediccion) {
+        dataRegresion.push(tracePI_upper, tracePI_lower);
+    }
 
     // Si se proporciona x_predict y y_predict, añadir el punto de predicción
     if (x_predict !== null && y_predict !== null) {
@@ -577,8 +616,17 @@ function generarGraficaRegresion(x_predict = null, y_predict = null) {
         dataRegresion.push(tracePredictionPoint);
     }
 
+    // Actualizar el título del gráfico según las opciones seleccionadas
+    let titulo = 'Regresión Lineal Simple';
+    const elementos = [];
+    if (mostrarIntervalos) elementos.push(' Intervalos de Confianza');
+    if (mostrarIntervalosPrediccion) elementos.push(' Intervalos de Predicción');
+    if (elementos.length > 0) {
+        titulo += ' con' + elementos.join(' y');
+    }
+
     const layoutRegresion = {
-        title: 'Regresión Lineal Simple con Intervalos de Confianza y Predicción',
+        title: titulo,
         xaxis: {title: 'X'},
         yaxis: {title: 'Y'},
         legend: {orientation: 'h', y: -0.2}
