@@ -313,6 +313,12 @@ th {
     margin-left: 10px;
 }
 
+#resumenModelo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Opcional: espacio entre los elementos */
+}
+
 /* Estilos para Tablas de Resumen */
 .tabla-resumen {
     width: 100%;
