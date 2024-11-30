@@ -1,15 +1,15 @@
 // menuData.js
 const menuData = [
-    { nombre: "Inicio", enlace: "../index.html" },
-    {
-        nombre: "Disciplinas", 
-        subMenu: [
-            { nombre: "Estadística", enlace: "../Estadistica/index.html" },
-            { nombre: "Matematica", enlace: "../Matematica/index.html" },
-            { nombre: "Evaluaciones de Impacto", enlace: "../Eval_Impact/index.html" },
-            { nombre: "Fisica", enlace: "../Fisica/index.html" }
-        ]
-    },
+    { nombre: "Inicio", enlace: "index.html" },
+    // {
+    //     nombre: "Disciplinas", 
+    //     subMenu: [
+    //         { nombre: "Estadística", enlace: "../Estadistica/index.html" },
+    //         { nombre: "Matematica", enlace: "../Matematica/index.html" },
+    //         { nombre: "Evaluaciones de Impacto", enlace: "../Eval_Impact/index.html" },
+    //         { nombre: "Fisica", enlace: "../Fisica/index.html" }
+    //     ]
+    // },
     {
         nombre: "Conceptos Generales",
         subMenu: [
@@ -76,5 +76,5 @@ const menuData = [
     //         { nombre: "Regresión Discontinua", enlace: "regresion_discontinua.html" }
     //     ]
     // },
-    { nombre: "Acerca de", enlace: "../acerca_de.html" }
+    { nombre: "Acerca de", enlace: "acerca_de.html" }
 ];
