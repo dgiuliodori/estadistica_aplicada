@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acerca de - Estadística Aplicada</title>
+    <link rel="stylesheet" type="text/css" href="css/minimalist_styles.css">
+    <style>
+        /* Agregamos el estilo para organizar los botones en un grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Ajusta automáticamente el número de columnas */
+            gap: 20px; /* Espaciado entre los elementos */
+            margin: 20px;
+        }
+
+        .profile-card {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        
+        .profile-card img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        .profile-card h2 {
+            margin-bottom: 10px;
+            font-size: 1.5em;
+            color: #333;
+        }
+
+        .profile-card p {
+            font-size: 1em;
+            color: #666;
+        }
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Acerca de Nosotros</h1>
+    </header>
+    <div id="container">
+        <div class="grid-container">
+            <div class="profile-card">
+                <img src="img/dgiuliodori.jpg" >
+                <h2>David Giuliodori</h2>
+                <p>Master en Economía Industrial por la Universidad Carlos III de Madrid y Licenciado en Astronomía por la Universidad Nacional de Córdoba. Consultor en economía aplicada y big data, trabaja para el Banco Interamericano de Desarrollo y es Profesor en la Universidad Nacional de Córdoba.</p>
+                <p><strong>Contacto:</strong> <a href="mailto:dgiuliodori@unc.edu.ar">dgiuliodori@unc.edu.ar</a></p>
+            </div>
+            <div class="profile-card">
+                <img src="img/aleferodriguez.jpeg">
+                <h2>Alejandro Rodriguez</h2>
+                <p>Doctor en Métodos Cuantitativos y Economía de la Empresa por la Universidad Carlos III de Madrid y Licenciado en Economía por la Universidad Nacional de Córdoba. Consultor en data science, consultor externo para el Banco Interamericano de Desarrollo.</p>
+                <p><strong>Contacto:</strong> <a href="mailto:aleferodriguez@gmail.com">aleferodriguez@gmail.com</a></p>
+            </div>
+        </div>
+    </div>
+    <div class="grid-container">
+        <div class="card">
+            <a href="index.html" class="btn">Inicio</a>
+        </div>
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+</body>
+</html>
