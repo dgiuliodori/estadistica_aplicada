@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Prueba de Hipótesis sobre la Media</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div id="container" class="prueba-hipotesis-media-container">
+        <div id="sidebar">
+            <h2>Parámetros</h2>
+            <div class="parametros">
+                <div class="input-container">
+                    <label for="tipoTest">Tipo de Prueba:</label>
+                    <select id="tipoTest">
+                        <option value="right-tailed">Una Cola Derecha</option>
+                        <option value="left-tailed">Una Cola Izquierda</option>
+                        <option value="two-tailed">Dos Colas</option>
+                    </select>
+                </div>
+                <!-- Parámetros como sliders -->
+
+                <div class="slider-container">
+                    <label for="mu0Slider">Valor bajo Hipótesis Nula (μ₀): <span id="mu0Value">50</span></label>
+                    <input type="number" id="mu0Input" value="50" step="0.1">
+                    <input type="range" id="mu0Slider" step="0.1" value="50">
+                </div>
+                <div class="slider-container">
+                    <label for="sigmaSlider">Desviación Estándar (σ): <span id="sigmaValue">10</span></label>
+                    <input type="number" id="sigmaInput" value="10" step="0.1">
+                    <input type="range" id="sigmaSlider" step="0.1" value="10">
+                </div>
+                <div class="slider-container">
+                    <label for="xBarSlider">Media Muestral (x̄): <span id="xBarValue">55</span></label>
+                    <input type="number" id="xBarInput" value="55" step="0.1">
+                    <input type="range" id="xBarSlider" step="0.1" value="55">
+                </div>
+                <div class="slider-container">
+                    <label for="nSlider">Tamaño de Muestra (n): <span id="nValue">55</span></label>
+                    <input type="number" id="nInput" value="30" step="1">
+                    <input type="range" id="nSlider" step="1" value="30">
+                </div>
+                <div class="slider-container">
+                    <label for="alphaSlider">Nivel de Significancia (α): <span id="alphaValue">0.05</span></label>
+                    <input type="number" id="alphaInput" value="0.05" step="0.01">
+                    <input type="range" id="alphaSlider" step="0.01" value="0.05">
+                </div>
+
+<!--                 <div class="slider-container">
+                    <label for="alphaSlider">Nivel de Significancia (α): <span id="alphaValue">0.05</span></label>
+                    <input type="range" id="alphaSlider" min="0.01" max="0.50" step="0.01" value="0.05">
+                </div>
+ -->                <!-- Tipo de Prueba como select -->
+                
+            </div>
+        </div>
+        <div id="content">
+            <div class="ecuacion">
+                <h2>Definición de Prueba de Hipótesis</h2>
+                <p>
+                    Una prueba de hipótesis es un procedimiento estadístico que permite tomar decisiones o inferencias sobre una característica de la población basándonos en una muestra de datos. Su objetivo es evaluar la veracidad de una afirmación (hipótesis) acerca de un parámetro poblacional (por ejemplo, la media o proporción).
+                </p>
+                <p>
+                    Hipótesis nula ( \( H_0 \) ): Es una afirmación específica sobre el parámetro poblacional que se asume cierta al inicio de la prueba. Representa el “estado de no cambio” o “sin efecto”.
+                </p>
+                <p>
+                    Hipótesis alternativa ( \( H_1 \) ): Es una afirmación contraria a la hipótesis nula y representa el efecto que se quiere investigar o comprobar.
+                </p>
+            </div>
+            <div id="resultadosPrueba" class="resultado">
+                <!-- Aquí se mostrarán los resultados -->
+            </div>
+            <div id="graficaDistribucion" style="width: 100%; height: 400px;"></div>
+
+    <div id="graficaMediaMuestral" style="width: 100%; height: 400px;"></div>
+</div>
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <!-- Incluimos las librerías necesarias -->
+    <script src="js_lib/math.min10.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <script src="js_lib/jstat.min.js"></script>
+    <!-- Enlazamos el JavaScript específico para esta sección -->
+    <script src="js/prueba_media.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <script src="js_lib/tex-svg.js"></script>
+</body>
+</html>

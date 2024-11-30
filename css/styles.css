@@ -1,0 +1,808 @@
+/* styles.css */
+
+/* Estilos Generales */
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+header {
+    background-color: var(--header-color);
+}
+
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f4f4;
+    overflow: auto;
+}
+
+body.home {
+    position: relative;
+}
+
+body.home::before {
+    background-image: url('images/Portada2.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+    opacity: 0.5; /* Ajusta la transparencia aquí */
+    z-index: -1;
+}
+
+/* Ocultar la barra lateral y ajustar el contenido en la página de inicio */
+body.home #sidebar {
+    display: none;
+}
+
+body.home #content {
+    margin-left: 0;
+    width: 100%;
+}
+
+header {
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 15px 0;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.centrado {
+    text-align: center;
+}
+
+.titulo-residual {
+    margin-top: 20px; /* Ajusta el margen superior */
+    margin-bottom: 30px; /* Ajusta el margen inferior */
+}
+
+nav {
+    background-color: #646464;
+    padding: 10px;
+    margin-left: 300px; /* Añade este margen izquierdo */
+    width: calc(100% - 300px); /* Ajusta el ancho para ocupar el espacio restante */
+    box-sizing: border-box; /* Asegura que el padding y el borde se incluyan en el cálculo del ancho */
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    text-align: right;
+}
+
+nav li {
+    display: inline-block;
+    position: relative;
+    margin: 0 10px;
+}
+
+nav a {
+    color: #ededed;
+    text-decoration: none;
+    font-size: 16px; /* Tamaño de letra reducido */
+    transition: color 0.3s;
+    padding: 5px;
+    display: block;
+}
+
+nav a:hover {
+    color: #181832;
+}
+
+nav ul ul {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #d7d7d7;
+    padding: 0;
+    list-style-type: none;
+    z-index: 1000;
+}
+
+nav ul ul li {
+    display: block;
+    position: relative;
+}
+
+nav ul ul li a {
+    color: #181832;
+    font-size: 14px; /* Tamaño de letra reducido para submenús */
+    padding: 10px;
+    background-color: #d7d7d7;
+    width: 150px;
+    text-align: left;
+}
+
+nav ul ul li a:hover {
+    background-color: #b0b4c3;
+}
+
+/* Ajusta para que el segundo nivel se abra hacia la izquierda */
+nav ul ul ul {
+    left: auto;
+    right: 100%; /* Posiciona el submenú hacia la izquierda */
+    top: 0;
+}
+
+nav li:hover > ul {
+    display: block;
+}
+
+/* Añade una sombra para mejorar la visibilidad del submenú */
+nav ul ul {
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+
+
+
+#container {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    margin: auto;
+    background-color: #fff;
+}
+
+/* Barra Lateral Fija */
+#sidebar {
+    position: fixed; /* Fija la barra lateral */
+    top: 0;
+    left: 0;
+    width: 300px; /* Ancho de la barra lateral */
+    height: 100vh; /* Altura completa de la pantalla */
+    background-color: #ecf0f1;
+    padding: 15px;
+    box-sizing: border-box;
+    border-right: 1px solid #bdc3c7;
+    overflow-y: auto; /* Permite el desplazamiento interno si el contenido excede la altura */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1); /* Sombra para mayor profundidad */
+}
+
+/* Área de Contenido Principal */
+#content {
+    margin-left: 300px; /* Margen izquierdo igual al ancho de la barra lateral */
+    padding: 15px;
+    box-sizing: border-box;
+    width: calc(100% - 300px); /* Ancho restante */
+    overflow-y: auto; /* Permite el desplazamiento del contenido */
+}
+
+h2 {
+    color: #2c3e50;
+    font-size: 20px;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 14px;
+    color: #333;
+    margin: 5px 0;
+}
+
+/* Contenedores de Canvas */
+.canvas-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.canvas-container .grafico {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.canvas-container canvas, .canvas-container div {
+    background-color: #fff;
+    border: 1px solid #ccc;
+}
+
+/* Estilos para Resultados */
+.resultado {
+    background-color: #ecf0f1;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: row;
+}
+
+.resultado .info {
+    flex: 1;
+}
+
+.resultado .equation {
+    flex: 1;
+    padding-left: 10px;
+    border-left: 1px solid #bdc3c7;
+}
+
+.resultado p {
+    margin: 3px 0;
+    font-size: 13px;
+}
+
+/* Footer */
+/*footer {
+    text-align: center;
+    padding: 8px;
+    background-color: #bdc3c7;
+    margin-top: 0;
+    font-size: 12px;
+    position: relative;
+    width: 100%;
+}*/
+
+/*footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #054481;
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+    font-size: 14px;
+}*/
+
+/* Footer */
+footer {
+    background-color: #054481;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+/* Estilos para Tablas */
+table, th, td {
+    border: 1px solid #bdc3c7;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 12px;
+}
+
+th, td {
+    padding: 6px;
+    text-align: center;
+}
+
+th {
+    background-color: #ecf0f1;
+}
+
+.resultado .info h2 {
+    margin-top: 0;
+}
+
+.resultado .info h3 {
+    margin-bottom: 5px;
+}
+
+.resultado ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.resultado ul li {
+    margin-bottom: 5px;
+}
+
+.resultado p {
+    margin: 5px 0;
+}
+
+#errorMsg {
+    color: red;
+    font-weight: bold;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+/* Estilos para Parámetros */
+.parametros {
+    background-color: #ecf0f1;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.parametros label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.parametros input[type="number"],
+.parametros select {
+    padding: 5px;
+    width: 100%;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+.slider-container {
+    margin-bottom: 15px;
+}
+
+.slider-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.slider-container input[type="range"] {
+    width: 100%;
+}
+
+.slider-value {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+#resumenModelo {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Opcional: espacio entre los elementos */
+}
+
+/* Estilos para Tablas de Resumen */
+.tabla-resumen {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.tabla-resumen th, .tabla-resumen td {
+    border: 1px solid #bdc3c7;
+    padding: 6px;
+    text-align: center;
+}
+
+.tabla-resumen th {
+    background-color: #ecf0f1;
+    font-weight: bold;
+}
+
+.tabla-resumen td {
+    background-color: #fff;
+}
+
+.resultado {
+    margin-bottom: 20px;
+}
+
+.info {
+    margin-bottom: 20px;
+        background-color: #ecf0f1;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        flex-direction: row;
+    
+}
+
+/* Estilizar botones dentro de la barra lateral (opcional) */
+#sidebar button {
+    display: inline-block; /* Permitir margen y padding */
+    padding: 12px 24px; /* Espaciado interno */
+    width: 300px;
+    font-size: 16px; /* Tamaño de fuente */
+    font-weight: 600; /* Negrita */
+    color: #ffffff; /* Texto blanco */
+    background: linear-gradient(45deg, #2575fc, #2575fc); /* Fondo con degradado */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes muy redondeados */
+    width: 200px;
+    text-decoration: none; /* Sin subrayado */
+    cursor: pointer; /* Cursor de puntero al pasar */
+    transition: background 0.3s, transform 0.2s; /* Transiciones suaves */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+#sidebar button:hover {
+    background-color: #686d77;
+    box-shadow: 0px 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilo para el slider-container */
+.slider-container2 {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px auto;
+    width: 250px;
+}
+
+.slider-container2 button {
+    flex: 1;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#iniciarAnimacion {
+    background-color: #28a745;
+    color: white;
+}
+
+#iniciarAnimacion:hover {
+    background-color: #218838;
+}
+
+#detenerAnimacion {
+    background-color: #dc3545;
+    color: white;
+}
+
+#detenerAnimacion:hover {
+    background-color: #c82333;
+}
+
+body.home #sidebar {
+    display: none; /* Oculta la barra lateral */
+}
+
+body.home #content {
+    margin-left: 0; /* Elimina el margen izquierdo */
+    width: 100%; /* Ocupa todo el ancho */
+}
+
+/* Estilos adicionales para la tabla de Tukey */
+#tukeyResultados {
+    margin-top: 20px;
+}
+
+#tukeyResultados h2 {
+    margin-bottom: 10px;
+}
+
+#tukeyResultados .tabla-resumen th, #tukeyResultados .tabla-resumen td {
+    font-size: 14px;
+}
+
+#tukeyResultados .tabla-resumen th {
+    background-color: #d1e7dd; /* Color ligeramente diferente para destacar */
+}
+
+#tukeyResultados .tabla-resumen td {
+    background-color: #fff;
+}
+
+.welcome-message {
+    text-align: center;
+    margin-top: 50px; /* Opcional: Ajusta el margen superior según tus necesidades */
+}
+
+.welcome-message {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.5s forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+input[type="text"], input[type="number"], select {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus, input[type="number"]:focus, select:focus {
+    border-color: #61dafb;
+    outline: none;
+}
+
+.neomorph {
+    background: #f0f0f3;
+    border-radius: 10px;
+    box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #ffffff;
+}
+
+:root {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --header-color: #2c3e50;
+}
+
+[data-theme="dark"] {
+    --bg-color: #181818;
+    --text-color: #f4f4f4;
+    --header-color: #1f1f1f;
+}
+
+
+/* Estilos específicos para Prueba de Hipótesis sobre la Varianza */
+.prueba-varianza-parametros {
+    /* Puedes añadir estilos específicos si lo deseas */
+}
+
+.prueba-varianza-parametros .slider-container,
+.prueba-varianza-parametros .input-container {
+    margin-bottom: 15px;
+}
+
+.prueba-varianza-parametros .slider-container label,
+.prueba-varianza-parametros .input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.prueba-varianza-parametros .slider-container input[type="range"] {
+    width: 100%;
+}
+
+.prueba-varianza-parametros .slider-value {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.prueba-varianza-parametros .input-container select {
+    padding: 5px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Estilos específicos para Análisis de Regresión */
+.regresion-parametros {
+    padding: 10px;
+}
+
+.regresion-parametros .slider-container,
+.regresion-parametros .input-container {
+    margin-bottom: 15px;
+}
+
+.regresion-parametros .slider-container label,
+.regresion-parametros .input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.regresion-parametros .slider-container input[type="range"] {
+    width: 100%;
+}
+
+.slider-value {
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.regresion-parametros .input-container input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+#resetSupuestos {
+    padding: 8px 12px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+#resetSupuestos:hover {
+    background-color: #c82333;
+}
+
+#graficosSupuestos .grafico {
+    margin-bottom: 30px;
+}
+
+#graficosSupuestos .grafico h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+
+   /* Responsividad */
+   /* @media (max-width: 768px) {
+    .main-container {
+        flex-direction: column;
+    }
+
+    #sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ccc;
+    }
+
+    nav ul {
+        text-align: center;
+    }
+
+    nav li {
+        display: block;
+        margin: 5px 0;
+    }
+} */
+
+/* Responsividad */
+/* @media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #sidebar {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    #content {
+        width: 100%;
+        padding: 10px;
+    }
+} */
+
+/* Estilos para el botón */
+.btn {
+    display: inline-block; /* Permitir margen y padding */
+    padding: 12px 24px; /* Espaciado interno */
+    font-size: 16px; /* Tamaño de fuente */
+    font-weight: 600; /* Negrita */
+    color: #ffffff; /* Texto blanco */
+    background: linear-gradient(45deg, #2575fc, #2575fc); /* Fondo con degradado */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Bordes muy redondeados */
+    width: 200px;
+    text-decoration: none; /* Sin subrayado */
+    cursor: pointer; /* Cursor de puntero al pasar */
+    transition: background 0.3s, transform 0.2s; /* Transiciones suaves */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra sutil */
+}
+
+/* Efecto al pasar el cursor sobre el botón */
+.btn:hover {
+    background: linear-gradient(45deg, #686d77, #686d77); /* Degradado invertido */
+    transform: translateY(-2px); /* Levantar ligeramente */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Aumentar la sombra */
+}
+
+/* Efecto al hacer clic en el botón */
+.btn:active {
+    transform: translateY(0px); /* Volver a la posición original */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Reducir la sombra */
+}
+
+/* Efecto de enfoque para accesibilidad */
+.btn:focus {
+    outline: none; /* Quitar el contorno predeterminado */
+    box-shadow: 0 0 0 3px rgba(37, 117, 252, 0.5); /* Sombra azul para indicar enfoque */
+}
+
+
+
+
+
+/* Botón de Simulación */
+#iniciarSimulacion {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#iniciarSimulacion i {
+    margin-right: 8px;
+}
+
+#iniciarSimulacion:hover {
+    background-color: #45a049;
+    transform: translateY(-2px);
+}
+
+#iniciarSimulacion:active {
+    transform: translateY(0px);
+}
+
+/* Gráficos */
+#graphs {
+    flex: 2;
+    min-width: 300px;
+}
+
+.grafico {
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.grafico h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #4CAF50;
+}
+
+
+
+/* Responsividad */
+@media (max-width: 768px) {
+    #container {
+        flex-direction: column;
+    }
+    
+    #controls {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}
+
+
+        /* Gráficos */
+        .grafico {
+            background-color: #fff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .grafico h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #4CAF50;
+        }
+        .ecuacion {
+            
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .ecuacion h2 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .ecuacion p {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #555;
+        }

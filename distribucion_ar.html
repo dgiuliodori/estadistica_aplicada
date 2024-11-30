@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística Aplicada</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluir MathJax para renderizar ecuaciones LaTeX -->
+    <script src="js_lib/tex-mml-chtml.js"></script>
+    <script src="js_lib/chartjs-plugin-annotation.min.js"></script>
+    <script src="js_lib/chart.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <style>
+
+    
+        #statistics {
+            margin-top: 20px;
+        }
+        canvas {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap; /* Permite que los gráficos se ajusten en pantallas más pequeñas */
+            gap: 20px; /* Espacio entre los gráficos */
+            margin-top: 20px;
+        }
+        .chart-wrapper {
+            flex: 1; /* Los gráficos ocuparán igual espacio */
+            min-width: 300px; /* Ancho mínimo para mantener legibilidad */
+        }
+        /* Opcional: ajustar el tamaño máximo de los gráficos */
+        .chart-wrapper canvas {
+            width: 100% !important; /* Asegura que el canvas ocupe todo el ancho del contenedor */
+            height: 400px !important; /* Altura fija */
+        }
+        #processEquation {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+        #randomWalkOptions {
+            margin-top: 10px;
+            display: none; /* Oculto por defecto */
+        }
+        #betaInputs {
+            margin-top: 10px;
+            display: none; /* Oculto por defecto */
+        }
+        .tabla-resumen {
+            width: 100%; /* La tabla ocupará el 100% del contenedor padre */
+            max-width: 600px; /* Ancho máximo de la tabla */
+            border-collapse: collapse; /* Colapsar bordes para una apariencia más limpia */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para darle profundidad */
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Proceso AR(1) vs Random Walk</h1>
+    </header>
+    <nav>
+        <!-- Puedes incluir navegación aquí si es necesario -->
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <!-- Control Deslizante para φ -->
+             <h2>Parámetros</h2>
+        </br>
+            <div class="slider-container">
+                <label for="phi">Coeficiente AR(1) (&phi;): </label>
+                <input type="range" id="phi" min="0" max="1" step="0.01" value="0.5">
+                <span class="slider-value" id="phiValue">0.50</span>
+            </div>
+
+            <!-- Opciones de Random Walk -->
+            <div id="randomWalkOptions">
+                <label for="rwType">Tipo de Random Walk: </label>
+                <select id="rwType">
+                    <option value="pure">1. Random Walk Puro</option>
+                    <option value="drift">2. Random Walk con Drift</option>
+                    <option value="trend">3. Random Walk con Tendencia</option>
+                    <option value="driftTrend">4. Random Walk con Drift y Tendencia</option>
+                </select><br>
+            </div>
+
+            <!-- Campos de Entrada para β0 y β1 como controles deslizantes -->
+            <div id="betaInputs">
+                <div class="slider-container">
+                    <label for="beta0">Valor de &beta;<sub>0</sub> (drift): </label>
+                    <input type="range" id="beta0" min="-10" max="10" step="0.01" value="0">
+                    <span class="slider-value" id="beta0Value">0.0</span>
+                </div>
+
+                <div class="slider-container">
+                    <label for="beta1">Valor de &beta;<sub>1</sub> (tendencia): </label>
+                    <input type="range" id="beta1" min="-1" max="1" step="0.01" value="0">
+                    <span class="slider-value" id="beta1Value">0.00</span>
+                </div>
+            </div>
+
+            <!-- Control Deslizante para el Número de Observaciones (n) -->
+            <div class="slider-container">
+                <label for="n">Número de períodos: </label>
+                <input type="range" id="n" min="10" max="500" step="10" value="100">
+                <span class="slider-value" id="nValue">100</span>
+            </div>
+
+            <!-- Control Deslizante para el Número de Simulaciones -->
+            <div class="slider-container">
+                <label for="simulations">Número de simulaciones: </label>
+                <input type="range" id="simulations" min="100" max="10000" step="100" value="1000">
+                <span class="slider-value" id="simulationsValue">1000</span>
+            </div>
+
+            <!-- Selección de Distribución del Error -->
+            <label for="errorDist">Distribución del error (&epsilon;): </label>
+            <select id="errorDist">
+                <option value="normal">Normal (0, 1)</option>
+                <option value="uniform">Uniforme (-1, 1)</option>
+            </select><br><br>
+
+            <button id="runSimulationButton" onclick="runSimulation()">Simular</button>
+        </aside>
+    </div>
+    <main id="content"> 
+        <!-- Ecuación del proceso estocástico -->
+        <div id="processEquation">
+            <!-- La ecuación se actualizará dinámicamente -->
+        </div>
+
+        <div id="statistics"></div>
+
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <canvas id="histogram" width="500" height="400"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="timeseries" width="500" height="400"></canvas>
+            </div>
+        </div>
+    </main>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <script>
+    // Función para verificar si phi es aproximadamente 1
+    function isApproximatelyOne(phi, tolerance = 1e-6) {
+        return Math.abs(phi - 1) < tolerance;
+    }
+
+    // Función para actualizar la ecuación del proceso estocástico
+    function updateProcessEquation(phi, isRandomWalk, rwType) {
+        let equationDiv = document.getElementById('processEquation');
+        let equationLaTeX;
+
+        if (isRandomWalk) {
+            switch (rwType) {
+                case 'pure':
+                    equationLaTeX = `$$ \\Delta y_{t} = (\\phi - 1) y_{t-1} + \\epsilon_{t} $$`;
+                    break;
+                case 'drift':
+                    equationLaTeX = `$$ \\Delta y_{t} = \\beta_{0} + (\\phi - 1) y_{t-1} + \\epsilon_{t} $$`;
+                    break;
+                case 'trend':
+                    equationLaTeX = `$$ \\Delta y_{t} = \\beta_{1} t + (\\phi - 1) y_{t-1} + \\epsilon_{t} $$`;
+                    break;
+                case 'driftTrend':
+                    equationLaTeX = `$$ \\Delta y_{t} = \\beta_{0} + \\beta_{1} t + (\\phi - 1) y_{t-1} + \\epsilon_{t} $$`;
+                    break;
+                default:
+                    equationLaTeX = `$$ \\Delta y_{t} = (\\phi - 1) y_{t-1} + \\epsilon_{t} $$`;
+            }
+        } else {
+            equationLaTeX = `$$ y_{t} = \\phi y_{t-1} + \\epsilon_{t} $$`;
+        }
+
+        equationDiv.innerHTML = `
+            <h3><strong>Ecuación del Proceso Estocástico:</strong></h3>
+            <h3>${equationLaTeX}</h3>
+        `;
+
+        // Re-renderizar las ecuaciones con MathJax
+        MathJax.typesetPromise();
+    }
+
+    // Mostrar u ocultar opciones de Random Walk según el valor de phi
+    document.getElementById('phi').addEventListener('input', function() {
+        let phi = parseFloat(this.value);
+        let isRW = isApproximatelyOne(phi);
+        document.getElementById('randomWalkOptions').style.display = isRW ? 'block' : 'none';
+        document.getElementById('betaInputs').style.display = 'none'; // Reset beta inputs
+        if (!isRW) {
+            updateProcessEquation(phi, false, null);
+        } else {
+            let rwType = document.getElementById('rwType').value;
+            updateProcessEquation(phi, true, rwType);
+        }
+    });
+
+    // Mostrar u ocultar campos de beta0 y beta1 según la opción seleccionada
+    document.getElementById('rwType').addEventListener('change', function() {
+        let rwType = this.value;
+        let showBeta0 = false;
+        let showBeta1 = false;
+
+        switch (rwType) {
+            case 'pure':
+                // No requiere beta0 ni beta1
+                break;
+            case 'drift':
+                showBeta0 = true;
+                break;
+            case 'trend':
+                showBeta1 = true;
+                break;
+            case 'driftTrend':
+                showBeta0 = true;
+                showBeta1 = true;
+                break;
+        }
+
+        document.getElementById('beta0').parentElement.style.display = showBeta0 ? 'block' : 'none';
+        document.getElementById('beta1').parentElement.style.display = showBeta1 ? 'block' : 'none';
+
+        // Mostrar u ocultar los campos de entrada completos
+        if (showBeta0 || showBeta1) {
+            document.getElementById('betaInputs').style.display = 'block';
+        } else {
+            document.getElementById('betaInputs').style.display = 'none';
+        }
+
+        // Actualizar la ecuación del proceso estocástico
+        let phi = parseFloat(document.getElementById('phi').value);
+        let isRW = isApproximatelyOne(phi);
+        let currentRwType = document.getElementById('rwType').value;
+        updateProcessEquation(phi, isRW, currentRwType);
+    });
+
+    // Actualizar los valores mostrados junto a los controles deslizantes
+    function updateSliderValue(sliderId, valueId) {
+        let slider = document.getElementById(sliderId);
+        let display = document.getElementById(valueId);
+        display.textContent = parseFloat(slider.value).toFixed(slider.step.includes('.') ? slider.step.split('.')[1].length : 0);
+    }
+
+    // Inicializar los valores de los controles deslizantes al cargar la página
+    window.onload = function() {
+        updateSliderValue('phi', 'phiValue');
+        updateSliderValue('n', 'nValue');
+        updateSliderValue('simulations', 'simulationsValue');
+        updateSliderValue('beta0', 'beta0Value');
+        updateSliderValue('beta1', 'beta1Value');
+    };
+
+    // Añadir eventos para actualizar los valores mostrados
+    document.querySelectorAll('input[type="range"]').forEach(function(slider) {
+        let valueId = slider.id + 'Value';
+        slider.addEventListener('input', function() {
+            updateSliderValue(slider.id, valueId);
+        });
+    });
+
+    function generateAR1Data(phi, n, errorDist, rwType, beta0, beta1) {
+        let data = [];
+        let epsilon;
+
+        if (errorDist === 'normal') {
+            epsilon = () => {
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random();
+                while(v === 0) v = Math.random();
+                return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            };
+        } else {
+            epsilon = () => Math.random() * 2 - 1; // Uniforme entre -1 y 1
+        }
+
+        // Inicializar y0
+        data[0] = epsilon();
+
+        if (isApproximatelyOne(phi)) {
+            // Modelo Random Walk
+            for (let t = 1; t < n; t++) {
+                let deltaYt = 0;
+                switch (rwType) {
+                    case 'pure':
+                        deltaYt = (phi - 1) * data[t - 1] + epsilon();
+                        break;
+                    case 'drift':
+                        deltaYt = beta0 + (phi - 1) * data[t - 1] + epsilon();
+                        break;
+                    case 'trend':
+                        deltaYt = beta1 * t + (phi - 1) * data[t - 1] + epsilon();
+                        break;
+                    case 'driftTrend':
+                        deltaYt = beta0 + beta1 * t + (phi - 1) * data[t - 1] + epsilon();
+                        break;
+                    default:
+                        deltaYt = (phi - 1) * data[t - 1] + epsilon();
+                }
+                data[t] = data[t - 1] + deltaYt;
+            }
+        } else {
+            // Modelo AR(1) estándar
+            for (let t = 1; t < n; t++) {
+                data[t] = phi * data[t - 1] + epsilon();
+            }
+        }
+
+        return data;
+    }
+
+    function estimateAR1Coefficient(data, isRandomWalk, rwType) {
+        let n = data.length;
+        let estimate;
+
+        if (isRandomWalk) {
+            let sumYt1DeltaYt = 0;
+            let sumYt1Squared = 0;
+
+            for (let t = 1; t < n; t++) {
+                let deltaYt = data[t] - data[t - 1];
+                sumYt1DeltaYt += data[t - 1] * deltaYt;
+                sumYt1Squared += data[t - 1] * data[t - 1];
+            }
+
+            let estimatePhiMinus1 = sumYt1DeltaYt / sumYt1Squared;
+            estimate = estimatePhiMinus1; // Guardar (phi -1)
+        } else {
+            let sumXt1Xt = 0;
+            let sumXt1Squared = 0;
+
+            for (let t = 1; t < n; t++) {
+                sumXt1Xt += data[t - 1] * data[t];
+                sumXt1Squared += data[t - 1] * data[t - 1];
+            }
+
+            estimate = sumXt1Xt / sumXt1Squared; // Guardar phi
+        }
+
+        return estimate;
+    }
+
+    function runSimulation() {
+        let phiInput = document.getElementById('phi').value;
+        let phi = parseFloat(phiInput);
+        let n = parseInt(document.getElementById('n').value);
+        let simulations = parseInt(document.getElementById('simulations').value);
+        let errorDist = document.getElementById('errorDist').value;
+        let estimates = [];
+        let firstData = null;
+        let isRandomWalk = isApproximatelyOne(phi);
+        let rwType = 'pure'; // Valor por defecto
+
+        // Validación adicional para asegurar que phi no exceda 1
+        if (phi > 1) {
+            alert("El coeficiente AR(1) (φ) no puede ser mayor que 1.");
+            document.getElementById('phi').value = 1;
+            updateSliderValue('phi', 'phiValue');
+            phi = 1;
+            isRandomWalk = true;
+            rwType = document.getElementById('rwType').value;
+            updateProcessEquation(phi, isRandomWalk, rwType);
+        }
+
+        if (isRandomWalk) {
+            rwType = document.getElementById('rwType').value;
+        }
+
+        // Obtener valores de beta0 y beta1 según el tipo de Random Walk
+        let beta0 = 0;
+        let beta1 = 0;
+
+        if (isRandomWalk) {
+            let rwTypeSelected = document.getElementById('rwType').value;
+            if (rwTypeSelected === 'drift' || rwTypeSelected === 'driftTrend') {
+                beta0 = parseFloat(document.getElementById('beta0').value);
+            }
+            if (rwTypeSelected === 'trend' || rwTypeSelected === 'driftTrend') {
+                beta1 = parseFloat(document.getElementById('beta1').value);
+            }
+        }
+
+        // Actualizar la ecuación del proceso estocástico antes de la simulación
+        updateProcessEquation(phi, isRandomWalk, rwType);
+
+        for (let i = 0; i < simulations; i++) {
+            let data = generateAR1Data(phi, n, errorDist, rwType, beta0, beta1);
+            if (i === 0) {
+                firstData = data.slice(); // Clonar la primera serie
+            }
+            let estimate = estimateAR1Coefficient(data, isRandomWalk, rwType);
+            estimates.push(estimate);
+        }
+
+        drawHistogram(estimates, isRandomWalk, phi);
+        displayStatistics(estimates, isRandomWalk, phi);
+        drawTimeSeries(firstData, isRandomWalk, rwType);
+    }
+
+    function drawHistogram(estimates, isRandomWalk, phi) {
+        let ctx = document.getElementById('histogram').getContext('2d');
+        let bins = 30;
+        let min = Math.min(...estimates);
+        let max = Math.max(...estimates);
+        let binWidth = (max - min) / bins;
+        let histogramData = new Array(bins).fill(0);
+
+        estimates.forEach(estimate => {
+            let index = Math.floor((estimate - min) / binWidth);
+            if (index >= bins) index = bins - 1;
+            histogramData[index]++;
+        });
+
+        let binCenters = [];
+        for (let i = 0; i < bins; i++) {
+            let binStart = min + i * binWidth;
+            let center = binStart + binWidth / 2;
+            binCenters.push(center);
+        }
+
+        // Mapear los datos del histograma a objetos { x, y }
+        let histogramDataPoints = histogramData.map((count, index) => {
+            return { x: binCenters[index], y: count };
+        });
+
+        // Calcular estadísticas para la densidad normal
+        let mean = estimates.reduce((a, b) => a + b, 0) / estimates.length;
+        let variance = estimates.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (estimates.length - 1);
+        let stdDev = Math.sqrt(variance);
+
+        // Calcular la densidad normal y escalarla
+        let density = binCenters.map(x => {
+            return (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+        });
+
+        // Escalar la densidad para que coincida con el histograma
+        let scaledDensity = density.map(d => d * estimates.length * binWidth);
+
+        // Mapear los datos de densidad a objetos { x, y }
+        let densityDataPoints = binCenters.map((x, index) => {
+            return { x: x, y: scaledDensity[index] };
+        });
+
+        // Determinar el valor verdadero para la línea de referencia
+        let trueValue = isRandomWalk ? 0 : phi;
+
+        if (window.histogramChart) {
+            window.histogramChart.destroy();
+        }
+
+        window.histogramChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                datasets: [{
+                    label: 'Frecuencia',
+                    data: histogramDataPoints,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)', // Color semitransparente
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5, // Bordes redondeados
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Densidad Normal',
+                    data: densityDataPoints,
+                    type: 'line',
+                    borderColor: 'rgba(255, 99, 132, 1)', // Color contrastante
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.3, // Suavizar la línea
+                    yAxisID: 'y'
+                }]
+            },
+            options: {
+                responsive: true, // Habilitar responsividad
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: isRandomWalk ? 'Histograma de Coeficientes Estimados (φ - 1)' : 'Histograma de Coeficientes Estimados φ',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 12 }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        },
+                    },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                xMin: trueValue,
+                                xMax: trueValue,
+                                borderColor: 'rgba(255, 99, 132, 0.8)',
+                                borderWidth: 2,
+                                borderDash: [6, 6],
+                                label: {
+                                    content: 'Valor Verdadero',
+                                    enabled: true,
+                                    position: 'end',
+                                    backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                                    color: '#fff',
+                                    font: {
+                                        size: 12,
+                                        weight: 'bold'
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        title: {
+                            display: true,
+                            text: isRandomWalk ? '(φ - 1) Estimado' : 'Coeficiente Estimado (φ)',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Frecuencia',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        beginAtZero: true,
+                        position: 'left',
+                        id: 'y',
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.3)'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function drawTimeSeries(data, isRandomWalk, rwType) {
+        let ctx = document.getElementById('timeseries').getContext('2d');
+        let labels = data.map((_, index) => index + 1);
+
+        if (window.timeSeriesChart) {
+            window.timeSeriesChart.destroy();
+        }
+
+        window.timeSeriesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Serie Temporal Simulada',
+                    data: data,
+                    borderColor: 'rgba(153, 102, 255, 1)', // Color atractivo
+                    backgroundColor: 'rgba(153, 102, 255, 0.3)', // Fondo semitransparente
+                    fill: false, // Rellenar el área bajo la línea
+                    pointRadius: 0,
+                    tension: 0.1, // Suavizar la línea
+                    borderWidth: 2,
+                    yAxisID: 'y'
+                }]
+            },
+            options: {
+                responsive: true, // Habilitar responsividad
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: isRandomWalk ? 'Serie Temporal Simulada (Random Walk)' : 'Serie Temporal Simulada (AR(1))',
+                        font: {
+                            size: 18,
+                            weight: 'bold'
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0,0,0,0.7)',
+                        titleFont: { size: 14 },
+                        bodyFont: { size: 12 }
+                    },
+                    legend: {
+                        display: false,
+                        position: 'top',
+                        labels: {
+                            font: {
+                                size: 14
+                            }
+                        },
+                    }
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Tiempo (t)',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Valor',
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        },
+                        beginAtZero: false,
+                        grid: {
+                            color: 'rgba(200, 200, 200, 0.3)'
+                        },
+                        id: 'y'
+                    }
+                }
+            }
+        });
+    }
+
+    function displayStatistics(estimates, isRandomWalk, phi) {
+        let mean = estimates.reduce((a, b) => a + b, 0) / estimates.length;
+        let variance = estimates.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (estimates.length - 1);
+        let stdDev = Math.sqrt(variance);
+        let bias = isRandomWalk ? mean - 0 : mean - phi;
+
+        document.getElementById('statistics').innerHTML = `
+            <p><strong>Resultados de la Simulación (${isRandomWalk ? '(φ - 1) Random Walk' : 'AR(1)'}) :</strong></p>
+            <p>Media de las estimaciones: ${mean.toFixed(4)}</p>
+            <p>Desviación Estándar: ${stdDev.toFixed(4)}</p>
+            <p>Sesgo: ${bias.toFixed(4)}</p>
+        `;
+    }
+
+    function displayStatistics(estimates, isRandomWalk, phi) {
+        let mean = estimates.reduce((a, b) => a + b, 0) / estimates.length;
+        let variance = estimates.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (estimates.length - 1);
+        let stdDev = Math.sqrt(variance);
+        let bias = isRandomWalk ? mean - 0 : mean - phi;
+
+        // Crear la estructura de la tabla
+        let tableHTML = `
+            <h3><strong>Resultados de la Simulación (${isRandomWalk ? '(φ - 1) Random Walk' : 'AR(1)'}) :</strong></h3>
+            <table class="tabla-resumen">
+                    <tr>
+                        <td>Media de las estimaciones</td>
+                        <td>${mean.toFixed(4)}</td>
+                    </tr>
+                    <tr>
+                        <td>Desviación Estándar</td>
+                        <td>${stdDev.toFixed(4)}</td>
+                    </tr>
+                    <tr>
+                        <td>Sesgo</td>
+                        <td>${bias.toFixed(4)}</td>
+                    </tr>
+            </table>
+        `;
+
+        // Insertar la tabla en el contenedor de estadísticas
+        document.getElementById('statistics').innerHTML = tableHTML;
+    }
+    
+    </script>
+    <script>window.onload = function() {
+       
+        // Simular el clic en el botón de simulación
+        document.getElementById('runSimulationButton').click();
+    }</script>
+</body>
+</html>

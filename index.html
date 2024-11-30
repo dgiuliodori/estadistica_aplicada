@@ -1,46 +1,158 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Inicio - Estadística Aplicada</title>
-    <link rel="stylesheet" type="text/css" href="minimalist_styles.css">
+    <link rel="stylesheet" type="text/css" href="css/minimalist_styles.css">
+    <style>
+        /* Agregamos el estilo para organizar los botones en un grid */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+            gap: 20px; /* Espaciado entre los elementos */
+            margin-top: 20px;
+        }
+
+        .grid-container .card {
+            text-align: center;
+        }
+
+        /* Estilo adicional para el contador de visitas */
+        .visitor-counter {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
         <h1>Estadística Aplicada</h1>
     </header>
-    <nav>
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="anova.html">Análisis de Varianza</a></li>
-            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
-            <li><a href="potencia_prueba.html">Potencia de una Prueba</a></li>
-        </ul>
-    </nav>
     <div id="container">
-        <div class="card">
-            <h2>Bienvenido a Estadística Aplicada</h2>
-            <p>Explore nuestras herramientas para el análisis estadístico, incluyendo Análisis de Varianza, Regresión Lineal y cálculos de Potencia de Prueba.</p>
-        </div>
-        <div class="card">
-            <h2>Análisis de Varianza</h2>
-            <p>Realice pruebas de ANOVA para evaluar diferencias significativas entre grupos.</p>
-            <a href="anova.html" class="btn">Ir a ANOVA</a>
-        </div>
-        <div class="card">
-            <h2>Análisis de Regresión</h2>
-            <p>Explore relaciones entre variables y ajuste modelos de regresión lineal.</p>
-            <a href="analisis_regresion.html" class="btn">Ir a Regresión</a>
-        </div>
-        <div class="card">
-            <h2>Potencia de una Prueba</h2>
-            <p>Calcule la potencia estadística para diferentes tipos de pruebas y escenarios.</p>
-            <a href="potencia_prueba.html" class="btn">Ir a Potencia de Prueba</a>
+        <div class="grid-container">
+            <div class="card">
+                <h2>Propiedades de los Estimadores</h2>
+                <p>Simulaciones para mostrar las propiedades de los estimadores muestrales</p>
+                <a href="estimadores.html" class="btn">Ir a Propiedades de los Estimadores</a>
+            </div>
+            <div class="card">
+                <h2>Teorema Central del Límite</h2>
+                <p>Simulaciones con distintas distribuciones de X para demostrar el TCL</p>
+                <a href="tcl.html" class="btn">Ir a Teorema Central del Límite</a>
+            </div>
+            <div class="card">
+                <h2>Límite de una Función en el Punto</h2>
+                <p>Calcule el límite de una función en el punto</p>
+                <a href="limite.html" class="btn">Ir a Límite de una Función en el Punto</a>
+            </div>
+            <div class="card">
+                <h2>Recta Tangente y Derivada</h2>
+                <p>Calcule la tangente a una recta y su función derivada</p>
+                <a href="derivada.html" class="btn">Ir a Recta Tangete y Derivada</a>
+            </div>
+            <div class="card">
+                <h2>Integración Numérica</h2>
+                <p>Calcule la integral de una función numéricamente</p>
+                <a href="integral.html" class="btn">Ir a Integración Numérica</a>
+            </div>
+            <div class="card">
+                <h2>Intervalos de Confianza para la Media</h2>
+                <p>Realice intervalos de confianza para la media poblacional.</p>
+                <a href="ic.html" class="btn">Ir a Intervalos de Confianza</a>
+            </div>
+            <div class="card">
+                <h2>Prueba de Hipótesis sobre la Media</h2>
+                <p>Realice pruebas de hipótesis para evaluar la media poblacional.</p>
+                <a href="prueba_media.html" class="btn">Ir a Prueba de Hipótesis sobre la Media</a>
+            </div>
+            <div class="card">
+                <h2>Prueba de Hipótesis sobre la Varianza</h2>
+                <p>Realice pruebas de hipótesis para evaluar la varianza poblacional.</p>
+                <a href="prueba_varianza.html" class="btn">Ir a Prueba de Hipótesis sobre la Varianza</a>
+            </div>
+            <div class="card">
+                <h2>Análisis de Varianza</h2>
+                <p>Realice pruebas de ANOVA para evaluar diferencias significativas entre grupos.</p>
+                <a href="anova.html" class="btn">Ir a ANOVA</a>
+            </div>
+            <div class="card">
+                <h2>Potencia de una Prueba</h2>
+                <p>Calcule la potencia estadística para diferentes tipos de pruebas y escenarios.</p>
+                <a href="potencia_prueba.html" class="btn">Ir a Potencia de Prueba</a>
+            </div>
+            <div class="card">
+                <h2>Muestreo Estratificado</h2>
+                <p>Análisis del muetreo por estratificación y comparación con el aleatorio simple</p>
+                <a href="muestreo.html" class="btn">Ir a Muestreo Estratificado</a>
+            </div>
+            <div class="card">
+                <h2>Muestreo por Conglomerado</h2>
+                <p>Análisis del muetreo por conglomerados y comparación con el aleatorio simple</p>
+                <a href="Muestreo_conglomerado.html" class="btn">Ir a Muestreo por Conglomerado</a>
+            </div>
+            <div class="card">
+                <h2>Modelo de Regresión Lineal</h2>
+                <p>Explore relaciones entre variables y ajuste modelos de regresión lineal.</p>
+                <a href="analisis_regresion.html" class="btn">Ir a Regresión Lineal</a>
+            </div>
+            <div class="card">
+                <h2>Mínimo Cuadrados Ordinario</h2>
+                <p>Método de Mínimo Cuadrados Ordinarios para estimar coeficientes.</p>
+                <a href="ols.html" class="btn">Ir a Mínimo Cuadrados Ordinario</a>
+            </div>
+            <div class="card">
+                <h2>Modelo de Regresión Logística</h2>
+                <p>Explore relaciones entre variables y ajuste modelos de regresión logística.</p>
+                <a href="logit.html" class="btn">Ir a Regresión Logística</a>
+            </div>
+            <div class="card">
+                <h2>Autorregresivos de Media Móvil</h2>
+                <p>Modelos Autorregresivos de Media Móvil.</p>
+                <a href="arma.html" class="btn">Ir a ARMA</a>
+            </div>
+            <div class="card">
+                <h2>Proceso AR(1) vs Random Walk</h2>
+                <p>Análisis de la distribución de los coeficientes de cada proceso.</p>
+                <a href="distribucion_ar.html" class="btn">Ir a Proceso AR(1) vs Random Walk</a>
+            </div>
+            <div class="card">
+                <h2>Regresión Espúria</h2>
+                <p>Análisis de las relaciones espúrias entre series no estacionarias.</p>
+                <a href="regresion_espuria.html" class="btn">Ir a Regresión Espúria</a>
+            </div>
+            <div class="card">
+                <h2>Estimadores de Efectos Fijos vs Efectos Aleatorios</h2>
+                <p>Comparación entre los Estimadores de Efectos Fijos y Efectos Aleatorios.</p>
+                <a href="fe_re.html" class="btn">Ir a Comparación de EF vs EA</a>
+            </div>
+            <div class="card">
+                <h2>Newton - Raphson</h2>
+                <p>Método para cálculo de raíces de una función</p>
+                <a href="newton_raphson.html" class="btn">Ir a Newton - Raphson</a>
+            </div>
+            <div class="card">
+                <h2>Sistemas Dinámicos</h2>
+                <p>Cálculo de puntos fijos y espacio de fase.</p>
+                <a href="sistemas_dinamicos.html" class="btn">Ir a Sistemas Dinámicos</a>
+            </div>
+            <!-- <div class="card">
+                <h2>Regresión Discontínua</h2>
+                <p>Regresión Discontinua para Evaluación de Impacto</p>
+                <a href="regresion_discontinua.html" class="btn">Ir a Regresión Discontinua</a>
+            </div>
+            <div class="card">
+                <h2>Propensity Score Matching</h2>
+                <p>Propensity Score Matching para Evaluación de Impacto</p>
+                <a href="psm.html" class="btn">Ir a Propensity Score Matching</a>
+            </div> -->
+            <div class="card">
+                <h2>Acerca de</h2>
+                <p>Acerca de los autores.</p>
+                <a href="acerca_de.html" class="btn">Acerca de</a>
+            </div>
         </div>
     </div>
     <footer>
-        &copy; 2024 Estadística Aplicada
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
     </footer>
 </body>
 </html>

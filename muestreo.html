@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluimos las librerías necesarias -->
+    <script src="js_lib/math.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <!-- Incluimos la biblioteca jStat -->
+    <script src="js_lib/jstat.min.js"></script>
+    <!-- Estilos para la tabla -->
+</head>
+<body>
+    <header>
+        <h1>Muestreo por Estratificación</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <h2>Parámetros</h2>
+            <!-- Tamaño de la Población -->
+            <label for="tamanoPoblacion">Tamaño de la Población (N): <span id="tamanoPoblacionValor">5000</span></label>
+            <input type="range" id="tamanoPoblacion" min="100" max="100000" value="5000" step="1000">
+
+            <!-- Proporción de Mujeres -->
+            <h3>Proporción de Mujeres en la Población</h3>
+            <label for="proporcionMujeres">Proporción de Mujeres (%): <span id="proporcionMujeresValor">55</span></label>
+            <input type="range" id="proporcionMujeres" min="0" max="100" value="55" step="1">
+
+            <!-- Tamaño de Muestra para cada Método -->
+            <h3>Tamaño de Muestra para cada Método</h3>
+            <!-- Muestreo Aleatorio Simple -->
+            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>): <span id="tamanoMuestraAleatorioValor">50</span></label>
+            <input type="range" id="tamanoMuestraAleatorio" min="10" max="1000" value="50" step="10">
+
+            <!-- Muestreo Estratificado -->
+            <label for="tamanoMuestraEstratificado">Muestreo Estratificado (n<sub>E</sub>): <span id="tamanoMuestraEstratificadoValor">50</span></label>
+            <input type="range" id="tamanoMuestraEstratificado" min="10" max="1000" value="50" step="10">
+
+            <!-- Muestreo Sistemático -->
+            <label for="tamanoMuestraSistematico">Muestreo Sistemático (n<sub>S</sub>): <span id="tamanoMuestraSistematicoValor">50</span></label>
+            <input type="range" id="tamanoMuestraSistematico" min="10" max="1000" value="50" step="10">
+
+            <!-- Número de Simulaciones -->
+            <label for="numSimulaciones">Número de Simulaciones (M): <span id="numSimulacionesValor">500</span></label>
+            <input type="range" id="numSimulaciones" min="1" max="1000" value="500" step="10">
+        </aside>
+    </div>
+
+    <!-- Gráficos -->
+    <main id="content">
+        <h1>Comportamiento del peso y la altura en la población segmentado por género (Datos Simulados)</h1>
+        <div class="grafico">
+            <h3>Distribución de la Población</h3>
+            <div id="graficoPoblacion" style="width: 100%; height: 400px;"></div>
+        </div>
+        <!-- Sección para Muestreo Aleatorio Simple y Estratificado -->
+        <h3>Comparación entre Muestreo Aleatorio Simple y Estratificado</h3>
+        <div class="grafico">
+            <div style="display: flex; justify-content: space-between;">
+                <div style="width: 48%;">
+                    <h3>Distribución de las Medias Muestrales de Altura (Monte Carlo)</h3>
+                    <div id="graficoMediasAltura" style="width: 100%; height: 400px;"></div>
+                </div>
+                <div style="width: 48%;">
+                    <h3>Distribución de las Medias Muestrales de Peso (Monte Carlo)</h3>
+                    <div id="graficoMediasPeso" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Tabla comparativa para Aleatorio Simple y Estratificado -->
+        <div id="resultadosAleatorioEstratificado"></div>
+        
+        <!-- Sección separada para Muestreo Sistemático y Aleatorio Simple -->
+        <h3>Comparación entre Muestreo Aleatorio Simple y Sistemático</h3>
+        <div class="grafico">
+            <div style="display: flex; justify-content: space-between;">
+                <div style="width: 48%;">
+                    <h3>Distribución de las Medias Muestrales de Altura (Monte Carlo)</h3>
+                    <div id="graficoMediasAlturaSistematico" style="width: 100%; height: 400px;"></div>
+                </div>
+                <div style="width: 48%;">
+                    <h3>Distribución de las Medias Muestrales de Peso (Monte Carlo)</h3>
+                    <div id="graficoMediasPesoSistematico" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+        <!-- Tabla comparativa para Aleatorio Simple y Sistemático -->
+        <div id="resultadosAleatorioSistematico"></div>
+    </main>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <script>
+        // Variables globales
+        let poblacion = [];
+        let N = 5000; // Tamaño de la población
+        let proporcionMujeres = 55; // Proporción de mujeres en porcentaje
+        let n_aleatorio = 50;   // Tamaño de la muestra para muestreo aleatorio simple
+        let n_estratificado = 50; // Tamaño de la muestra para muestreo estratificado
+        let n_sistematico = 50; // Tamaño de la muestra para muestreo sistemático
+        let M = 500;   // Número de simulaciones
+
+        let mediaAlturaPoblacional, mediaPesoPoblacional;
+
+        // Inicializar
+        inicializar();
+
+        function inicializar() {
+            actualizarParametros();
+            generarPoblacion();
+            calcularEstadisticosPoblacionales();
+            graficarPoblacion();
+            aplicarMuestreos(); // Ejecutar la simulación al cargar la página
+
+            // Agregar eventos a los campos de entrada
+            const inputs = document.querySelectorAll('#sidebar input[type="range"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    actualizarValorDisplay(this.id, this.value);
+                    actualizar();
+                });
+            });
+        }
+
+        // Función para actualizar los valores mostrados al lado de los sliders
+        function actualizarValorDisplay(id, valor) {
+            const spanId = id + 'Valor';
+            const span = document.getElementById(spanId);
+            if (span) {
+                span.textContent = valor;
+            }
+        }
+
+        // Función para actualizar parámetros
+        function actualizarParametros() {
+            N = parseInt(document.getElementById('tamanoPoblacion').value);
+            proporcionMujeres = parseFloat(document.getElementById('proporcionMujeres').value);
+            n_aleatorio = parseInt(document.getElementById('tamanoMuestraAleatorio').value);
+            n_estratificado = parseInt(document.getElementById('tamanoMuestraEstratificado').value);
+            n_sistematico = parseInt(document.getElementById('tamanoMuestraSistematico').value);
+            M = parseInt(document.getElementById('numSimulaciones').value);
+        }
+
+        // Función para actualizar todo al cambiar parámetros
+        function actualizar() {
+            actualizarParametros();
+            generarPoblacion();
+            calcularEstadisticosPoblacionales();
+            graficarPoblacion();
+            aplicarMuestreos(); // Ejecutar la simulación al cambiar cualquier parámetro
+        }
+
+        // Función para generar la población
+        function generarPoblacion() {
+            poblacion = [];
+            let numHombres = 0;
+            let numMujeres = 0;
+
+            // Convertir proporción de mujeres a decimal
+            let proporcionMujeresDecimal = proporcionMujeres / 100;
+
+            for (let i = 0; i < N; i++) {
+                let Hombre = (Math.random() > proporcionMujeresDecimal) ? 1 : 0;
+
+                // Parámetros A y B que puedes ajustar
+                let A = 150; // Controla el punto de inflexión
+                let B = 20;  // Controla la pendiente
+
+                let Altura_original = 140 * Hombre 
+                            + 120 * (1 - Hombre)
+                            + 0.5 * jStat.exponential.sample(1/15) * Hombre 
+                            + 0.5 * jStat.exponential.sample(1/10) * (1 - Hombre) 
+                            + 10 * Hombre
+                            + jStat.normal.sample(0, 15) * Hombre
+                            + jStat.normal.sample(0, 5) * (1 - Hombre)
+                            + Math.abs(jStat.normal.sample(0, 10)) * Hombre;
+                let Altura = Math.min(Altura_original, jStat.normal.sample(250, 5));
+
+                let Peso = 0
+                           + 0.5 * Altura
+                           + jStat.normal.sample(0, 4)
+                           + jStat.exponential.sample(1/3) * Hombre;
+
+                poblacion.push({
+                    Hombre: Hombre,
+                    Altura: Altura,
+                    Peso: Peso,
+                    genero: Hombre ? 'Hombre' : 'Mujer',
+                    index: i
+                });
+
+                if (Hombre) numHombres++;
+                else numMujeres++;
+            }
+
+            // Guardar cantidades
+            poblacion.numHombres = numHombres;
+            poblacion.numMujeres = numMujeres;
+        }
+
+        // Función para calcular estadísticas poblacionales
+        function calcularEstadisticosPoblacionales() {
+            let alturas = poblacion.map(ind => ind.Altura);
+            let pesos = poblacion.map(ind => ind.Peso);
+
+            mediaAlturaPoblacional = jStat.mean(alturas);
+            mediaPesoPoblacional = jStat.mean(pesos);
+        }
+
+        // Función para graficar la población
+        function graficarPoblacion() {
+            let hombresData = poblacion.filter(ind => ind.Hombre === 1);
+            let mujeresData = poblacion.filter(ind => ind.Hombre === 0);
+
+            let traceHombres = {
+                x: hombresData.map(ind => ind.Altura), // Altura en el eje X
+                y: hombresData.map(ind => ind.Peso),   // Peso en el eje Y
+                mode: 'markers',
+                type: 'scatter',
+                name: 'Hombres',
+                marker: { size: 6, color: 'rgba(126,199,33,255)' }
+            };
+
+            let traceMujeres = {
+                x: mujeresData.map(ind => ind.Altura), // Altura en el eje X
+                y: mujeresData.map(ind => ind.Peso),   // Peso en el eje Y
+                mode: 'markers',
+                type: 'scatter',
+                name: 'Mujeres',
+                marker: { size: 6, color: 'rgba(152,69,125,255)' }
+            };
+
+            let layout = {
+                title: '',
+                xaxis: { title: 'Altura (cm)' }, // Título actualizado para el eje X
+                yaxis: { title: 'Peso (kg)' },   // Título actualizado para el eje Y
+                showlegend: true,
+                autosize: true
+            };
+
+            Plotly.newPlot('graficoPoblacion', [traceHombres, traceMujeres], layout, {responsive: true});
+        }
+
+        // Función para aplicar los muestreos con Monte Carlo
+        function aplicarMuestreos() {
+            // Definir los métodos a utilizar
+            // Primer grupo: Aleatorio Simple y Estratificado
+            let metodos1 = ['Aleatorio Simple', 'Estratificado'];
+            let resultadosSimulacion1 = {
+                'Aleatorio Simple': [],
+                'Estratificado': []
+            };
+
+            // Segundo grupo: Aleatorio Simple y Sistemático
+            let metodos2 = ['Aleatorio Simple', 'Sistematico'];
+            let resultadosSimulacion2 = {
+                'Aleatorio Simple': [],
+                'Sistematico': []
+            };
+
+            // Mostrar mensajes de carga
+            document.getElementById('resultadosAleatorioEstratificado').innerHTML = '<p>Realizando simulaciones de Aleatorio Simple y Estratificado, por favor espera...</p>';
+            document.getElementById('resultadosAleatorioSistematico').innerHTML = '<p>Realizando simulaciones de Aleatorio Simple y Sistemático, por favor espera...</p>';
+
+            // Usar setTimeout para permitir que el mensaje se renderice
+            setTimeout(function() {
+                // Precalcular proporciones de los estratos en la población
+                let N_poblacion = poblacion.length;
+                let Nhombres = poblacion.numHombres;
+                let Nmujeres = poblacion.numMujeres;
+                let ph = Nhombres / N_poblacion;
+                let pm = Nmujeres / N_poblacion;
+
+                // Realizar M simulaciones para el primer grupo (Aleatorio Simple y Estratificado)
+                for (let m = 0; m < M; m++) {
+                    // Aplicar cada método de muestreo
+                    let muestras1 = {};
+                    muestras1['Aleatorio Simple'] = muestreoAleatorioSimple(poblacion, n_aleatorio);
+                    muestras1['Estratificado'] = muestreoEstratificado(poblacion, n_estratificado);
+
+                    // Para cada muestra del primer grupo, calcular estadísticas y almacenar
+                    for (let metodo of metodos1) {
+                        let muestra = muestras1[metodo];
+
+                        let mediaAlturaMuestra, mediaPesoMuestra;
+
+                        if (metodo === 'Estratificado') {
+                            // Separar muestra por estratos
+                            let hombresMuestra = muestra.filter(ind => ind.Hombre === 1);
+                            let mujeresMuestra = muestra.filter(ind => ind.Hombre === 0);
+
+                            // Medias muestrales por estrato
+                            let mediaAlturaHombresMuestra = hombresMuestra.length > 0 ? jStat.mean(hombresMuestra.map(ind => ind.Altura)) : 0;
+                            let mediaAlturaMujeresMuestra = mujeresMuestra.length > 0 ? jStat.mean(mujeresMuestra.map(ind => ind.Altura)) : 0;
+
+                            let mediaPesoHombresMuestra = hombresMuestra.length > 0 ? jStat.mean(hombresMuestra.map(ind => ind.Peso)) : 0;
+                            let mediaPesoMujeresMuestra = mujeresMuestra.length > 0 ? jStat.mean(mujeresMuestra.map(ind => ind.Peso)) : 0;
+
+                            // Calcular medias ponderadas por proporciones poblacionales
+                            mediaAlturaMuestra = ph * mediaAlturaHombresMuestra + pm * mediaAlturaMujeresMuestra;
+                            mediaPesoMuestra = ph * mediaPesoHombresMuestra + pm * mediaPesoMujeresMuestra;
+                        } else {
+                            // Para muestreo aleatorio simple, calcular media simple
+                            let alturasMuestra = muestra.map(ind => ind.Altura);
+                            let pesosMuestra = muestra.map(ind => ind.Peso);
+
+                            mediaAlturaMuestra = alturasMuestra.length > 0 ? jStat.mean(alturasMuestra) : 0;
+                            mediaPesoMuestra = pesosMuestra.length > 0 ? jStat.mean(pesosMuestra) : 0;
+                        }
+
+                        // Sesgo
+                        let sesgoAlturaTotal = mediaAlturaMuestra - mediaAlturaPoblacional;
+                        let sesgoPesoTotal = mediaPesoMuestra - mediaPesoPoblacional;
+
+                        resultadosSimulacion1[metodo].push({
+                            mediaAltura: mediaAlturaMuestra,
+                            mediaPeso: mediaPesoMuestra,
+                            sesgoAltura: sesgoAlturaTotal,
+                            sesgoPeso: sesgoPesoTotal
+                        });
+                    }
+
+                    // Realizar simulaciones para el segundo grupo (Aleatorio Simple y Sistemático)
+                    // Aplicar métodos de muestreo
+                    let muestras2 = {};
+                    muestras2['Aleatorio Simple'] = muestreoAleatorioSimple(poblacion, n_aleatorio);
+                    muestras2['Sistematico'] = muestreoSistematico(poblacion, n_sistematico);
+
+                    // Para cada muestra del segundo grupo, calcular estadísticas y almacenar
+                    for (let metodo of metodos2) {
+                        let muestra = muestras2[metodo];
+
+                        let mediaAlturaMuestra, mediaPesoMuestra;
+
+                        if (metodo === 'Sistematico') {
+                            // Para muestreo sistemático, calcular media simple
+                            let alturasMuestra = muestra.map(ind => ind.Altura);
+                            let pesosMuestra = muestra.map(ind => ind.Peso);
+
+                            mediaAlturaMuestra = alturasMuestra.length > 0 ? jStat.mean(alturasMuestra) : 0;
+                            mediaPesoMuestra = pesosMuestra.length > 0 ? jStat.mean(pesosMuestra) : 0;
+                        } else {
+                            // Para muestreo aleatorio simple, calcular media simple
+                            let alturasMuestra = muestra.map(ind => ind.Altura);
+                            let pesosMuestra = muestra.map(ind => ind.Peso);
+
+                            mediaAlturaMuestra = alturasMuestra.length > 0 ? jStat.mean(alturasMuestra) : 0;
+                            mediaPesoMuestra = pesosMuestra.length > 0 ? jStat.mean(pesosMuestra) : 0;
+                        }
+
+                        // Sesgo
+                        let sesgoAlturaTotal = mediaAlturaMuestra - mediaAlturaPoblacional;
+                        let sesgoPesoTotal = mediaPesoMuestra - mediaPesoPoblacional;
+
+                        resultadosSimulacion2[metodo].push({
+                            mediaAltura: mediaAlturaMuestra,
+                            mediaPeso: mediaPesoMuestra,
+                            sesgoAltura: sesgoAlturaTotal,
+                            sesgoPeso: sesgoPesoTotal
+                        });
+                    }
+                }
+
+                // Mostrar resultados
+                mostrarResultadosMonteCarlo(resultadosSimulacion1, 'resultadosAleatorioEstratificado', metodos1, 'graficoMediasAltura', 'graficoMediasPeso');
+                mostrarResultadosMonteCarlo(resultadosSimulacion2, 'resultadosAleatorioSistematico', metodos2, 'graficoMediasAlturaSistematico', 'graficoMediasPesoSistematico');
+
+            }, 100); // Fin de setTimeout
+        }
+
+        // Muestreo Aleatorio Simple sin reemplazo
+        function muestreoAleatorioSimple(poblacion, n) {
+            let indicesDisponibles = Array.from({ length: poblacion.length }, (_, i) => i);
+            let muestra = [];
+
+            for (let i = 0; i < n && indicesDisponibles.length > 0; i++) {
+                let indiceAleatorio = Math.floor(Math.random() * indicesDisponibles.length);
+                let indiceSeleccionado = indicesDisponibles.splice(indiceAleatorio, 1)[0];
+                muestra.push(poblacion[indiceSeleccionado]);
+            }
+            return muestra;
+        }
+
+        // Muestreo Estratificado con afijación proporcional
+        function muestreoEstratificado(poblacion, n) {
+            let muestra = [];
+            let totalPoblacion = poblacion.length;
+
+            // Definir información de los estratos
+            let estratosInfo = [
+                { estrato: 0, nombre: 'Mujeres', individuos: [], nEstrato: 0 },
+                { estrato: 1, nombre: 'Hombres', individuos: [], nEstrato: 0 }
+            ];
+
+            // Separar individuos por estrato
+            estratosInfo.forEach(estrato => {
+                estrato.individuos = poblacion.filter(ind => ind.Hombre === estrato.estrato);
+            });
+
+            // Calcular tamaños de muestra por estrato
+            estratosInfo.forEach((estrato, index) => {
+                let nEstrato = Math.round(n * (estrato.individuos.length / totalPoblacion));
+                if (index === estratosInfo.length - 1) {
+                    nEstrato = n - muestra.length; // Ajustar para que la suma de nEstrato sea n
+                }
+                estrato.nEstrato = nEstrato; // Guardar tamaño de muestra del estrato
+
+                // Muestrear aleatoriamente sin reemplazo en el estrato
+                let muestraEstrato = muestreoAleatorioSimple(estrato.individuos, nEstrato);
+
+                muestra = muestra.concat(muestraEstrato);
+            });
+
+            return muestra;
+        }
+
+        // Muestreo Sistemático
+        function muestreoSistematico(poblacion, n) {
+            let muestra = [];
+            let N_poblacion = poblacion.length;
+            if (n > N_poblacion) {
+                alert("El tamaño de la muestra es mayor que la población para muestreo sistemático.");
+                return muestra;
+            }
+
+            let k = Math.floor(N_poblacion / n);
+            let inicio = Math.floor(Math.random() * k);
+            for (let i = 0; i < n; i++) {
+                let indice = (inicio + i * k) % N_poblacion;
+                muestra.push(poblacion[indice]);
+            }
+
+            return muestra;
+        }
+
+        // Función para mostrar resultados de la simulación de Monte Carlo
+        function mostrarResultadosMonteCarlo(resultadosSimulacion, containerId, metodos, graficoAlturaId, graficoPesoId) {
+            let resultadosDiv = document.getElementById(containerId);
+            let html = `<h2>Resultados de la Simulación de Monte Carlo (M = ${M})</h2>`;
+
+            html += `<p><strong>Media Altura Poblacional:</strong> ${mediaAlturaPoblacional.toFixed(2)} cm</p>`;
+            html += `<p><strong>Media Peso Poblacional:</strong> ${mediaPesoPoblacional.toFixed(2)} kg</p>`;
+
+            // Preparar datos para gráficas
+            let datosGraficasAltura = [];
+            let datosGraficasPeso = [];
+
+            // Objeto para almacenar los resultados de cada método
+            let resultadosMetodos = {};
+
+            for (let metodo of metodos) {
+                let mediasAltura = resultadosSimulacion[metodo].map(res => res.mediaAltura);
+                let mediasPeso = resultadosSimulacion[metodo].map(res => res.mediaPeso);
+                let sesgosAltura = resultadosSimulacion[metodo].map(res => res.sesgoAltura);
+                let sesgosPeso = resultadosSimulacion[metodo].map(res => res.sesgoPeso);
+
+                // Calcular estadísticas de las simulaciones
+                let mediaAlturaPromedio = jStat.mean(mediasAltura);
+                let mediaPesoPromedio = jStat.mean(mediasPeso);
+                let sesgoAlturaPromedio = jStat.mean(sesgosAltura);
+                let sesgoPesoPromedio = jStat.mean(sesgosPeso);
+                let varianzaAltura = jStat.variance(mediasAltura);
+                let varianzaPeso = jStat.variance(mediasPeso);
+
+                // Calcular RMSE
+                let mseAltura = varianzaAltura + Math.pow(sesgoAlturaPromedio, 2);
+                let msePeso = varianzaPeso + Math.pow(sesgoPesoPromedio, 2);
+                let rmseAltura = Math.sqrt(mseAltura);
+                let rmsePeso = Math.sqrt(msePeso);
+
+                // Guardar resultados en el objeto
+                resultadosMetodos[metodo] = {
+                    mediaAlturaPromedio: mediaAlturaPromedio,
+                    mediaPesoPromedio: mediaPesoPromedio,
+                    sesgoAlturaPromedio: sesgoAlturaPromedio,
+                    sesgoPesoPromedio: sesgoPesoPromedio,
+                    varianzaAltura: varianzaAltura,
+                    varianzaPeso: varianzaPeso,
+                    rmseAltura: rmseAltura,
+                    rmsePeso: rmsePeso
+                };
+
+                // Preparar datos para gráficas de Altura
+                datosGraficasAltura.push({
+                    x: mediasAltura,
+                    type: 'histogram',
+                    opacity: 0.7,
+                    name: `${metodo}`
+                });
+
+                // Preparar datos para gráficas de Peso
+                datosGraficasPeso.push({
+                    x: mediasPeso,
+                    type: 'histogram',
+                    opacity: 0.7,
+                    name: `${metodo}`
+                });
+            }
+
+            // Construir tabla comparativa con columnas como variables y filas como métodos
+            html += `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Método de Muestreo</th>
+                        <th>n</th>
+                        <th>Media de Medias de Altura (cm)</th>
+                        <th>Media de Medias de Peso (kg)</th>
+                        <th>Sesgo Promedio en Altura (cm)</th>
+                        <th>Sesgo Promedio en Peso (kg)</th>
+                        <th>Varianza de Medias de Altura</th>
+                        <th>Varianza de Medias de Peso</th>
+                        <th>RMSE Altura<br>(√[Var + Sesgo²])</th>
+                        <th>RMSE Peso<br>(√[Var + Sesgo²])</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            for (let metodo of metodos) {
+                let n_muestra;
+                if (metodo === 'Aleatorio Simple') {
+                    n_muestra = n_aleatorio;
+                } else if (metodo === 'Estratificado') {
+                    n_muestra = n_estratificado;
+                } else if (metodo === 'Sistematico') {
+                    n_muestra = n_sistematico;
+                }
+
+                html += `
+                <tr>
+                    <td>${metodo}</td>
+                    <td>${n_muestra}</td>
+                    <td>${resultadosMetodos[metodo].mediaAlturaPromedio.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].mediaPesoPromedio.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].sesgoAlturaPromedio.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].sesgoPesoPromedio.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].varianzaAltura.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].varianzaPeso.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].rmseAltura.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].rmsePeso.toFixed(2)}</td>
+                </tr>
+                `;
+            }
+
+            html += `
+                </tbody>
+            </table>
+            `;
+
+            resultadosDiv.innerHTML = html;
+
+            // Graficar histogramas de las medias muestrales de Altura
+            let layoutAltura = {
+                title: '',
+                xaxis: { title: 'Valor de la Media Muestral de Altura (cm)' },
+                yaxis: { title: 'Frecuencia' },
+                barmode: 'overlay',
+                showlegend: true
+            };
+
+            Plotly.newPlot(graficoAlturaId, datosGraficasAltura, layoutAltura);
+
+            // Graficar histogramas de las medias muestrales de Peso
+            let layoutPeso = {
+                title: '',
+                xaxis: { title: 'Valor de la Media Muestral de Peso (kg)' },
+                yaxis: { title: 'Frecuencia' },
+                barmode: 'overlay',
+                showlegend: true
+            };
+
+            Plotly.newPlot(graficoPesoId, datosGraficasPeso, layoutPeso);
+        }
+    </script>
+        <script src="js/menuData.js"></script>
+        <script src="js/generarMenu.js"></script>
+</body>
+</html>

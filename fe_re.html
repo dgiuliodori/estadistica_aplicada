@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparación de Estimadores FE y RE en Datos de Panel</title>
+    <!-- Incluir Chart.js -->
+    <script src="js_lib/chart.js"></script>
+    <!-- Incluir MathJax para renderizar ecuaciones en LaTeX -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="js_lib/tex-svg.js" async></script>
+    <!-- <script src="js_lib/tex-svg.js" async></script> -->
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <!-- Estilos CSS mejorados -->
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Estilos CSS -->
+    <style>
+        /* Variables de colores para fácil personalización */
+        :root {
+            --color-primario: #064481;
+            --color-secundario: #18bc9c;
+            --color-fondo: #ecf0f1;
+            --color-texto: #2c3e50;
+            --color-acento: #e74c3c;
+            --color-blanco: #ffffff;
+            --color-negro: #171717;
+            --color-azul: #054481;
+        }
+
+        /* Reset de márgenes y padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /*header {
+            background-color: var(--color-primario);
+            color: var(--color-blanco);
+            padding: 20px;
+            text-align: center;
+        }*/
+
+        /* Contenedor principal */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            min-height: calc(75vh - 40px); /* Ajusta 40px según el tamaño del footer */
+            padding-bottom: 40px; /* Deja espacio para el footer */
+            box-sizing: border-box;
+        }
+
+        /* Sidebar de parámetros */
+        #sidebar {
+            flex: 1;
+            min-width: 250px;
+            max-width: 300px;
+            background-color: var(--color-blanco);
+            padding: 20px;
+            margin-right: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #sidebar h2 {
+            margin-bottom: 20px;
+            color: var(--color-primario);
+        }
+        #sidebar label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--color-texto);
+        }
+        #sidebar input, #sidebar button {
+            padding: 10px;
+            margin-top: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        #sidebar input:focus {
+            border-color: #66afe9;
+            outline: none;
+        }
+        #sidebar button {
+            background-color: var(--color-secundario);
+            color: var(--color-blanco);
+            border: none;
+            margin-top: 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #sidebar button:hover {
+            opacity: 0.9;
+        }
+
+        /* Contenido principal */
+        main#content {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        
+
+        .resultados-grafica-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        /* Estilos para resultados */
+        #resultados {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--color-blanco);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #resultados h2 {
+            color: var(--color-primario);
+            margin-bottom: 15px;
+        }
+        #resultados table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        #resultados table th, #resultados table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        #resultados table th {
+            background-color: var(--color-primario);
+            color: var(--color-blanco);
+        }
+
+        /* Estilos para la gráfica */
+        #grafica-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            background-color: var(--color-blanco);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #grafica-container canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        /* Estilos para la interpretación */
+        .interpretation {
+            margin-top: 20px;
+            color: var(--color-texto);
+            background-color: var(--color-fondo);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        /* Responsividad */
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #sidebar {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .resultados-grafica-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #grafica-container {
+                max-width: 100%;
+            }
+
+            /* Ajuste para dispositivos móviles */
+            .equations {
+                flex-direction: column;
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            background-color: var(--color-azul);
+            color: var(--color-blanco);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Comparación de Estimadores de Efectos Fijos y Efectos Aleatorios</h1>
+    </header>
+    <nav>
+        <!-- Aquí puedes agregar un menú de navegación si lo deseas -->
+    </nav>
+
+    <div class="container">
+        <!-- Sidebar de parámetros -->
+        <aside id="sidebar">
+            <h2>Parámetros de Generación de Datos</h2>
+            <label for="numIndividuals">Número de Individuos: <span id="valorNumIndividuals">100</span></label>
+            <input type="range" id="numIndividuals" value="100" min="1" max="1000" step="1">
+            
+            <label for="numPeriods">Número de Períodos: <span id="valorNumPeriods">5</span></label>
+            <input type="range" id="numPeriods" value="5" min="1" max="20" step="1">
+            
+            <label for="slope">Pendiente de la Covariable (β): <span id="valorSlope">2.0</span></label>
+            <input type="range" id="slope" value="2" min="-10" max="10" step="0.1">
+            
+            <label for="correlation">Correlación (ρ): <span id="valorCorrelation">0.0</span></label>
+            <input type="range" id="correlation" value="0" min="-0.9" max="0.9" step="0.1">
+            
+            <label for="numSimulations">Número de Simulaciones: <span id="valorNumSimulations">1000</span></label>
+            <input type="range" id="numSimulations" value="1000" min="0" max="5000" step="100">
+            
+            <button id="runButton">Generar Datos y Ejecutar Estimaciones</button>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main id="content">
+            <!-- Equations section -->
+<style>
+    .equations {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .equation {
+        width: 48%; /* Ajusta el ancho según tus necesidades */
+        box-sizing: border-box;
+    }
+    /* Opcional: estilos para mejorar la presentación */
+    .equation h3 {
+        margin-top: 0;
+    }
+    .equation p, .equation ul {
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="equations">
+    <div class="equation">
+        <h3>Modelo con estructura de panel</h3>
+        <p>
+            $$ y_{it} = \beta x_{it} + \alpha_i + u_{it} $$
+        </p>
+        <p>
+            Donde:
+            <ul>
+                <li><strong>\( y_{it} \)</strong>: Variable dependiente para el individuo \( i \) en el período \( t \).</li>
+                <li><strong>\( \alpha_i \)</strong>: Efecto idiosincrático del individuo \( i \).</li>
+                <li><strong>\( \beta_k \)</strong>: Coeficiente de la covariable \( x_{itk} \).</li>
+                <li><strong>\( u_{it} \)</strong>: Término de error.</li>
+            </ul>
+        </p>
+        <p style="margin-top: 20px;">
+            El modelo para estimar los <strong>\( \beta_k \)</strong>, va a depender de la relación que exista entre las co-variables del modelo, <strong>\( x_{itk} \)</strong>, y el término idiosincrático, <strong>\( \alpha_i \)</strong>. Si <strong>\( \alpha_i \)</strong> y <strong>\( x_{itk} \)</strong> no están correlacionadas podemos utilizar MCO-Agregados (Pool-OLS). Sin embargo, esto genera un estimador que, si bien es insesgado y consistente, no es eficiente, ya que la matriz de varianzas-covarianzas del término  <strong>\( v_{it} = \alpha_i + u_{it} \)</strong> no es una matriz diagonal. Por el contrario,
+            $$
+            E(\mathbf{v}_i \mathbf{v}_i') = \Omega = \left[
+            \begin{array}{cccc}
+                \sigma^2_u+\sigma^2_c & \sigma^2_c            & \cdots & \sigma^2_c \\
+                \sigma^2_c            & \sigma^2_u+\sigma^2_c & \cdots & \vdots \\
+                \vdots                &                       & \ddots & \sigma^2_c \\
+                \sigma^2_c            &                       &        & \sigma^2_u+\sigma^2_c \\
+            \end{array}
+            \right]
+            $$
+            donde, <strong>\( Var(\alpha_i) = \sigma^2_c \)</strong>, <strong>\( Var(u_{it}) = \sigma^2_u \)</strong> y  <strong>\( \mathbf{v}_i' = [v_{i1}, v_{i2}, \cdots, v_{iT}] \)</strong> es un vector fila de dimensión  <strong>\( 1\times T \)</strong>.
+        </p>
+        <p style="margin-top: 20px;">
+            Teniendo en cuenta esto, el mejor estimador es uno que permita capturar esta estructura en la matriz de covarianza. En este caso los MCG, a los que la literatura suele llamar estimador por <strong>efectos aleatorios</strong>.
+        </p>
+        <p style="margin-top: 20px;">
+            Ahora bien, si <strong>\( \alpha_i \)</strong> y <strong>\( x_{itk} \)</strong> están correlacionadas, entonces, la estimación por <strong>efecto aleatorio</strong> tendrá un sesgo. En este caso, una forma simple de estimar los coeficientes <strong>\( \beta_k \)</strong> es "quitando" el coeficiente idiosincrático. Una forma es considerar el componente como un elemento constante, e incorporarlo como un parámetro más de estimación. Esto es lo que conocemos como el estimador por <strong>efectos fijos</strong>.
+        </p>
+    </div>
+
+    <div class="equation">
+        <h3 style="margin-top: 0;">Estimación por Efectos Aleatorios (RE)</h3>
+        <p style="margin-top: 20px;">
+            El procedimiento de estimación por RE trabaja asumiendo que los efectos individuales \( \alpha_i \) son variables aleatorias, pero que no están correlacionados con las covariables:
+        </p>
+        <p>
+            $$ Cov[\alpha_i , x_{it}] = 0. $$
+        </p>
+        <p>
+            $$ y_{it} = \beta x_{it} + \underset{v_{it}}{\underbrace{\alpha_i  + u_{it}}}. $$
+        </p>
+        <p>
+            El estimador de EA se obtiene a través de la estimación de Mínimos Cuadrados Pooled (Pooled OLS), sobre los datos centrados, bajo la suposición de que:
+        </p>
+        <p>
+            $$ \bar{y}_{it} = y_{it}  - \bar{y}_{i.}, ~ \bar{x}_{it} = x_{it}  - \bar{x}_{i.}, $$
+            donde,
+            $$ \bar{y}_{i.} = \frac{1}{T}\sum_{t = 1}^{T} y_{it}, \quad \bar{x}_{i.} = \frac{1}{T}\sum_{t = 1}^{T} x_{it}. $$
+        </p>
+        <p>
+            El estimador se calcula como:
+        </p>
+        <p>
+            $$ \hat{\beta}_{RE} = \frac{\sum_{i=1}^N \sum_{t=1}^T \bar{x}_{it} \bar{y}_{it}}{\sum_{i=1}^N \sum_{t=1}^T \bar{x}_{it}^2} $$
+        </p>
+        <h3 style="margin-top: 20px;">Estimación por Efectos Fijos (FE)</h3>
+        <p style="margin-top: 20px;">
+            El procedimiento para estimar por Efectos Fijos permite que \( Cov[\alpha_i , x_{it}] \neq 0 \). Bajo esta especificación, el procedimiento incorpora el término como un parámetro adicional para estimar.
+        </p>
+        <p style="margin-top: 20px;">
+            El estimador de Efectos Fijos se obtiene mediante la descentración de los datos y se calcula como:
+        </p>
+        <p style="margin-bottom: 40px;">
+            $$ \hat{\beta}_{FE} = \frac{\sum_{i=1}^N \sum_{t=1}^T (x_{it} - \bar{x}_i)(y_{it} - \bar{y}_i)}{\sum_{i=1}^N \sum_{t=1}^T (x_{it} - \bar{x}_i)^2}. $$
+        </p>
+    </div>
+</div>
+
+            <div class="resultados-grafica-container">
+                <!-- Resultados -->
+                <div id="resultados">
+                    <!-- Los resultados se mostrarán aquí -->
+                </div>
+
+                <!-- Gráficas -->
+                <div id="grafica-container">
+                    <!-- Las gráficas se mostrarán aquí -->
+                    <div id="charts">
+                        <!-- Los gráficos se insertarán aquí mediante JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            
+        </main>
+    </div>
+
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+
+    <script>
+        // Función para generar números aleatorios normalmente distribuidos (Box-Muller)
+        function randomNormal() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random(); // Evitar log(0)
+            while(v === 0) v = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+        
+        // Función para generar datos sintéticos
+        function generateData(N, T, beta, rho, sigma2_c = 1, sigma2_u = 1) {
+            let data = [];
+            for(let i = 0; i < N; i++) {
+                // Generar efecto individual (a_i)
+                let ai = randomNormal() * Math.sqrt(sigma2_c);
+                for(let t = 0; t < T; t++) {
+                    // Generar variable explicativa x_it
+                    // Si rho ≠ 0, x_it está correlacionada con a_i
+                    let epsilon = randomNormal();
+                    let x_it = rho * ai + Math.sqrt(1 - rho * rho) * epsilon;
+                    
+                    // Generar término de error (u_it)
+                    let uit = randomNormal() * Math.sqrt(sigma2_u);
+                    
+                    // Variable dependiente y_it = beta * x_it + a_i + u_it
+                    let y_it = beta * x_it + ai + uit;
+                    
+                    data.push({
+                        individuo: i,
+                        periodo: t,
+                        y: y_it,
+                        x: x_it
+                    });
+                }
+            }
+            return data;
+        }
+        
+        // Función para calcular medias por individuo
+        function calculateIndividualMeans(data, N, T) {
+            let means = {};
+            for(let i = 0; i < N; i++) {
+                means[i] = { y: 0, x: 0 };
+            }
+            data.forEach(d => {
+                means[d.individuo].y += d.y;
+                means[d.individuo].x += d.x;
+            });
+            for(let i = 0; i < N; i++) {
+                means[i].y /= T;
+                means[i].x /= T;
+            }
+            return means;
+        }
+        
+        // Función para calcular OLS estimador
+        function ols(data) {
+            let n = data.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            data.forEach(d => {
+                sumX += d.x;
+                sumY += d.y;
+                sumXY += d.x * d.y;
+                sumXX += d.x * d.x;
+            });
+            let numerator = (n * sumXY) - (sumX * sumY);
+            let denominator = (n * sumXX) - (sumX * sumX);
+            return denominator !== 0 ? numerator / denominator : NaN;
+        }
+
+        
+        // Calcula la suma de cuadrados.
+        function var_res(data, beta, N, T) {
+            let e_hat2 = 0;
+            let means = calculateIndividualMeans(data, N, T);
+            data.forEach(d => {
+                const diferencia = ( ( d.y - means[d.individuo].y ) - beta * ( d.x - means[d.individuo].x ) );
+                e_hat2 += Math.pow(diferencia, 2); 
+            });
+            let var_res = e_hat2 / (N * (T-1) - 1);
+            return var_res;
+        }
+        
+        // Función para calcular Estimador de Efectos Fijos
+        function fixedEffects(data, N, T) {
+            // Calcular medias por individuo
+            let means = calculateIndividualMeans(data, N, T);
+            // Descentrar los datos
+
+            let demeaned = data.map(d => ({
+                y: d.y - means[d.individuo].y,
+                x: d.x - means[d.individuo].x
+            }));
+            // OLS sobre datos descentrados
+            let beta_hat = ols(demeaned);
+            let var_res_hat = var_res(data, beta_hat, N, T);
+
+            let sumXX = 0;
+            data.forEach(d => {
+                const dx = d.x - means[d.individuo].x;
+                sumXX += dx * dx;
+            });
+
+            let var_asy = var_res_hat / sumXX;
+            return {beta_hat, var_asy, var_res_hat};
+        }
+        
+        // Función para calcular el estimador de Efectos Aleatorios (RE) como Pooled OLS
+        function randomEffects(data, N, T) {
+
+            let beta_ols = ols(data);
+            let e_hat2 = 0;
+            data.forEach(d => {
+                const diferencia = ( d.y  - beta_ols * d.x  );
+                e_hat2 += Math.pow(diferencia, 2); 
+            });
+            let var_ols = e_hat2 / (N * (T-1) - 1);
+            let estima_fe = fixedEffects(data, N, T);
+            let sigma2_u_hat = estima_fe.var_res_hat;
+            let sigma2_c_hat = var_ols - sigma2_u_hat
+
+
+            const theta = 1 - Math.sqrt(sigma2_u_hat / (sigma2_u_hat + T * sigma2_c_hat));
+            let means = calculateIndividualMeans(data, N, T);
+            let demeaned = data.map(d => ({
+                y: (d.y - theta * means[d.individuo].y) / Math.sqrt(sigma2_u_hat),
+                x: (d.x - theta * means[d.individuo].x) / Math.sqrt(sigma2_u_hat)
+            }));
+            // OLS sobre datos descentrados
+            let beta_hat = ols(demeaned);
+
+            let sum_xx = 0;
+            let sum_xu = 0;
+            data.forEach(d => {
+                let dy = d.y - theta * means[d.individuo].y;
+                let dx = d.x - theta * means[d.individuo].x;
+                const diferencia = ( dy  - beta_hat * dx  );
+                const xx = Math.pow(dx, 2); 
+                const u2 = Math.pow(diferencia, 2); 
+                sum_xx += xx;
+                sum_xu += xx * u2
+            });
+
+            let var_asy = (sum_xu)/(sum_xx * sum_xx);
+
+            return {beta_hat, var_asy};
+        }
+
+        // Función para ejecutar una única simulación
+        function runSingleSimulation(N, T, beta, rho) {
+            const data = generateData(N, T, beta, rho, sigma2_c = 1, sigma2_u = 100);
+            let FE_estimates = fixedEffects(data, N, T);
+            const beta_FE = FE_estimates.beta_hat
+            let RE_estimates = randomEffects(data,  N, T);
+            const beta_RE = RE_estimates.beta_hat;
+            
+            // Inicializar errores estándar
+            let se_FE = NaN;
+            let se_RE = NaN;
+
+            se_FE = Math.sqrt(FE_estimates.var_asy)
+            se_RE = Math.sqrt(RE_estimates.var_asy)
+            
+            return { beta_FE, beta_RE, se_FE, se_RE };
+        }
+        
+        // Función para ejecutar múltiples simulaciones
+        function runSimulations(N, T, beta, rho, numSimulations) {
+            let beta_FE_list = [];
+            let beta_RE_list = [];
+            let se_FE_list = [];
+            let se_FE_first = NaN;
+            let se_RE_first = NaN;
+            for(let i = 0; i < numSimulations; i++) {
+                const { beta_FE, beta_RE, se_FE, se_RE } = runSingleSimulation(N, T, beta, rho);
+                if(!isNaN(beta_FE)) beta_FE_list.push(beta_FE);
+                if(!isNaN(beta_RE)) beta_RE_list.push(beta_RE);
+                if(!isNaN(se_FE)) se_FE_list.push(se_FE);
+                if(i === 0) { // Primera simulación
+                    se_FE_first = se_FE;
+                    se_RE_first = se_RE;
+                }
+            }
+            return { beta_FE_list, beta_RE_list, se_FE_list, se_RE_first };
+        }
+        
+        // Función para calcular la varianza de un arreglo (varianza muestral)
+        function calculateVariance(arr) {
+            const n = arr.length;
+            if(n < 2) return NaN;
+            const mean = arr.reduce((a, b) => a + b, 0) / n;
+            const variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (n - 1);
+            return variance;
+        }
+        
+        // Función para generar histogramas usando Chart.js
+        function generateHistogram(containerId, data, label, color, trueBeta) {
+            const ctx = document.getElementById(containerId).getContext('2d');
+            // Determinar número de bins usando la regla de Sturges, aumentado para mayor granularidad
+            const numBins = Math.max(Math.ceil(Math.log2(data.length) + 1), 100); // Al menos 100 bins
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const binWidth = (max - min) / numBins;
+            let bins = Array(numBins).fill(0);
+            data.forEach(value => {
+                let bin = Math.floor((value - min) / binWidth);
+                if(bin === numBins) bin--; // Incluir el valor máximo en el último bin
+                bins[bin]++;
+            });
+            const labels = bins.map((_, index) => (min + binWidth * index).toFixed(2));
+            // Calcular densidad
+            const density = bins.map(count => count / (data.length * binWidth));
+            
+            // Crear el gráfico
+            const chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: density,
+                        backgroundColor: color,
+                        borderColor: color,
+                        borderWidth: 1,
+                        barPercentage: 1.0,        // Ancho de cada barra
+                        categoryPercentage: 1.0    // Espaciado entre categorías
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: label
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterBody: function(context) {
+                                    return `Varianza Muestral: ${calculateVariance(data).toFixed(6)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Estimador de β'
+                            },
+                            ticks: {
+                                autoSkip: true,
+                                maxTicksLimit: 20
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Densidad'
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    }
+                }
+            });
+            
+            // Añadir línea para el valor verdadero de β
+            if(!isNaN(trueBeta)) {
+                chart.options.plugins.afterDraw = function(chartInstance) {
+                    const { ctx, chartArea: { left, right, top, bottom }, scales: { x, y } } = chartInstance;
+                    // Calcular posición x para trueBeta
+                    const xPos = x.getPixelForValue(trueBeta);
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.moveTo(xPos, top);
+                    ctx.lineTo(xPos, bottom);
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#000';
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.restore();
+                    
+                    // Añadir etiqueta
+                    ctx.fillStyle = '#000';
+                    ctx.font = '12px Arial';
+                    ctx.fillText('β Verdadero', xPos + 5, top + 15);
+                };
+                chart.update();
+            }
+            
+            return chart;
+        }
+        
+        // Función para ejecutar todo el proceso
+        function runApp() {
+            // Obtener parámetros del usuario
+            const N = parseInt(document.getElementById('numIndividuals').value);
+            const T = parseInt(document.getElementById('numPeriods').value);
+            const beta = parseFloat(document.getElementById('slope').value);
+            const rho = parseFloat(document.getElementById('correlation').value);
+            const numSimulations = parseInt(document.getElementById('numSimulations').value);
+            
+            // Validar entradas
+            if(isNaN(N) || N < 1){
+                alert("Por favor, ingresa un número válido de individuos (≥1).");
+                return;
+            }
+            if(isNaN(T) || T < 1){
+                alert("Por favor, ingresa un número válido de períodos (≥1).");
+                return;
+            }
+            if(isNaN(beta)){
+                alert("Por favor, ingresa un valor válido para la pendiente de la covariable (β).");
+                return;
+            }
+            if(isNaN(rho) || rho < -1 || rho > 1){
+                alert("Por favor, ingresa una correlación válida entre -1 y 1.");
+                return;
+            }
+            if(isNaN(numSimulations) || numSimulations < 1){
+                alert("Por favor, ingresa un número válido de simulaciones (≥1).");
+                return;
+            }
+            
+            // Informar al usuario que el proceso está en curso
+            const runButton = document.getElementById('runButton');
+            runButton.disabled = true;
+            runButton.textContent = 'Ejecutando...';
+            
+            // Ejecutar simulaciones
+            setTimeout(() => { // Usar setTimeout para permitir la actualización de la UI
+                const { beta_FE_list, beta_RE_list, se_FE_list, se_RE_first } = runSimulations(N, T, beta, rho, numSimulations);
+                
+                // Calcular varianzas y medias
+                const mean_FE = beta_FE_list.reduce((a, b) => a + b, 0) / beta_FE_list.length;
+                const mean_RE = beta_RE_list.reduce((a, b) => a + b, 0) / beta_RE_list.length;
+                const mean_se_FE = se_FE_list.reduce((a, b) => a + b, 0) / se_FE_list.length;
+                const var_FE = Math.sqrt(calculateVariance(beta_FE_list));
+                const var_RE = Math.sqrt(calculateVariance(beta_RE_list));
+                
+                // Mostrar resultados
+                const resultsDiv = document.getElementById('resultados');
+                resultsDiv.innerHTML = `
+                    <h2>Resultados de las Estimaciones (${numSimulations} Simulaciones)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Modelo</th>
+                                <th>Media Estimada de β</th>
+                                <th>Error Estándar de los Estimadores</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Efectos Fijos (FE)</td>
+                                <td>${mean_FE.toFixed(4)}</td>
+                                <td>${var_FE.toFixed(4)}</td>
+                            </tr>
+                            <tr>
+                                <td>Efectos Aleatorios (RE)</td>
+                                <td>${mean_RE.toFixed(4)}</td>
+                                <td>${var_RE.toFixed(4)}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Valor Verdadero de β</strong></td>
+                                <td><strong>${beta}</strong></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>Correlación ρ</td>
+                                <td>${rho}</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h2>Interpretación</h2>
+                    <p><strong>Media Estimada de β:</strong> Promedio de los coeficientes estimados a través de las simulaciones.</p>
+                    <p><strong>Error Estándar de los Estimadores:</strong> Medida de la dispersión de los coeficientes estimados (error estándar muestral).</p>
+                    <p><strong>Cuando ρ = 0:</strong> Ambos estimadores FE y RE son insesgados y consistentes. RE suele ser más eficiente (menor error estándar).</p>
+                    <p><strong>Cuando ρ ≠ 0:</strong> Hay una correlación entre &alpha;<sub>i</sub> y x<sub>it</sub>, por lo que el estimador RE tendrá un sesgo, ya que el término de error estará correlacionado con la covariable. Mientras que el estimador FE sigue siendo consistente.</p>
+
+                `;
+                
+                // Limpiar gráficos anteriores
+                const chartsDiv = document.getElementById('charts');
+                chartsDiv.innerHTML = `
+                    <canvas id="feChart"></canvas>
+                    <canvas id="reChart"></canvas>
+                `;
+                // Restaurar el botón
+                runButton.disabled = false;
+                runButton.textContent = 'Generar Datos y Ejecutar Estimaciones';
+                
+                // Generar histogramas con línea de β verdadero
+                generateHistogram('feChart', beta_FE_list, 'Histograma de Estimadores FE', 'rgba(54, 162, 235, 0.6)', beta);
+                generateHistogram('reChart', beta_RE_list, 'Histograma de Estimadores RE', 'rgba(255, 99, 132, 0.6)', beta);
+                
+                // Mostrar interpretación
+            }, 100); // Pequeña demora para actualizar el botón
+        }
+        
+        // Asignar evento al botón
+        document.getElementById('runButton').addEventListener('click', runApp);
+
+        // Actualizar valores de labels al mover sliders
+        function actualizarValores() {
+            document.getElementById('valorNumIndividuals').textContent = document.getElementById('numIndividuals').value;
+            document.getElementById('valorNumPeriods').textContent = document.getElementById('numPeriods').value;
+            document.getElementById('valorSlope').textContent = parseFloat(document.getElementById('slope').value).toFixed(1);
+            document.getElementById('valorCorrelation').textContent = parseFloat(document.getElementById('correlation').value).toFixed(1);
+            document.getElementById('valorNumSimulations').textContent = document.getElementById('numSimulations').value;
+        }
+
+        document.getElementById('numIndividuals').addEventListener('input', actualizarValores);
+        document.getElementById('numPeriods').addEventListener('input', actualizarValores);
+        document.getElementById('slope').addEventListener('input', actualizarValores);
+        document.getElementById('correlation').addEventListener('input', actualizarValores);
+        document.getElementById('numSimulations').addEventListener('input', actualizarValores);
+
+        // Inicializar valores
+        actualizarValores();
+        // **Agregar esta línea para ejecutar la simulación al cargar la página**
+        runApp();
+    </script>
+</body>
+</html>

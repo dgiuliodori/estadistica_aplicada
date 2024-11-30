@@ -2,24 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Análisis de Regresión - Estadística Aplicada</title>
+    <title>Estadística Aplicada</title>
     <!-- Enlazamos el CSS externo -->
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
     <!-- Incluimos las librerías necesarias -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="js_lib/math.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>Estadística Aplicada</h1>
+        <h1>Modelo de Regresión Lineal</h1>
     </header>
     <nav>
-        <ul>
-            <li><a href="index.html">Inicio</a></li>
-            <li><a href="anova.html">Análisis de Varianza</a></li>
-            <li><a href="analisis_regresion.html">Análisis de Regresión</a></li>
-            <li><a href="potencia_prueba.html">Potencia de una Prueba</a></li>
-        </ul>
+        
     </nav>
     <div id="container">
         <div id="sidebar">
@@ -30,12 +25,767 @@
         </div>
     </div>
     <footer>
-        &copy; 2024 Estadística Aplicada
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
     </footer>
     <!-- Enlazamos el archivo de regresión -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/10.6.4/math.min.js"></script>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
-    <script src="analisis_regresion.js"></script>
+    <script src="js_lib/jstat.min.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <script>// Variables para almacenar datos y modelo
+        let beta0, beta1, sigma, N, n;
+        let X_poblacion, Y_poblacion, X_muestra, Y_muestra;
+        let beta0_est, beta1_est, s, meanX, meanY, SXX, n_muestra;
+        let X_muestra_original, Y_muestra_original; // Variables para guardar datos originales de la muestra
+        let Y_est, residuos;
+        let t_crit, df_residual;
+        let outliersIndices = [];
+        
+        // Función para iniciar el análisis de regresión
+        function iniciarAnalisisRegresion() {
+            const sidebarDiv = document.getElementById('sidebar');
+            const contentDiv = document.getElementById('content');
+        
+            // Limpiar contenido previo
+            sidebarDiv.innerHTML = '';
+            contentDiv.innerHTML = '';
+        
+            // Controles interactivos en la barra lateral
+            sidebarDiv.innerHTML = `
+                <h2>Parámetros</h2>
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="beta0Slider">Constante (β₀): <span id="beta0Value" class="slider-value">2.0</span></label>
+                        <input type="range" id="beta0Slider" min="-5" max="5" step="0.1" value="2.0">
+                    </div>
+                    <div class="slider-container">
+                        <label for="beta1Slider">Pendiente (β₁): <span id="beta1Value" class="slider-value">1.5</span></label>
+                        <input type="range" id="beta1Slider" min="-5" max="5" step="0.1" value="1.5">
+                    </div>
+                    <div class="slider-container">
+                        <label for="sigmaSlider">Desviación Estándar (σ): <span id="sigmaValue" class="slider-value">4.0</span></label>
+                        <input type="range" id="sigmaSlider" min="0.1" max="10" step="0.1" value="4.0">
+                    </div>
+                    <div class="slider-container">
+                        <label for="NSlider">Tamaño de la Población (N): <span id="NValue" class="slider-value">2000</span></label>
+                        <input type="range" id="NSlider" min="100" max="10000" step="100" value="2000">
+                    </div>
+                    <div class="slider-container">
+                        <label for="nSlider">Tamaño de la Muestra (n): <span id="nValue" class="slider-value">300</span></label>
+                        <input type="range" id="nSlider" min="10" max="1000" step="10" value="300">
+                    </div>
+                    <div class="input-container">
+                        <label for="xPredictInput">Valor de X para predecir:</label>
+                        <input type="number" id="xPredictInput" value="5.0" step="0.1" min="0" max="10">
+                    </div>
+                    <div class="slider-container">
+                        <label for="mostrarIntervalosCheckbox">
+                            <input type="checkbox" id="mostrarIntervalosCheckbox" checked>
+                            Mostrar Intervalos de Confianza
+                        </label>
+                    </div>
+                    <div class="slider-container">
+                        <label for="mostrarIntervalosPrediccionCheckbox">
+                            <input type="checkbox" id="mostrarIntervalosPrediccionCheckbox" checked>
+                            Mostrar Intervalos de Predicción
+                        </label>
+                    </div>
+                    <div class="slider-container">
+                        <label for="incluirOutliersCheckbox">
+                            <input type="checkbox" id="incluirOutliersCheckbox">
+                            Incluir valores atípicos
+                        </label>
+                    </div>
+                    <div class="slider-container">
+                        <label for="cantidadOutliersSlider">Cantidad de valores atípicos: <span id="cantidadOutliersValue" class="slider-value">0</span></label>
+                        <input type="range" id="cantidadOutliersSlider" min="0" max="0" step="1" value="0">
+                    </div>
+                    <div class="slider-container">
+                        <label for="severidadOutliersSlider">Severidad de valores atípicos: <span id="severidadOutliersValue" class="slider-value">3.0</span></label>
+                        <input type="range" id="severidadOutliersSlider" min="1" max="10" step="0.5" value="3.0">
+                    </div>
+                    <div class="card">
+                        <a href="supuestos_regresion.html" class="btn">Análisis de los Supuestos</a>
+                    </div>
+                    </br>
+                    <div class="card">
+                        <a href="variable_dummy.html" class="btn">Variables Dicotómicas</a>
+                    </div>
+                    <p id="errorMsg" class="error"></p>
+                    </br>
+                    </br>
+                </div>
+            `;
+        
+            // Contenedores para las gráficas y resultados
+            contentDiv.innerHTML = `
+                <div id="resumenModelo" class="resultado">
+                    <div id="modeloResumenContenido">
+                        <!-- Aquí se mostrará el resumen del modelo -->
+                    </div>
+                    <div id="prediccion" >
+                        <!-- Aquí se mostrará la predicción -->
+                    </div>
+                </div>
+                <div id="graficaRegresion" style="width: 100%; height: 500px;"></div>
+                <div id="graficaResiduos" style="width: 100%; height: 400px;"></div>
+                <div id="graficaDistribucionResiduos" style="width: 100%; height: 400px;"></div>
+                <div id="graficaQQPlot" style="width: 100%; height: 400px;"></div>
+            `;
+        
+            // Añadir eventos a los sliders y campos de entrada
+            // document.getElementById('beta0Slider').addEventListener('input', function() {
+            document.getElementById('beta0Slider').addEventListener('change', function() {
+                document.getElementById('beta0Value').innerText = parseFloat(this.value).toFixed(1);
+                // generarDatosYModelo();
+                generarDatosYModelo(true); // Regenerar población
+                actualizarPrediccion();
+            });
+            // document.getElementById('beta1Slider').addEventListener('input', function() {
+            document.getElementById('beta1Slider').addEventListener('change', function() {
+                document.getElementById('beta1Value').innerText = parseFloat(this.value).toFixed(1);
+                generarDatosYModelo(true);
+                actualizarPrediccion();
+            });
+            // document.getElementById('sigmaSlider').addEventListener('input', function() {
+            document.getElementById('sigmaSlider').addEventListener('change', function() {
+                document.getElementById('sigmaValue').innerText = parseFloat(this.value).toFixed(1);
+                generarDatosYModelo(true);
+                actualizarPrediccion();
+            });
+            // document.getElementById('NSlider').addEventListener('input', function() {
+            document.getElementById('NSlider').addEventListener('change', function() {
+                document.getElementById('NValue').innerText = parseInt(this.value);
+                // Ajustar el valor máximo de nSlider
+                const N = parseInt(this.value);
+                const nSlider = document.getElementById('nSlider');
+                nSlider.max = N;
+                if (parseInt(nSlider.value) > N) {
+                    nSlider.value = N;
+                    document.getElementById('nValue').innerText = N;
+                }
+                generarDatosYModelo(true);
+                actualizarPrediccion();
+            });
+            // document.getElementById('nSlider').addEventListener('input', function() {
+            document.getElementById('nSlider').addEventListener('change', function() {
+                document.getElementById('nValue').innerText = parseInt(this.value);
+                generarDatosYModelo(true);
+                actualizarPrediccion();
+            });
+        
+            const xPredictInput = document.getElementById('xPredictInput');
+            xPredictInput.addEventListener('input', actualizarPrediccion);
+            xPredictInput.addEventListener('change', actualizarPrediccion);
+        
+            // Obtener referencias a los checkboxes y sliders relacionados con outliers
+            const mostrarIntervalosCheckbox = document.getElementById('mostrarIntervalosCheckbox');
+            const mostrarIntervalosPrediccionCheckbox = document.getElementById('mostrarIntervalosPrediccionCheckbox');
+            const incluirOutliersCheckbox = document.getElementById('incluirOutliersCheckbox');
+            const cantidadOutliersSlider = document.getElementById('cantidadOutliersSlider');
+            const severidadOutliersSlider = document.getElementById('severidadOutliersSlider');
+        
+            // Añadir eventos a los checkboxes y sliders para actualizar cuando cambien su estado
+            mostrarIntervalosCheckbox.addEventListener('change', function() {
+                generarGraficaRegresion();
+            });
+        
+            mostrarIntervalosPrediccionCheckbox.addEventListener('change', function() {
+                generarGraficaRegresion();
+            });
+
+            incluirOutliersCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    cantidadOutliersSlider.max = Math.floor(parseInt(document.getElementById('nSlider').value) * 0.01);
+                    if (cantidadOutliersSlider.value > cantidadOutliersSlider.max) {
+                        cantidadOutliersSlider.value = cantidadOutliersSlider.max;
+                    }
+                    document.getElementById('cantidadOutliersValue').innerText = cantidadOutliersSlider.value;
+                } else {
+                    cantidadOutliersSlider.value = 0;
+                    document.getElementById('cantidadOutliersValue').innerText = 0;
+                }
+                generarDatosYModelo(false);
+                actualizarPrediccion();
+            });
+
+            cantidadOutliersSlider.addEventListener('change', function() {
+                document.getElementById('cantidadOutliersValue').innerText = this.value;
+                if (incluirOutliersCheckbox.checked) {
+                    generarDatosYModelo(false);
+                    actualizarPrediccion();
+                }
+            });
+
+            severidadOutliersSlider.addEventListener('change', function() {
+                document.getElementById('severidadOutliersValue').innerText = parseFloat(this.value).toFixed(1);
+                if (incluirOutliersCheckbox.checked) {
+                    generarDatosYModelo(false);
+                    actualizarPrediccion();
+                }
+            });
+        
+            // Realizar el análisis inicial
+            generarDatosYModelo(true);
+            actualizarPrediccion();
+        }
+        
+        // Función para generar datos y ajustar el modelo
+        function generarDatosYModelo(regenerarPoblacion = true) {
+            beta0 = parseFloat(document.getElementById('beta0Slider').value);
+            beta1 = parseFloat(document.getElementById('beta1Slider').value);
+            sigma = parseFloat(document.getElementById('sigmaSlider').value);
+            N = parseInt(document.getElementById('NSlider').value);
+            n = parseInt(document.getElementById('nSlider').value);
+        
+            // Validación de entradas
+            if (n > N) {
+                document.getElementById('errorMsg').innerText = 'El tamaño de la muestra (n) no puede ser mayor que el tamaño de la población (N).';
+                return;
+            } else {
+                document.getElementById('errorMsg').innerText = '';
+            }
+            if (regenerarPoblacion) {
+                // Generar datos poblacionales
+                X_poblacion = [];
+                for (let i = 0; i < N; i++) {
+                    X_poblacion.push(Math.random() * 10); // Valores de X entre 0 y 10
+                }
+                const epsilon_poblacion = [];
+                for (let i = 0; i < N; i++) {
+                    epsilon_poblacion.push(jStat.normal.sample(0, sigma));
+                }
+                Y_poblacion = X_poblacion.map((x, i) => beta0 + beta1 * x + epsilon_poblacion[i]);
+            
+                // Seleccionar una muestra aleatoria de la población
+                const indicesMuestra = [];
+                while (indicesMuestra.length < n) {
+                    const index = Math.floor(Math.random() * N);
+                    if (!indicesMuestra.includes(index)) {
+                        indicesMuestra.push(index);
+                    }
+                }
+            
+                X_muestra = indicesMuestra.map(index => X_poblacion[index]);
+                Y_muestra = indicesMuestra.map(index => Y_poblacion[index]);
+                        // Guardar copia de los valores originales de la muestra
+                X_muestra_original = X_muestra.slice();
+                Y_muestra_original = Y_muestra.slice();
+            } else {
+                // Restaurar la muestra original
+                X_muestra = X_muestra_original.slice();
+                Y_muestra = Y_muestra_original.slice();
+            }
+
+            outliersIndices = [];
+            // Incluir valores atípicos si la casilla está marcada
+            if (document.getElementById('incluirOutliersCheckbox').checked) {
+                // Obtener parámetros de outliers
+                const cantidadOutliers = parseInt(document.getElementById('cantidadOutliersSlider').value);
+                const severidadOutliers = parseFloat(document.getElementById('severidadOutliersSlider').value);
+                // Limitar la cantidad de atípicos a 1% de la muestra
+                const maxOutliers = Math.floor(n * 0.01);
+                const actualOutliersCount = Math.min(cantidadOutliers, maxOutliers);
+
+                outliersIndices = [];
+                for (let i = 0; i < actualOutliersCount; i++) {
+                    // Indice aleatorio en la muestra para asignar un outlier
+                    let outlierIndex;
+                    do {
+                        outlierIndex = Math.floor(Math.random() * n);
+                    } while (outliersIndices.includes(outlierIndex));
+                    
+                    outliersIndices.push(outlierIndex);
+                    // Aplicar atípico a Y_muestra[outlierIndex] moviéndolo
+                    const direction = Math.random() < 0.5 ? 1 : -1;
+                    Y_muestra[outlierIndex] += severidadOutliers * sigma * direction * (1 + Math.random());
+                }
+            }
+        
+            // Ajustar el modelo de regresión lineal con la muestra
+            n_muestra = X_muestra.length;
+            const sumX = math.sum(X_muestra);
+            const sumY = math.sum(Y_muestra);
+            const sumXY = math.sum(X_muestra.map((x, i) => x * Y_muestra[i]));
+            const sumX2 = math.sum(X_muestra.map(x => x * x));
+            meanX = sumX / n_muestra;
+            meanY = sumY / n_muestra;
+        
+            beta1_est = (n_muestra * sumXY - sumX * sumY) / (n_muestra * sumX2 - sumX * sumX);
+            beta0_est = (sumY - beta1_est * sumX) / n_muestra;
+        
+            Y_est = X_muestra.map(x => beta0_est + beta1_est * x);
+            residuos = Y_muestra.map((y, i) => y - Y_est[i]);
+        
+            // Cálculo de estadísticas adicionales
+            const SST = math.sum(Y_muestra.map(y => (y - meanY) ** 2));
+            const SSR = math.sum(Y_est.map(y_est => (y_est - meanY) ** 2));
+            const SSE = math.sum(residuos.map(r => r ** 2));
+        
+            const df_total = n_muestra - 1;
+            const df_model = 1; // Solo una variable independiente
+            df_residual = n_muestra - 2; // n - número de parámetros estimados
+        
+            const MST = SST / df_total;
+            const MSR = SSR / df_model;
+            const MSE = SSE / df_residual;
+        
+            const F = MSR / MSE;
+            const p_value_F = 1 - jStat.centralF.cdf(F, df_model, df_residual);
+        
+            const R2 = SSR / SST;
+            const adj_R2 = 1 - ((1 - R2) * (n_muestra - 1)) / (n_muestra - 2);
+        
+            const s2 = MSE;
+            s = Math.sqrt(s2);
+        
+            SXX = math.sum(X_muestra.map(x => (x - meanX) ** 2));
+            const se_beta1 = Math.sqrt(MSE / SXX);
+            const se_beta0 = Math.sqrt(MSE * (1 / n_muestra + (meanX ** 2) / SXX));
+        
+            const t_beta1 = beta1_est / se_beta1;
+            const t_beta0 = beta0_est / se_beta0;
+        
+            const p_value_beta1 = 2 * (1 - jStat.studentt.cdf(Math.abs(t_beta1), df_residual));
+            const p_value_beta0 = 2 * (1 - jStat.studentt.cdf(Math.abs(t_beta0), df_residual));
+        
+            const alpha = 0.05;
+            t_crit = jStat.studentt.inv(1 - alpha / 2, df_residual);
+        
+            const ci_beta1 = [
+                beta1_est - t_crit * se_beta1,
+                beta1_est + t_crit * se_beta1
+            ];
+        
+            const ci_beta0 = [
+                beta0_est - t_crit * se_beta0,
+                beta0_est + t_crit * se_beta0
+            ];
+        
+            // Mostrar resumen del modelo (sin la predicción)
+            const resumenContenidoDiv = document.getElementById('modeloResumenContenido');
+            resumenContenidoDiv.innerHTML = `
+                <div class="info">
+                    <h2>Resumen del Modelo</h2>
+                    <p><strong>Tamaño de la Población (N):</strong> ${N}</p>
+                    <p><strong>Tamaño de la Muestra (n):</strong> ${n_muestra}</p>
+                    <p><strong>Número de observaciones:</strong> ${n_muestra}</p>
+                    <table class="tabla-resumen">
+                        <tr>
+                            <th>Fuente</th>
+                            <th>SS</th>
+                            <th>df</th>
+                            <th>MS</th>
+                            <th>F(${df_model}, ${df_residual})</th>
+                            <th>p-valor</th>
+                        </tr>
+                        <tr>
+                            <td>Model</td>
+                            <td>${SSR.toFixed(4)}</td>
+                            <td>${df_model}</td>
+                            <td>${MSR.toFixed(4)}</td>
+                            <td>${F.toFixed(4)}</td>
+                            <td>${p_value_F.toFixed(4)}</td>
+                        </tr>
+                        <tr>
+                            <td>Residual</td>
+                            <td>${SSE.toFixed(4)}</td>
+                            <td>${df_residual}</td>
+                            <td>${MSE.toFixed(4)}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td>${SST.toFixed(4)}</td>
+                            <td>${df_total}</td>
+                            <td>${MST.toFixed(4)}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                    <p><strong>Estadísticas del Modelo:</strong></p>
+                    <ul>
+                        <p><strong>R²</strong>  = ${R2.toFixed(4)}</p>
+                        <p><strong>R² ajustado</strong>  = ${adj_R2.toFixed(4)}</p>
+                        <p><strong>Error Estándar de la Estimación (Root MSE) </strong> = ${s.toFixed(4)}</p>
+                    </ul>
+                    <h3>Resultados del Modelo de Regresión</h3>
+                    <table class="tabla-resumen">
+                        <tr>
+                            <th></th>
+                            <th>Coeficiente</th>
+                            <th>Error Estándar</th>
+                            <th>t</th>
+                            <th>p-valor</th>
+                            <th>Intervalo de Confianza (95%)</th>
+                        </tr>
+                        <tr>
+                            <td> Constante (b₀) </td>
+                            <td>${beta0_est.toFixed(4)}</td>
+                            <td>${se_beta0.toFixed(4)}</td>
+                            <td>${t_beta0.toFixed(4)}</td>
+                            <td>${p_value_beta0.toFixed(4)}</td>
+                            <td>[${ci_beta0[0].toFixed(4)}, ${ci_beta0[1].toFixed(4)}]</td>
+                        </tr>
+                        <tr>
+                            <td> Variable (X₁)</td>
+                            <td>${beta1_est.toFixed(4)}</td>
+                            <td>${se_beta1.toFixed(4)}</td>
+                            <td>${t_beta1.toFixed(4)}</td>
+                            <td>${p_value_beta1.toFixed(4)}</td>
+                            <td>[${ci_beta1[0].toFixed(4)}, ${ci_beta1[1].toFixed(4)}]</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+        
+            // Generar las gráficas que dependen del modelo y los datos
+            generarGraficasModelo();
+        }
+        
+        // Función para actualizar la predicción y las gráficas relacionadas
+        function actualizarPrediccion() {
+            const x_predict = parseFloat(document.getElementById('xPredictInput').value);
+        
+            // Validar que x_predict esté dentro del rango de X
+            if (x_predict < 0 || x_predict > 10) {
+                document.getElementById('errorMsg').innerText = 'El valor de X para predecir debe estar entre 0 y 10.';
+                return;
+            } else {
+                document.getElementById('errorMsg').innerText = '';
+            }
+        
+            // Calcular la predicción puntual y los intervalos para x_predict
+            const y_predict = beta0_est + beta1_est * x_predict;
+            const SE_mean_predict = s * Math.sqrt(1 / n_muestra + ((x_predict - meanX) ** 2) / SXX);
+            const SE_pred_predict = s * Math.sqrt(1 + 1 / n_muestra + ((x_predict - meanX) ** 2) / SXX);
+            const delta_mean_predict = t_crit * SE_mean_predict;
+            const delta_pred_predict = t_crit * SE_pred_predict;
+        
+            const CI_mean_predict = [
+                y_predict - delta_mean_predict,
+                y_predict + delta_mean_predict
+            ];
+        
+            const PI_predict = [
+                y_predict - delta_pred_predict,
+                y_predict + delta_pred_predict
+            ];
+        
+            // Actualizar la sección de predicción en el resumen
+            const prediccionDiv = document.getElementById('prediccion');
+            prediccionDiv.innerHTML = `
+                <div class="info">
+                    <h3>Predicción para X = ${x_predict.toFixed(2)}</h3>
+                    <table class="tabla-resumen">
+                        <tr>
+                            <th></th>
+                            <th>Predicción</th>
+                            <th>Intervalo de Confianza (95%)</th>
+                            <th>Intervalo de Predicción (95%)</th>
+                        </tr>
+                        <tr>
+                            <td>Y estimado</td>
+                            <td>${y_predict.toFixed(4)}</td>
+                            <td>[${CI_mean_predict[0].toFixed(4)}, ${CI_mean_predict[1].toFixed(4)}]</td>
+                            <td>[${PI_predict[0].toFixed(4)}, ${PI_predict[1].toFixed(4)}]</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+        
+            // Actualizar la gráfica de regresión para incluir el punto de predicción
+            generarGraficaRegresion(x_predict, y_predict);
+        }
+        
+        // Función para generar las gráficas que dependen del modelo y los datos
+        function generarGraficasModelo() {
+            // Gráfica de residuos vs valores ajustados
+            const traceResiduos = {
+                x: Y_est,
+                y: residuos,
+                mode: 'markers',
+                type: 'scatter',
+                name: 'Residuos',
+                marker: {color: 'blue'}
+            };
+        
+            const layoutResiduos = {
+                title: 'Residuos vs Valores Ajustados',
+                xaxis: {title: 'Valores Ajustados'},
+                yaxis: {title: 'Residuos'},
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: Math.min(...Y_est),
+                        y0: 0,
+                        x1: Math.max(...Y_est),
+                        y1: 0,
+                        line: {color: 'red', dash: 'dash'}
+                    }
+                ]
+            };
+        
+            Plotly.newPlot('graficaResiduos', [traceResiduos], layoutResiduos);
+        
+            // Histograma de los residuos
+            const traceHistResiduos = {
+                x: residuos,
+                type: 'histogram',
+                name: 'Residuos',
+                histnorm: 'probability density',
+                opacity: 0.7,
+                marker: {color: 'blue'}
+            };
+        
+            const layoutHistResiduos = {
+                title: 'Distribución de los Residuos',
+                xaxis: {title: 'Residuos'},
+                yaxis: {title: 'Densidad'}
+            };
+        
+            Plotly.newPlot('graficaDistribucionResiduos', [traceHistResiduos], layoutHistResiduos);
+        
+            // QQ-Plot de los residuos
+            const residuosOrdenados = [...residuos].sort((a, b) => a - b);
+            const nRes = residuosOrdenados.length;
+            const quantilesTeoricos = [];
+            for (let i = 0; i < nRes; i++) {
+                const p = (i + 0.5) / nRes;
+                quantilesTeoricos.push(jStat.normal.inv(p, 0, s));
+            }
+        
+            const traceQQPlot = {
+                x: quantilesTeoricos,
+                y: residuosOrdenados,
+                mode: 'markers',
+                type: 'scatter',
+                name: 'QQ-Plot',
+                marker: {color: 'blue'}
+            };
+        
+            const layoutQQPlot = {
+                title: 'QQ-Plot de los Residuos',
+                xaxis: {title: 'Cuantiles Teóricos'},
+                yaxis: {title: 'Cuantiles de los Residuos'},
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: Math.min(...quantilesTeoricos),
+                        y0: Math.min(...quantilesTeoricos),
+                        x1: Math.max(...quantilesTeoricos),
+                        y1: Math.max(...quantilesTeoricos),
+                        line: {color: 'red', dash: 'dash'}
+                    }
+                ]
+            };
+        
+            Plotly.newPlot('graficaQQPlot', [traceQQPlot], layoutQQPlot);
+        
+            // Generar la gráfica de regresión sin el punto de predicción
+            generarGraficaRegresion();
+        }
+        
+        // Función para generar la gráfica de regresión, opcionalmente incluye el punto de predicción
+        function generarGraficaRegresion(x_predict = null, y_predict = null) {
+            // Obtener el estado de los checkboxes y sliders
+            const mostrarIntervalos = document.getElementById('mostrarIntervalosCheckbox').checked;
+            const mostrarIntervalosPrediccion = document.getElementById('mostrarIntervalosPrediccionCheckbox').checked;
+            const incluirOutliers = document.getElementById('incluirOutliersCheckbox').checked;
+            const severidadOutliers = parseFloat(document.getElementById('severidadOutliersSlider').value);
+        
+            // Definir el rango de X para las predicciones
+            const x_min = Math.min(...X_muestra);
+            const x_max = Math.max(...X_muestra);
+            const x_range = x_max - x_min;
+            const x_plot = [];
+            const num_points = 100;
+            for (let i = 0; i <= num_points; i++) {
+                x_plot.push(x_min - 0.1 * x_range + (x_max + 0.2 * x_range - (x_min - 0.1 * x_range)) * i / num_points);
+            }
+        
+            // Arrays para almacenar las predicciones y los intervalos
+            const y_hat_plot = [];
+            const CI_mean_upper = [];
+            const CI_mean_lower = [];
+            const PI_upper = [];
+            const PI_lower = [];
+        
+            // Calcular los valores estimados y los intervalos para cada x en x_plot
+            for (let i = 0; i < x_plot.length; i++) {
+                const x = x_plot[i];
+                const y_hat = beta0_est + beta1_est * x;
+                const SE_mean = s * Math.sqrt(1 / n_muestra + ((x - meanX) ** 2) / SXX);
+                const SE_pred = s * Math.sqrt(1 + 1 / n_muestra + ((x - meanX) ** 2) / SXX);
+                const delta_mean = mostrarIntervalos ? t_crit * SE_mean : 0;
+                const delta_pred = mostrarIntervalosPrediccion ? t_crit * SE_pred : 0;
+                y_hat_plot.push(y_hat);
+                CI_mean_upper.push(y_hat + delta_mean);
+                CI_mean_lower.push(y_hat - delta_mean);
+                PI_upper.push(y_hat + delta_pred);
+                PI_lower.push(y_hat - delta_pred);
+            }
+        
+            // Gráfica de dispersión y líneas de regresión con intervalos
+            const tracePoblacion = {
+                x: X_poblacion,
+                y: Y_poblacion,
+                mode: 'markers',
+                type: 'scatter',
+                name: 'Población',
+                marker: {color: 'lightgray', opacity: 0.5}
+            };
+        
+            // Datos de muestra sin outliers
+            const X_muestra_sin = X_muestra.filter((_, i) => !outliersIndices.includes(i));
+            const Y_muestra_sin = Y_muestra.filter((_, i) => !outliersIndices.includes(i));
+        
+            const traceMuestraSinOutliers = {
+                x: X_muestra_sin,
+                y: Y_muestra_sin,
+                mode: 'markers',
+                type: 'scatter',
+                name: 'Muestra (Sin atípicos)',
+                marker: {color: 'blue'}
+            };
+        
+            // Datos de outliers
+            let traceOutliers = null;
+            if (outliersIndices.length > 0) {
+                const X_outliers = X_muestra.filter((_, i) => outliersIndices.includes(i));
+                const Y_outliers = Y_muestra.filter((_, i) => outliersIndices.includes(i));
+                traceOutliers = {
+                    x: X_outliers,
+                    y: Y_outliers,
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: 'Atípicos',
+                    marker: {color: 'red', size: 12, symbol: 'triangle-up'}
+                };
+            }
+        
+            const lineaPoblacional = {
+                x: [Math.min(...x_plot), Math.max(...x_plot)],
+                y: [beta0 + beta1 * Math.min(...x_plot), beta0 + beta1 * Math.max(...x_plot)],
+                mode: 'lines',
+                type: 'scatter',
+                name: 'Recta Poblacional',
+                line: {color: 'gray', dash: 'dash'}
+            };
+        
+            const lineaMuestral = {
+                x: [Math.min(...x_plot), Math.max(...x_plot)],
+                y: [beta0_est + beta1_est * Math.min(...x_plot), beta0_est + beta1_est * Math.max(...x_plot)],
+                mode: 'lines',
+                type: 'scatter',
+                name: 'Recta Muestral',
+                line: {color: 'red'}
+            };
+        
+            // Trazos para los intervalos de predicción (si están habilitados)
+            let tracePI_upper, tracePI_lower;
+            if (mostrarIntervalosPrediccion) {
+                tracePI_upper = {
+                    x: x_plot,
+                    y: PI_upper,
+                    mode: 'lines',
+                    line: {color: 'rgba(255,165,0,0.2)', width: 0},
+                    name: 'Límite superior IP',
+                    showlegend: false
+                };
+        
+                tracePI_lower = {
+                    x: x_plot,
+                    y: PI_lower,
+                    mode: 'lines',
+                    line: {color: 'rgba(255,165,0,0.2)', width: 0},
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(255,165,0,0.2)',
+                    name: 'Intervalo de predicción',
+                    showlegend: true
+                };
+            }
+        
+            // Trazos para los intervalos de confianza de la media (si están habilitados)
+            let traceCI_mean_upper, traceCI_mean_lower;
+            if (mostrarIntervalos) {
+                traceCI_mean_upper = {
+                    x: x_plot,
+                    y: CI_mean_upper,
+                    mode: 'lines',
+                    line: {color: 'rgba(0,100,80,0.2)', width: 0},
+                    name: 'Límite superior IC media',
+                    showlegend: false
+                };
+        
+                traceCI_mean_lower = {
+                    x: x_plot,
+                    y: CI_mean_lower,
+                    mode: 'lines',
+                    line: {color: 'rgba(0,100,80,0.2)', width: 0},
+                    fill: 'tonexty',
+                    fillcolor: 'rgba(0,100,80,0.2)',
+                    name: 'Intervalo de confianza de la media',
+                    showlegend: true
+                };
+            }
+        
+            // Datos a graficar
+            let dataRegresion = [
+                tracePoblacion,
+                traceMuestraSinOutliers,
+                lineaPoblacional,
+                lineaMuestral
+            ];
+        
+            if (traceOutliers !== null) {
+                dataRegresion.push(traceOutliers);
+            }
+        
+            // Incluir intervalos de confianza si están habilitados
+            if (mostrarIntervalos) {
+                dataRegresion.push(traceCI_mean_upper, traceCI_mean_lower);
+            }
+        
+            // Incluir intervalos de predicción si están habilitados
+            if (mostrarIntervalosPrediccion) {
+                dataRegresion.push(tracePI_upper, tracePI_lower);
+            }
+        
+            // Si se proporciona x_predict y y_predict, añadir el punto de predicción
+            if (x_predict !== null && y_predict !== null) {
+                const tracePredictionPoint = {
+                    x: [x_predict],
+                    y: [y_predict],
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: 'Predicción en X',
+                    marker: {color: 'green', size: 14, symbol: 'diamond'}
+                };
+                dataRegresion.push(tracePredictionPoint);
+            }
+        
+            // Actualizar el título del gráfico según las opciones seleccionadas
+            let titulo = 'Regresión Lineal Simple';
+            const elementos = [];
+            if (mostrarIntervalos) elementos.push('Intervalos de Confianza');
+            if (mostrarIntervalosPrediccion) elementos.push('Intervalos de Predicción');
+            if (incluirOutliers) elementos.push(`Atípicos (Severidad: ${severidadOutliers})`);
+            if (elementos.length > 0) {
+                titulo += ' con ' + elementos.join(' y ');
+            }
+        
+            const layoutRegresion = {
+                title: titulo,
+                xaxis: {title: 'X'},
+                yaxis: {title: 'Y'},
+                legend: {orientation: 'h', y: -0.2}
+            };
+        
+            Plotly.newPlot('graficaRegresion', dataRegresion, layoutRegresion);
+        }
+        
+        // Iniciar la sección de Análisis de Regresión
+        iniciarAnalisisRegresion();</script>
 </body>
 </html>

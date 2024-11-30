@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Incluir Chart.js desde CDN -->
+    <script src="js_lib/chart.js"></script>
+    <!-- Incluir Plotly.js -->
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <!-- Estilos CSS mejorados -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Variables de colores para fácil personalización */
+        :root {
+            --color-primario: #064481;
+            --color-secundario: #18bc9c;
+            --color-fondo: #ecf0f1;
+            --color-texto: #2c3e50;
+            --color-acento: #e74c3c;
+            --color-blanco: #ffffff;
+            --color-negro: #171717;
+            --color-azul: #054481;
+        }
+
+        /* Reset de márgenes y padding */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Contenedor principal */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 10px;
+            min-height: calc(75vh - 40px); /* Ajusta 40px según el tamaño del footer */
+            padding-bottom: 40px; /* Deja espacio para el footer */
+            box-sizing: border-box;
+        }
+
+
+        .slider-container {
+            margin-bottom: 15px;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .slider-container input[type="range"] {
+            width: 100%;
+        }
+
+        #boton-calcular, #boton-reset {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: var(--color-secundario);
+            color: var(--color-blanco);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #boton-reset {
+            background-color: var(--color-acento);
+        }
+
+        #boton-calcular:hover, #boton-reset:hover {
+            opacity: 0.9;
+        }
+
+        /* Contenido principal */
+        main#content {
+            flex: 2;
+            min-width: 300px;
+        }
+
+        .resultados-grafica-container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* Estilos para resultados */
+        #resultados {
+            flex: 1;
+            min-width: 300px;
+            background-color: var(--color-blanco);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #resultados table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        #resultados table th, #resultados table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        #resultados table th {
+            background-color: var(--color-primario);
+            color: var(--color-blanco);
+        }
+
+        /* Estilos para la gráfica */
+        #grafica-container {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+            height: 400px;
+            background-color: var(--color-blanco);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsividad */
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #sidebar {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+
+            .resultados-grafica-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            #grafica-container {
+                max-width: 100%;
+            }
+        }
+        /*footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: var(--color-azul);
+            text-align: center;
+            padding: 10px;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 14px;
+        }*/
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Intervalos de Confianza</h1>
+    </header>
+    <nav>
+        <!-- Aquí puedes agregar un menú de navegación si lo deseas -->
+    </nav>
+
+    <div class="container">
+        <!-- Sidebar de parámetros -->
+        <aside id="sidebar">
+            <h2>Parámetros</h2>
+            <div class="slider-container">
+                <label for="media">Media Poblacional (μ): <span id="valorMedia">0.0</span></label>
+                <input type="range" id="media" min="-10" max="10" value="0" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label for="desviacion">Desviación Estándar Poblacional (σ): <span id="valorDesviacion">1.0</span></label>
+                <input type="range" id="desviacion" min="0.01" max="10" value="1" step="0.1">
+            </div>
+            <div class="slider-container">
+                <label for="tamano">Tamaño de Muestra (n): <span id="valorTamano">30</span></label>
+                <input type="range" id="tamano" min="10" max="1000" value="30" step="1">
+            </div>
+            <div class="slider-container">
+                <label for="confianza">Nivel de Confianza (%): <span id="valorConfianza">95.0%</span></label>
+                <input type="range" id="confianza" min="50" max="99.9" value="95" step="0.1">
+            </div>
+            <button id="boton-calcular">Calcular</button>
+            <button id="boton-reset">Reiniciar Contador</button>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main id="content">
+            <div class="ecuacion">
+                <h2>Definición de Intervalo de Confianza</h2>
+                <p>
+                    Un intervalo de confianza proporciona un rango de valores que probablemente contenga el valor verdadero de un parámetro poblacional (como la media) con un nivel de confianza específico. 
+                    Por ejemplo, si calculamos un intervalo de confianza del 95% para la media de una población, estamos diciendo que, si repitiéramos el experimento numerosas veces, aproximadamente el 95% de esos intervalos calculados contendrían la media poblacional verdadera.
+                </p>
+                <p>
+                    En otras palabras, el intervalo de confianza nos da una estimación de dónde se encuentre el valor real del parámetro poblacional, basándonos en los datos muestrales y el nivel de confianza seleccionado.
+                </p>
+            </div>
+            <div class="resultados-grafica-container">
+                <!-- Resultados -->
+                <div id="resultados">
+                    <h2>Resultados del Intervalo</h2>
+                    <table id="tabla-resultados">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Nivel de Confianza</td>
+                                <td id="nivelConfianza">95.0%</td>
+                            </tr>
+                            <tr>
+                                <td>Intervalo de Confianza</td>
+                                <td id="resultadoIntervalo">[−, −]</td>
+                            </tr>
+                            <tr>
+                                <td>Media Muestral</td>
+                                <td id="mediaMuestral">−</td>
+                            </tr>
+                            <tr>
+                                <td>Error Estándar</td>
+                                <td id="errorEstandar">−</td>
+                            </tr>
+                            <tr>
+                                <td>Valor Crítico (z)</td>
+                                <td id="valorZ">−</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h2>Resultados Acumulados</h2>
+                    <table id="tabla-Contador">
+                        <thead>
+                            <tr>
+                                <th>Descripción</th>
+                                <th>V. Teórico</th>
+                                <th>V. Observado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td># veces que el intervalo contiene μ</td>
+                                <td id="contador_t">0 de 0 (0%)</td>
+                                <td id="contador">0 de 0 (0%)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Gráfica -->
+                <div id="grafica-container">
+                    <canvas id="grafica"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    </br>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com
+    </footer>
+    <script>
+        // Ejecutar el código una vez que el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+    
+            // Declarar variables globales
+            let grafica;
+            let mu, sigma, n, nivelConfianza;
+            let contador = 0; // Contador de veces que el intervalo contiene μ
+            let total = 0;    // Total de intervalos construidos
+            let contador_t = 0 // Contador teórico de veces que el intervalo contiene μ
+    
+            // Función para actualizar los valores de los labels
+            function actualizarValores() {
+                document.getElementById('valorMedia').textContent = parseFloat(document.getElementById('media').value).toFixed(1);
+                document.getElementById('valorDesviacion').textContent = parseFloat(document.getElementById('desviacion').value).toFixed(1);
+                document.getElementById('valorTamano').textContent = parseInt(document.getElementById('tamano').value);
+                document.getElementById('valorConfianza').textContent = parseFloat(document.getElementById('confianza').value).toFixed(1) + '%';
+            }
+    
+            // Función para obtener los valores actuales de los sliders
+            function obtenerValores() {
+                mu = parseFloat(document.getElementById('media').value);
+                sigma = parseFloat(document.getElementById('desviacion').value);
+                n = parseInt(document.getElementById('tamano').value);
+                nivelConfianza = parseFloat(document.getElementById('confianza').value);
+            }
+    
+            // Función para resetear el contador
+            function resetContador() {
+                contador = 0;
+                total = 0;
+                contador_t = 0;
+                document.getElementById('contador').textContent = `0 de 0 (0%)`;
+                document.getElementById('contador_t').textContent = `0 de 0 (0%)`;
+            }
+    
+            // Función para calcular el intervalo de confianza y graficar
+            function calcularIntervalo() {
+                // Actualizar los labels y obtener los valores
+                actualizarValores();
+                obtenerValores();
+    
+                // Generar muestra aleatoria
+                const muestra = [];
+                for (let i = 0; i < n; i++) {
+                    // Generar valores aleatorios siguiendo una distribución normal
+                    const valor = mu + sigma * normalAleatorio();
+                    muestra.push(valor);
+                }
+    
+                // Calcular la media muestral
+                const mediaMuestral = muestra.reduce((a, b) => a + b, 0) / n;
+    
+                // Calcular el valor crítico z utilizando la función inversa de la distribución normal estándar
+                const z = inverseNormalCDF(1 - (1 - nivelConfianza / 100) / 2);
+    
+                // Calcular el error estándar
+                const errorEstandar = sigma / Math.sqrt(n);
+    
+                // Calcular los límites del intervalo de confianza
+                const limiteInferior = mediaMuestral - z * errorEstandar;
+                const limiteSuperior = mediaMuestral + z * errorEstandar;
+    
+                // Actualizar el contador
+                total += 1;
+                if (mu >= limiteInferior && mu <= limiteSuperior) {
+                    contador += 1;
+                }
+    
+                // Actualizar el contador teórico
+                contador_t = nivelConfianza * total / 100;
+                
+    
+                // Actualizar la tabla de resultados
+                document.getElementById('nivelConfianza').textContent = `${nivelConfianza.toFixed(1)}%`;
+                document.getElementById('resultadoIntervalo').textContent = `[${limiteInferior.toFixed(3)}, ${limiteSuperior.toFixed(3)}]`;
+                document.getElementById('mediaMuestral').textContent = mediaMuestral.toFixed(3);
+                document.getElementById('errorEstandar').textContent = errorEstandar.toFixed(3);
+                document.getElementById('valorZ').textContent = z.toFixed(3);
+                document.getElementById('contador').textContent = `${contador} de ${total} (${((contador / total) * 100).toFixed(1)}%)`;
+                document.getElementById('contador_t').textContent = `${contador_t.toFixed(0)} de ${total} (${((contador_t / total) * 100).toFixed(1)}%)`;
+    
+                // Graficar la distribución normal y el intervalo
+                graficar(mu, sigma, limiteInferior, limiteSuperior);
+            }
+    
+            // Función para generar un número aleatorio siguiendo una distribución normal estándar
+            function normalAleatorio() {
+                let u = 0, v = 0;
+                while(u === 0) u = Math.random(); // Convertir [0,1) a (0,1)
+                while(v === 0) v = Math.random();
+                return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            }
+    
+            // Función para graficar usando Chart.js
+            function graficar(mu, sigma, limiteInferior, limiteSuperior) {
+                const ctx = document.getElementById('grafica').getContext('2d');
+    
+                // Si ya existe una gráfica, destruirla para evitar superposición
+                if (grafica) {
+                    grafica.destroy();
+                }
+    
+                // Generar datos para la distribución normal
+                const xValores = [];
+                const yValores = [];
+                const paso = (sigma * 6) / 100; // Dividir el rango en 100 puntos
+                const inicio = mu - sigma * 3;
+                const fin = mu + sigma * 3;
+                for (let x = inicio; x <= fin; x += paso) {
+                    xValores.push(x);
+                    yValores.push(funcionDensidadNormal(x, mu, sigma));
+                }
+    
+                // Calcular el nivel y para el intervalo de confianza (por ejemplo, al 5% de la altura máxima)
+                const yMax = funcionDensidadNormal(mu, mu, sigma);
+                const yLevel = yMax * 0.05; // Ajusta este factor según prefieras
+    
+                // Definir un delta para las barras verticales
+                const delta = yMax * 0.02; // 2% de la altura máxima
+    
+                // Crear dataset para el intervalo de confianza como un segmento horizontal
+                const xIntervalo = [limiteInferior, limiteSuperior];
+                const yIntervalo = [yLevel, yLevel];
+    
+                // Crear datasets para las barras verticales en los límites
+                const barraInferior = [
+                    { x: limiteInferior, y: yLevel - delta },
+                    { x: limiteInferior, y: yLevel + delta }
+                ];
+    
+                const barraSuperior = [
+                    { x: limiteSuperior, y: yLevel - delta },
+                    { x: limiteSuperior, y: yLevel + delta }
+                ];
+    
+                // Crear dataset para la media poblacional (μ) como una línea vertical
+                const mediaDataset = [
+                    { x: mu, y: 0 },
+                    { x: mu, y: yMax }
+                ];
+    
+                // Crear la gráfica
+                grafica = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Distribución Normal',
+                                fill: false, // Sin relleno
+                                data: xValores.map((x, i) => ({ x: x, y: yValores[i] })),
+                                borderColor: 'blue',
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0
+                            },
+                            {
+                                label: 'Intervalo de Confianza',
+                                data: xIntervalo.map((x, i) => ({ x: x, y: yIntervalo[i] })),
+                                borderColor: 'red',
+                                borderWidth: 2,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0
+                            },
+                            {
+                                label: 'Límite Inferior',
+                                data: barraInferior,
+                                borderColor: 'red',
+                                borderWidth: 2,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0
+                            },
+                            {
+                                label: 'Límite Superior',
+                                data: barraSuperior,
+                                borderColor: 'red',
+                                borderWidth: 2,
+                                fill: false,
+                                pointRadius: 0,
+                                tension: 0
+                            },
+                            {
+                                label: 'Media Poblacional (μ)',
+                                data: mediaDataset,
+                                borderColor: 'green',
+                                borderWidth: 2,
+                                fill: false,
+                                borderDash: [10,5],
+                                pointRadius: 0,
+                                tension: 0
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, /* Permite que el gráfico se ajuste al contenedor */
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: {
+                                    display: true,
+                                    text: 'Valores'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Densidad de Probabilidad'
+                                },
+                                beginAtZero: true
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                labels: {
+                                    generateLabels: function(chart) {
+                                        const datasets = chart.data.datasets;
+                                        return datasets.map(function(dataset, i) {
+                                            return {
+                                                text: dataset.label,
+                                                fillStyle: dataset.borderColor,
+                                                strokeStyle: dataset.borderColor,
+                                                lineWidth: dataset.borderWidth,
+                                                hidden: !chart.isDatasetVisible(i),
+                                                index: i
+                                            };
+                                        }).filter(function(label) {
+                                            // Filtrar la etiqueta 'Límite Superior' y 'Límite Inferior' para que no aparezcan en la leyenda
+                                            return label.text !== 'Límite Superior' && label.text !== 'Límite Inferior';
+                                        });
+                                    },
+                                    // Ajustes para mejorar la apariencia de las líneas en la leyenda
+                                    boxWidth: 40, // Ancho de la línea en la leyenda
+                                    boxHeight: 1,
+                                    padding: 15,
+                                    usePointStyle: false, // Asegura que se muestren líneas en lugar de puntos
+                                }
+                            },
+                            tooltip: {
+                                mode: 'nearest',
+                                intersect: false
+                            }
+                        },
+                    }
+                });
+            }
+    
+            // Función de densidad de la distribución normal
+            function funcionDensidadNormal(x, mu, sigma) {
+                return (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mu) / sigma, 2));
+            }
+    
+            // Implementación de la función inversa de la distribución normal estándar
+            function inverseNormalCDF(p) {
+                // Utilizaremos una aproximación de la función inversa de la CDF normal (Método de Peter J. Acklam)
+                if (p <= 0 || p >= 1) {
+                    throw new Error("El argumento p debe estar entre 0 y 1 (excluyendo los extremos).");
+                }
+    
+                // Coeficientes para la aproximación racional
+                const a1 = -39.6968302866538;
+                const a2 = 220.946098424521;
+                const a3 = -275.928510446969;
+                const a4 = 138.357751867269;
+                const a5 = -30.6647980661472;
+                const a6 = 2.50662827745924;
+    
+                const b1 = -54.4760987982241;
+                const b2 = 161.585836858041;
+                const b3 = -155.698979859887;
+                const b4 = 66.8013118877197;
+                const b5 = -13.2806815528857;
+    
+                const c1 = -0.00778489400243029;
+                const c2 = -0.322396458041136;
+                const c3 = -2.40075827716184;
+                const c4 = -2.54973253934373;
+                const c5 = 4.37466414146497;
+                const c6 = 2.93816398269878;
+    
+                const d1 = 0.00778469570904146;
+                const d2 = 0.32246712907004;
+                const d3 = 2.445134137143;
+                const d4 = 3.75440866190742;
+    
+                // Definir límites de ruptura
+                const pLow = 0.02425;
+                const pHigh = 1 - pLow;
+    
+                let q, r, z;
+    
+                if (p < pLow) {
+                    // Calcular utilizando la aproximación racional para la cola inferior
+                    q = Math.sqrt(-2 * Math.log(p));
+                    z = (((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
+                        ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
+                } else if (p <= pHigh) {
+                    // Calcular utilizando la aproximación racional para el rango central
+                    q = p - 0.5;
+                    r = q * q;
+                    z = (((((a1 * r + a2) * r + a3) * r + a4) * r + a5) * r + a6) * q /
+                        (((((b1 * r + b2) * r + b3) * r + b4) * r + b5) * r + 1);
+                } else {
+                    // Calcular utilizando la aproximación racional para la cola superior
+                    q = Math.sqrt(-2 * Math.log(1 - p));
+                    z = -(((((c1 * q + c2) * q + c3) * q + c4) * q + c5) * q + c6) /
+                        ((((d1 * q + d2) * q + d3) * q + d4) * q + 1);
+                }
+    
+                // Refinamiento de Halley
+                let e = 0.5 * erfc(-z / Math.SQRT2) - p;
+                let u = e * Math.SQRT2PI * Math.exp(z * z / 2);
+                z = z - u / (1 + z * u / 2);
+    
+                return z;
+            }
+    
+            // Implementación de la función erfc (complemento de la función error)
+            function erfc(x) {
+                return 1 - erf(x);
+            }
+    
+            // Implementación de la función error (erf)
+            function erf(x) {
+                // Signo de x
+                const sign = (x >= 0) ? 1 : -1;
+                x = Math.abs(x);
+    
+                // Constantes
+                const a1 =  0.254829592;
+                const a2 = -0.284496736;
+                const a3 =  1.421413741;
+                const a4 = -1.453152027;
+                const a5 =  1.061405429;
+                const p  =  0.3275911;
+    
+                // Fórmula de Abramowitz y Stegun 7.1.26
+                const t = 1.0 / (1.0 + p * x);
+                const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+    
+                return sign * y;
+            }
+    
+            // Constantes matemáticas
+            Math.SQRT2PI = Math.sqrt(2 * Math.PI);
+            Math.SQRT2 = Math.sqrt(2);
+    
+            // Agregar event listeners a los sliders para actualizar y calcular al moverlos
+            document.getElementById('media').addEventListener('input', function() {
+                resetContador();
+                calcularIntervalo();
+            });
+            document.getElementById('desviacion').addEventListener('input', function() {
+                resetContador();
+                calcularIntervalo();
+            });
+            document.getElementById('tamano').addEventListener('input', function() {
+                resetContador();
+                calcularIntervalo();
+            });
+            document.getElementById('confianza').addEventListener('input', function() {
+                resetContador();
+                calcularIntervalo();
+            });
+    
+            // Agregar event listener al botón "Calcular"
+            document.getElementById('boton-calcular').addEventListener('click', calcularIntervalo);
+    
+            // Agregar event listener al botón "Reset Contador"
+            document.getElementById('boton-reset').addEventListener('click', resetContador);
+    
+            // Inicializar los labels y calcular al cargar la página
+            calcularIntervalo();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluimos las librerías necesarias -->
+    <script src="js_lib/math.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+
+    <style>
+        /* Estilos generales */
+
+        main {
+            margin-left: 320px;
+            padding: 20px;
+            flex: 1;
+            max-width: calc(100% - 320px);
+        }
+
+        .grafico {
+            width: 100%;
+            height: 500px;
+            position: relative;
+        }
+
+        .tabla-resumen, .tabla-anova {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .tabla-resumen th, .tabla-resumen td,
+        .tabla-anova th, .tabla-anova td {
+            border: 1px solid #ddd;
+            background-color: #fffefe;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .tabla-resumen th, .tabla-anova th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Variables Dicotómicas</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div id="container" class="prueba-hipotesis-media-container">
+        <div id="sidebar">
+            <div id="parametros-regresion">
+                <h2>Parámetros</h2>
+                <!-- Tamaño de la Población -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="tamanoPoblacion">Tamaño de la Población (N): <span id="tamanoPoblacionValue">1000</span></label>
+                        <input type="range" id="tamanoPoblacion" min="1000" max="10000" step="100" value="1000">
+                    </div>
+                </div>
+                <!-- Tamaño de la Muestra -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="tamanoMuestra">Tamaño de la Muestra (n): <span id="tamanoMuestraValue">100</span></label>
+                        <input type="range" id="tamanoMuestra" min="50" max="1000" step="50" value="100">
+                    </div>
+                </div>
+                <!-- Incluir Variable Dicotómica -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="incluirDicotomica">
+                            <input type="checkbox" id="incluirDicotomica" checked>
+                            Incluir Variable Dicotómica
+                        </label>
+                    </div>
+                </div>
+                <!-- Efecto de la Variable Dicotómica -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="efectoDicotomica">Efecto de la Variable Dicotómica (β<sub>2</sub>): <span id="efectoDicotomicaValue">5</span></label>
+                        <input type="range" id="efectoDicotomica" min="-10" max="10" step="1" value="5">
+                    </div>
+                </div>
+                <!-- Proporción de Categoría 1 -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="proporcionCategoria">Proporción de Categoría 1 (%): <span id="proporcionCategoriaValue">50%</span></label>
+                        <input type="range" id="proporcionCategoria" min="1" max="100" step="1" value="50">
+                    </div>
+                </div>
+                <!-- Constante (β₀) -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="beta0">Constante (β<sub>0</sub>): <span id="beta0Value">10</span></label>
+                        <input type="range" id="beta0" min="-20" max="20" step="1" value="10">
+                    </div>
+                </div>
+                <!-- Pendiente (β₁) -->
+                <div class="parametros">
+                    <div class="slider-container">
+                        <label for="beta1">Pendiente (β<sub>1</sub>): <span id="beta1Value">2.0</span></label>
+                        <input type="range" id="beta1" min="-10" max="10" step="0.5" value="2">
+                    </div>
+                </div>
+                <div class="card">
+                    <a href="analisis_regresion.html" class="btn">Análisis de Regresión</a>
+                </div>
+            </div>
+        </div>
+        <!-- Contenido Principal -->
+
+        <!-- Sección de Análisis de Regresión -->
+        <div id="content">
+            <h2>Análisis de Regresión</h2>
+            <div class="property-description">
+                <p>
+                    Este análisis muestra cómo una variable dicotómica puede influir en la variable dependiente en un modelo de regresión lineal.
+                </p>
+            </div>
+            <div class="info" id="resumenModelo" >            
+                <p><strong>Tamaño de la Población (N):</strong> <span id="resumenN">1000</span></p>
+                <p><strong>Tamaño de la Muestra (n):</strong> <span id="resumenn">100</span></p>
+                <p><strong>Número de observaciones:</strong> <span id="resumenObservaciones">100</span></p>
+            </div>
+            <div class="info" id="resumenEstadisticasModelo"></div>
+            <div class="info" id="resultadosModelo"></div>
+            <div class="grafico" id="graficoRegresion">
+                <div class="spinner" id="spinnerRegresion"></div>
+            </div>
+        </div>
+        <!-- Mostrar Resultados del Modelo -->
+
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <!-- Incluimos las librerías necesarias -->
+    <script src="js_lib/jstat.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <!-- Incluir math.js -->
+    <script src="js_lib/math.min.js"></script>
+    <script>
+        // Función de debounce para evitar ejecuciones excesivas
+        function debounce(func, delay) {
+            let debounceTimer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Función para actualizar el valor mostrado de un control de rango
+        function actualizarValorRange(sliderId, valorId, decimals = 0, suffix = '') {
+            const slider = document.getElementById(sliderId);
+            const valor = document.getElementById(valorId);
+            valor.innerText = parseFloat(slider.value).toFixed(decimals) + suffix;
+            slider.addEventListener('input', function() {
+                valor.innerText = parseFloat(this.value).toFixed(decimals) + suffix;
+                runSimulacionDebounced();
+            });
+        }
+
+        // Función para actualizar el valor del checkbox
+        function actualizarCheckbox(checkboxId) {
+            const checkbox = document.getElementById(checkboxId);
+            checkbox.addEventListener('change', function() {
+                runSimulacionDebounced();
+            });
+        }
+
+        // Esperar a que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar controles de rango
+            actualizarValorRange('tamanoPoblacion', 'tamanoPoblacionValue', 0);
+            actualizarValorRange('tamanoMuestra', 'tamanoMuestraValue', 0);
+            actualizarValorRange('efectoDicotomica', 'efectoDicotomicaValue', 0);
+            actualizarValorRange('proporcionCategoria', 'proporcionCategoriaValue', 0, '%');
+            actualizarValorRange('beta0', 'beta0Value', 0);
+            actualizarValorRange('beta1', 'beta1Value', 1);
+
+            // Inicializar checkbox
+            actualizarCheckbox('incluirDicotomica');
+
+            // Ejecutar simulación al cargar la página
+            runSimulacionDebounced();
+        });
+
+        // Función para mostrar/ocultar el spinner de carga
+        function toggleSpinner(spinnerId, mostrar) {
+            const spinner = document.getElementById(spinnerId);
+            spinner.style.display = mostrar ? 'block' : 'none';
+        }
+
+        // Función para seleccionar aleatoriamente n elementos de un array
+        function seleccionarMuestra(array, n) {
+            const shuffled = array.slice().sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, n);
+        }
+
+        // Función para ejecutar la simulación
+        const runSimulacionDebounced = debounce(function() {
+            const N = parseInt(document.getElementById('tamanoPoblacion').value);
+            const n = parseInt(document.getElementById('tamanoMuestra').value);
+            const incluirDicotomica = document.getElementById('incluirDicotomica').checked;
+            const efectoDicotomica = parseFloat(document.getElementById('efectoDicotomica').value);
+            const proporcionCategoria = parseFloat(document.getElementById('proporcionCategoria').value) / 100;
+            const beta0 = parseFloat(document.getElementById('beta0').value);
+            const beta1 = parseFloat(document.getElementById('beta1').value);
+
+            // Actualizar el resumen del modelo
+            document.getElementById('resumenN').innerText = N;
+            document.getElementById('resumenn').innerText = n;
+            document.getElementById('resumenObservaciones').innerText = n;
+
+            simularRegresion(N, n, incluirDicotomica, efectoDicotomica, proporcionCategoria, beta0, beta1);
+        }, 500); // Retraso de 500ms
+
+        /**
+         * Simulación de Análisis de Regresión con Variable Dicotómica
+         * @param {number} N - Tamaño de la población
+         * @param {number} n - Tamaño de la muestra
+         * @param {boolean} incluirDicotomica - Si se incluye la variable dicotómica
+         * @param {number} efectoDicotomica - Coeficiente de la variable dicotómica
+         * @param {number} proporcionCategoria - Proporción de la categoría 1 en la población
+         * @param {number} beta0 - Intercepto
+         * @param {number} beta1 - Pendiente de X
+         */
+        function simularRegresion(N, n, incluirDicotomica, efectoDicotomica, proporcionCategoria, beta0, beta1) {
+            toggleSpinner('spinnerRegresion', true);
+            setTimeout(() => {
+                // Parámetros verdaderos
+                const sigma = 5;   // Desviación estándar del error
+
+                // Simular datos de la Población
+                let X_p = [];
+                let D_p = []; // Variable dicotómica
+                let Y_p = [];
+
+                for (let i = 0; i < N; i++) {
+                    // Variable independiente continua X
+                    let x_i = jStat.uniform.sample(0, 10);
+                    X_p.push(x_i);
+
+                    // Variable dicotómica D
+                    let d_i = 0;
+                    if (incluirDicotomica) {
+                        d_i = Math.random() < proporcionCategoria ? 1 : 0;
+                    }
+                    D_p.push(d_i);
+
+                    // Variable dependiente Y
+                    let y_i = beta0 + beta1 * x_i + sigma * jStat.normal.sample(0, 1);
+                    if (incluirDicotomica) {
+                        y_i += efectoDicotomica * d_i;
+                    }
+                    Y_p.push(y_i);
+                }
+
+                // Combinar los datos de la población
+                let poblacion = [];
+                for (let i = 0; i < N; i++) {
+                    poblacion.push({
+                        x: X_p[i],
+                        d: D_p[i],
+                        y: Y_p[i]
+                    });
+                }
+
+                // Seleccionar aleatoriamente una muestra de la población
+                let muestra = seleccionarMuestra(poblacion, n);
+
+                // Extraer las variables de la muestra
+                let X = muestra.map(point => point.x);
+                let D = muestra.map(point => point.d);
+                let Y = muestra.map(point => point.y);
+
+                // Preparar datos para regresión
+                let X_matrix = [];
+                for (let i = 0; i < n; i++) {
+                    let row = [1, X[i]];
+                    if (incluirDicotomica) {
+                        row.push(D[i]);
+                    }
+                    X_matrix.push(row);
+                }
+
+                // Convertir X_matrix y Y a matrices de math.js
+                let X_mat = math.matrix(X_matrix);
+                let Y_vec = math.matrix(Y);
+
+                // Realizar regresión lineal usando la fórmula beta = (X'X)^(-1) X'Y
+                let Xt = math.transpose(X_mat);
+                let XtX = math.multiply(Xt, X_mat);
+                let XtX_inv = math.inv(XtX);
+                let XtY = math.multiply(Xt, Y_vec);
+                let beta_est_mat = math.multiply(XtX_inv, XtY);
+
+                // Convertir beta_est a arreglo
+                let beta_est = beta_est_mat.toArray();
+
+                // Calcular predicciones
+                let Y_pred = X_matrix.map(row => math.dot(row, beta_est));
+
+                // Calcular residuos
+                let residuals = Y.map((y_i, i) => y_i - Y_pred[i]);
+
+                // Estimar la varianza de los errores
+                let RSS = residuals.reduce((sum, res) => sum + res * res, 0);
+                let k = beta_est.length;
+                let dof = n - k; // Grados de libertad
+                let s2 = RSS / dof; // Varianza de los residuos
+
+                // Calcular errores estándar de los coeficientes
+                let std_errors = [];
+                for (let i = 0; i < k; i++) {
+                    let se = Math.sqrt(s2 * XtX_inv.get([i, i]));
+                    std_errors.push(se);
+                }
+
+                // Calcular t-estadísticos, p-valores, intervalos de confianza
+                let t_stats = [];
+                let p_values = [];
+                let conf_intervals = [];
+                for (let i = 0; i < k; i++) {
+                    let t_stat = beta_est[i] / std_errors[i];
+                    t_stats.push(t_stat);
+
+                    // p-valor bilateral
+                    let p_value = 2 * (1 - jStat.studentt.cdf(Math.abs(t_stat), dof));
+                    p_values.push(p_value);
+
+                    // Intervalos de confianza al 95%
+                    let t_crit = jStat.studentt.inv(0.975, dof);
+                    let conf_lower = beta_est[i] - t_crit * std_errors[i];
+                    let conf_upper = beta_est[i] + t_crit * std_errors[i];
+                    conf_intervals.push([conf_lower, conf_upper]);
+                }
+
+                // Calcular Y_mean
+                let Y_mean = jStat.mean(Y);
+
+                // Calcular SST (Total Sum of Squares)
+                let SST = Y.reduce((sum, y_i) => sum + Math.pow(y_i - Y_mean, 2), 0);
+
+                // Calcular SSR (Sum of Squares due to Regression)
+                let SSR = Y_pred.reduce((sum, y_pred_i) => sum + Math.pow(y_pred_i - Y_mean, 2), 0);
+
+                // SSE ya está calculado como RSS
+                let SSE = RSS;
+
+                // Calcular R²
+                let R2 = SSR / SST;
+
+                // Calcular R² ajustado
+                let R2_adj = 1 - (1 - R2) * (N - 1) / (N - k);
+
+                // Calcular F-statistic
+                let MSR = SSR / (k - 1);
+                let MSE = SSE / dof;
+                let F_stat = MSR / MSE;
+
+                // Calcular p-valor para F-statistic
+                let p_value_F = 1 - jStat.centralF.cdf(F_stat, k - 1, dof);
+
+                // Calcular Root MSE
+                let rootMSE = Math.sqrt(MSE);
+
+
+                // Mostrar Resumen del Modelo (ANOVA y Estadísticas)
+                let resumenEstadisticasDiv = document.getElementById('resumenEstadisticasModelo');
+                let htmlResumen = `<h3>Análisis de Varianza</h3>
+                    <table class="tabla-anova">
+                        <tr>
+                            <th>Fuente</th>
+                            <th>SS</th>
+                            <th>df</th>
+                            <th>MS</th>
+                            <th>F(${k - 1}, ${dof})</th>
+                            <th>p-Valor</th>
+                        </tr>
+                        <tr>
+                            <td>Modelo</td>
+                            <td>${SSR.toFixed(4)}</td>
+                            <td>${k - 1}</td>
+                            <td>${MSR.toFixed(4)}</td>
+                            <td>${F_stat.toFixed(4)}</td>
+                            <td>${p_value_F.toFixed(4)}</td>
+                        </tr>
+                        <tr>
+                            <td>Residual</td>
+                            <td>${SSE.toFixed(4)}</td>
+                            <td>${dof}</td>
+                            <td>${MSE.toFixed(4)}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>Total</td>
+                            <td>${SST.toFixed(4)}</td>
+                            <td>${N - 1}</td>
+                            <td>${(SST / (N -1)).toFixed(4)}</td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                    <h4>Estadísticas del Modelo:</h4>
+                    <p><strong>R²:</strong> ${R2.toFixed(4)}</p>
+                    <p><strong>R² Ajustado:</strong> ${R2_adj.toFixed(4)}</p>
+                    <p><strong>Error Estándar de la Estimación (Root MSE):</strong> ${rootMSE.toFixed(4)}</p>`;
+                resumenEstadisticasDiv.innerHTML = htmlResumen;
+
+                // Mostrar resultados del modelo de regresión
+                let resultadosDiv = document.getElementById('resultadosModelo');
+                let htmlResultados = `<h3>Resultados del Modelo de Regresión</h3>
+                    <table class="tabla-resumen">
+                        <tr>
+                            <th>Coeficiente</th>
+                            <th>Estimación</th>
+                            <th>Error Estándar</th>
+                            <th>t-Estadístico</th>
+                            <th>p-Valor</th>
+                            <th>Intervalo de Confianza 95%</th>
+                        </tr>
+                        <tr>
+                            <td>Constante (β<sub>0</sub>)</td>
+                            <td>${beta_est[0].toFixed(4)}</td>
+                            <td>${std_errors[0].toFixed(4)}</td>
+                            <td>${t_stats[0].toFixed(4)}</td>
+                            <td>${p_values[0].toFixed(4)}</td>
+                            <td>[${conf_intervals[0][0].toFixed(4)}, ${conf_intervals[0][1].toFixed(4)}]</td>
+                        </tr>
+                        <tr>
+                            <td>Variable X (β<sub>1</sub>)</td>
+                            <td>${beta_est[1].toFixed(4)}</td>
+                            <td>${std_errors[1].toFixed(4)}</td>
+                            <td>${t_stats[1].toFixed(4)}</td>
+                            <td>${p_values[1].toFixed(4)}</td>
+                            <td>[${conf_intervals[1][0].toFixed(4)}, ${conf_intervals[1][1].toFixed(4)}]</td>
+                        </tr>`;
+                if (incluirDicotomica) {
+                    htmlResultados += `
+                        <tr>
+                            <td>Variable Dicotómica (β<sub>2</sub>)</td>
+                            <td>${beta_est[2].toFixed(4)}</td>
+                            <td>${std_errors[2].toFixed(4)}</td>
+                            <td>${t_stats[2].toFixed(4)}</td>
+                            <td>${p_values[2].toFixed(4)}</td>
+                            <td>[${conf_intervals[2][0].toFixed(4)}, ${conf_intervals[2][1].toFixed(4)}]</td>
+                        </tr>`;
+                }
+                htmlResultados += `</table>`;
+                resultadosDiv.innerHTML = htmlResultados;
+
+                // Graficar resultados
+                let data = [];
+
+                // Datos de la Población (puntos grises)
+                let trace_poblacion = {
+                    x: X_p,
+                    y: Y_p,
+                    mode: 'markers',
+                    type: 'scatter',
+                    name: 'Población',
+                    marker: { color: 'lightgrey', size: 5, opacity: 0.5 },
+                    showlegend: true
+                };
+                data.push(trace_poblacion);
+
+                // Datos de la Muestra
+                if (incluirDicotomica) {
+                    // Datos para Categoría 0
+                    let X_cat0 = X.filter((_, i) => D[i] === 0);
+                    let Y_cat0 = Y.filter((_, i) => D[i] === 0);
+
+                    // Datos para Categoría 1
+                    let X_cat1 = X.filter((_, i) => D[i] === 1);
+                    let Y_cat1 = Y.filter((_, i) => D[i] === 1);
+
+                    // Trazas de datos
+                    let trace_cat0 = {
+                        x: X_cat0,
+                        y: Y_cat0,
+                        mode: 'markers',
+                        type: 'scatter',
+                        name: 'Categoría 0',
+                        marker: { color: 'blue', symbol: 'circle', size: 8 },
+                        text: 'Categoría 0'
+                    };
+
+                    let trace_cat1 = {
+                        x: X_cat1,
+                        y: Y_cat1,
+                        mode: 'markers',
+                        type: 'scatter',
+                        name: 'Categoría 1',
+                        marker: { color: 'red', symbol: 'triangle-up', size: 8 },
+                        text: 'Categoría 1'
+                    };
+
+                    data.push(trace_cat0, trace_cat1);
+
+                    // Generar puntos para las rectas de regresión
+                    let X_line = jStat.seq(0, 10, 50); // 50 puntos entre 0 y 10
+
+                    // Recta para Categoría 0
+                    let Y_line_cat0 = X_line.map(x => beta_est[0] + beta_est[1] * x);
+                    let trace_line_cat0 = {
+                        x: X_line,
+                        y: Y_line_cat0,
+                        mode: 'lines',
+                        type: 'scatter',
+                        name: 'Regresión Cat. 0',
+                        line: { color: 'blue', dash: 'solid' }
+                    };
+
+                    // Recta para Categoría 1
+                    let Y_line_cat1 = X_line.map(x => beta_est[0] + beta_est[1] * x + beta_est[2]);
+                    let trace_line_cat1 = {
+                        x: X_line,
+                        y: Y_line_cat1,
+                        mode: 'lines',
+                        type: 'scatter',
+                        name: 'Regresión Cat. 1',
+                        line: { color: 'red', dash: 'solid' }
+                    };
+
+                    data.push(trace_line_cat0, trace_line_cat1);
+                } else {
+                    // Trazas de datos sin variable dicotómica
+                    let trace_data = {
+                        x: X,
+                        y: Y,
+                        mode: 'markers',
+                        type: 'scatter',
+                        name: 'Muestra',
+                        marker: { color: 'blue', size: 8 }
+                    };
+
+                    data.push(trace_data);
+
+                    // Generar puntos para la recta de regresión
+                    let X_line = jStat.seq(0, 10, 50); // 50 puntos entre 0 y 10
+                    let Y_line = X_line.map(x => beta_est[0] + beta_est[1] * x);
+
+                    let trace_line = {
+                        x: X_line,
+                        y: Y_line,
+                        mode: 'lines',
+                        type: 'scatter',
+                        name: 'Recta de Regresión',
+                        line: { color: 'green', dash: 'solid' }
+                    };
+
+                    data.push(trace_line);
+                }
+
+                let layout = {
+                    title: 'Análisis de Regresión',
+                    xaxis: { title: 'Variable Independiente X' },
+                    yaxis: { title: 'Variable Dependiente Y' },
+                    showlegend: true
+                };
+
+                Plotly.newPlot('graficoRegresion', data, layout);
+                toggleSpinner('spinnerRegresion', false);
+            }, 0);
+        }
+    </script>
+        <script src="js/menuData.js"></script>
+        <script src="js/generarMenu.js"></script>
+</body>
+</html>

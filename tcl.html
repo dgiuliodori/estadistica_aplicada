@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <script src="js_lib/tf.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <!-- Incluir jStat para cálculos estadísticos precisos -->
+    <script src="js_lib/jstat.min.js"></script>
+    <!-- Incluir MathJax para renderizar las ecuaciones en LaTeX -->
+    <script src="js_lib/tex-mml-chtml.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <style>
+        /* Estilos adicionales para la tabla */
+        .tabla-comparacion {
+            margin: 20px;
+        }
+
+        .tabla-comparacion table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .tabla-comparacion th, .tabla-comparacion td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .tabla-comparacion th {
+            background-color: #f2f2f2;
+        }
+
+        .teorema-cl {
+            margin: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            overflow-x: auto; /* Permite desplazamiento horizontal si es necesario */
+        }
+
+        .teorema-cl h2 {
+            margin-top: 0;
+            margin-left: 300px;
+            text-align: left;
+        }
+
+        .teorema-cl .formula {
+            font-size: 1.0em;
+            margin-top: 10px;
+            margin-left: 300px;
+            text-align: left;
+        }
+
+        /* Ajustes para dispositivos móviles */
+        @media (max-width: 600px) {
+            .teorema-cl .formula {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Teorema Central del Límite</h1>
+    </header>
+    <nav>
+        <!-- Navegación si aplica -->
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <h2>Parámetros</h2>
+            <!-- Selección de Distribución -->
+            <div class="slider-container">
+                <label for="distribucion">Distribución de X:</label>
+                <select id="distribucion">
+                    <option value="normal">Normal</option>
+                    <option value="binomial">Binomial</option>
+                    <option value="poisson">Poisson</option>
+                    <option value="exponencial">Exponencial</option>
+                    <option value="uniforme">Uniforme</option>
+                </select>
+            </div>
+            <!-- Parámetros de la Distribución -->
+            <div id="parametros-distribucion">
+                <!-- Se llenarán dinámicamente según la distribución seleccionada -->
+            </div>
+            <!-- Tamaño de la Muestra -->
+            <div class="slider-container">
+                <label for="tamanoMuestra">Tamaño de la Muestra (n): <span id="tamanoMuestraValue">100</span></label>
+                <input type="range" id="tamanoMuestra" min="5" max="1000" step="1" value="100">
+            </div>
+            <!-- Número de Repeticiones -->
+            <div class="slider-container">
+                <label for="numRepeticiones">Número de Repeticiones: <span id="numRepeticionesValue">1000</span></label>
+                <input type="range" id="numRepeticiones" min="100" max="10000" step="100" value="1000">
+            </div>
+            <!-- Tiempo de Paso para la Animación -->
+            <div class="slider-container">
+                <label for="stepTime">Tiempo de Paso (ms): <span id="stepTimeValue">0.01</span></label>
+                <input type="range" id="stepTime" min="0.01" max="10" step="0.01" value="0.01">
+            </div>
+            <!-- Botones para Controlar la Animación -->
+            <div class="slider-container2">
+                <button id="iniciarAnimacion">Iniciar Simulación</button>
+            </div>
+            <div class="slider-container2">
+                <button id="detenerAnimacion" disabled>Detener Animación</button>
+            </div>
+        </aside>
+    </div>
+        <main id="content">
+
+                <div class="ecuacion">
+                <h2>Teorema Central del Límite</h2>
+                    <p>Sea  \( X_1, X_2, \dots, X_n \) una muestra de variables aleatorias independientes e idénticamente distribuidas con media \( \mu \) y varianza \( \sigma^2 \).</p>
+                    <p> Entonces, la media muestral \( \bar{X} = \frac{1}{n}\sum_{i=1}^{n}X_i  \) se aproxima a una distribución normal con media \( \mu \) y varianza \( \frac{\sigma^2}{n} \) cuando \( n \) tiende a infinito.</p>
+                </div>
+            <div class="grafico">
+                <h3>Distribución de la Variable X</h3>
+                <div id="graficoX" style="width: 100%; height: 400px;"></div>
+                <div class="current-value" id="currentValueMedias">Media Muestral Actual: N/A</div>
+            </div>
+            <!-- Tabla de Comparación -->
+            <div class="tabla-resumen">
+                <h3>Comparación Teórica y Simulada</h3>
+                <table id="comparacionTabla">
+                    <thead>
+                        <tr>
+                            <th>Parámetro</th>
+                            <th>Teórico</th>
+                            <th>Simulación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Media de las Medias Muestrales</td>
+                            <td id="mediaTeoricaMedias">-</td>
+                            <td id="mediaSimuladaMedias">-</td>
+                        </tr>
+                        <tr>
+                            <td>Desviación Estándar de las Medias Muestrales</td>
+                            <td id="sigmaTeoricaMedias">-</td>
+                            <td id="sigmaSimuladaMedias">-</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </br>
+            <div class="grafico">
+                <h3>Distribución de las Medias Muestrales</h3>
+                <div id="graficoMedias" style="width: 100%; height: 400px;"></div>
+            </div>
+        </main>
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <!-- Incluimos las librerías necesarias -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstat/1.9.4/jstat.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        // teorema_central_limite.js
+
+        let animationInterval = null; // Variable para controlar la animación
+        let isAnimating = false; // Estado de la animación
+
+        let sampleMeans = []; // Almacena las medias muestrales
+        let runningSumX = 0; // Suma acumulada de X
+        let runningSumSqX = 0; // Suma acumulada de X^2
+        let countX = 0; // Conteo total de X
+
+        // Función para generar una muestra aleatoria de una distribución binomial
+        /**
+         * Genera una muestra aleatoria de una distribución binomial.
+         * @param {number} n - Número de ensayos.
+         * @param {number} p - Probabilidad de éxito en cada ensayo.
+         * @returns {number} - Número de éxitos en n ensayos.
+         */
+        function binomialSample(n, p) {
+            let x = 0;
+            for (let i = 0; i < n; i++) {
+                if (Math.random() < p) {
+                    x++;
+                }
+            }
+            return x;
+        }
+
+        // Función de debounce para evitar ejecuciones excesivas
+        function debounce(func, delay) {
+            let debounceTimer;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(() => func.apply(context, args), delay);
+            }
+        }
+
+        // Esperar a que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            const distribucionSelect = document.getElementById('distribucion');
+            const parametrosDiv = document.getElementById('parametros-distribucion');
+            const tamanoMuestraSlider = document.getElementById('tamanoMuestra');
+            const tamanoMuestraValue = document.getElementById('tamanoMuestraValue');
+            const numRepeticionesSlider = document.getElementById('numRepeticiones');
+            const numRepeticionesValue = document.getElementById('numRepeticionesValue');
+            const stepTimeSlider = document.getElementById('stepTime');
+            const stepTimeValue = document.getElementById('stepTimeValue');
+            const iniciarAnimacionBtn = document.getElementById('iniciarAnimacion');
+            const detenerAnimacionBtn = document.getElementById('detenerAnimacion');
+
+            // Inicializar los parámetros de la distribución seleccionada por defecto
+            actualizarParametrosDistribucion(distribucionSelect.value);
+
+            // Limpiar la tabla al cargar la página
+            limpiarTabla();
+
+            // Escuchar cambios en la selección de distribución
+            distribucionSelect.addEventListener('change', function() {
+                actualizarParametrosDistribucion(this.value);
+                runSimulationDebounced();
+            });
+
+            // Escuchar cambios en los parámetros de distribución (delegación de eventos)
+            parametrosDiv.addEventListener('input', function() {
+                runSimulationDebounced();
+            });
+
+            // Escuchar cambios en el tamaño de la muestra
+            tamanoMuestraSlider.addEventListener('input', function() {
+                tamanoMuestraValue.innerText = this.value;
+                runSimulationDebounced();
+            });
+
+            // Escuchar cambios en el número de repeticiones
+            numRepeticionesSlider.addEventListener('input', function() {
+                numRepeticionesValue.innerText = this.value;
+                runSimulationDebounced();
+            });
+
+            // Escuchar cambios en el tiempo de paso
+            stepTimeSlider.addEventListener('input', function() {
+                stepTimeValue.innerText = this.value;
+            });
+
+            // Botón para iniciar la animación
+            iniciarAnimacionBtn.addEventListener('click', function() {
+                iniciarSimulacion(); // Iniciar simulación al hacer clic
+                iniciarAnimacion();  // Iniciar animación después de la simulación
+            });
+
+            // Botón para detener la animación
+            detenerAnimacionBtn.addEventListener('click', function() {
+                detenerAnimacion();
+            });
+
+            // Función para ejecutar la simulación con debounce (500ms)
+            const runSimulationDebounced = debounce(iniciarSimulacion, 500);
+
+            // Iniciar la simulación inicialmente
+            iniciarSimulacion();
+        });
+
+        // Función para limpiar la tabla
+        function limpiarTabla() {
+            document.getElementById('mediaTeoricaMedias').innerText = '-';
+            document.getElementById('sigmaTeoricaMedias').innerText = '-';
+            document.getElementById('mediaSimuladaMedias').innerText = '-';
+            document.getElementById('sigmaSimuladaMedias').innerText = '-';
+        }
+
+        // Función para actualizar los parámetros de la distribución
+        function actualizarParametrosDistribucion(tipo) {
+            const parametrosDiv = document.getElementById('parametros-distribucion');
+            parametrosDiv.innerHTML = ''; // Limpiar parámetros anteriores
+
+            switch(tipo) {
+                case 'normal':
+                    parametrosDiv.innerHTML += `
+                        <div class="control-group">
+                            <label for="media">Media (μ):</label>
+                            <input type="number" id="media" value="0" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="desviacion">Desviación Estándar (σ):</label>
+                            <input type="number" id="desviacion" value="1" step="0.1" min="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'binomial':
+                    parametrosDiv.innerHTML += `
+                        <div class="control-group">
+                            <label for="nBinomial">Número de Ensayos (n):</label>
+                            <input type="number" id="nBinomial" value="40" step="1" min="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="pBinomial">Probabilidad de Éxito (p):</label>
+                            <input type="number" id="pBinomial" value="0.5" step="0.01" min="0" max="1">
+                        </div>
+                    `;
+                    break;
+                case 'poisson':
+                    parametrosDiv.innerHTML += `
+                        <div class="control-group">
+                            <label for="lambda">λ (Lambda):</label>
+                            <input type="number" id="lambda" value="10" step="0.1" min="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'exponencial':
+                    parametrosDiv.innerHTML += `
+                        <div class="control-group">
+                            <label for="lambdaExponencial">λ (Lambda):</label>
+                            <input type="number" id="lambdaExponencial" value="10" step="0.1" min="0.1">
+                        </div>
+                    `;
+                    break;
+                case 'uniforme':
+                    parametrosDiv.innerHTML += `
+                        <div class="control-group">
+                            <label for="minUniforme">Mínimo (a):</label>
+                            <input type="number" id="minUniforme" value="0" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="maxUniforme">Máximo (b):</label>
+                            <input type="number" id="maxUniforme" value="10" step="1">
+                        </div>
+                    `;
+                    break;
+                default:
+                    break;
+            }
+
+            // Limpiar la tabla cuando cambie la distribución
+            limpiarTabla();
+        }
+
+        // Función para iniciar la simulación
+        function iniciarSimulacion() {
+            detenerAnimacion(); // Detener cualquier animación previa
+
+            // Resetear variables globales para una nueva simulación
+            sampleMeans = [];
+            runningSumX = 0;
+            runningSumSqX = 0;
+            countX = 0;
+
+            // Obtener distribución seleccionada
+            const distribucion = document.getElementById('distribucion').value;
+
+            // Obtener parámetros según la distribución
+            let params = {};
+            switch(distribucion) {
+                case 'normal':
+                    params.media = parseFloat(document.getElementById('media').value);
+                    params.desviacion = parseFloat(document.getElementById('desviacion').value);
+                    break;
+                case 'binomial':
+                    params.n = parseInt(document.getElementById('nBinomial').value);
+                    params.p = parseFloat(document.getElementById('pBinomial').value);
+                    break;
+                case 'poisson':
+                    params.lambda = parseFloat(document.getElementById('lambda').value);
+                    break;
+                case 'exponencial':
+                    params.lambda = parseFloat(document.getElementById('lambdaExponencial').value);
+                    break;
+                case 'uniforme':
+                    params.min = parseFloat(document.getElementById('minUniforme').value);
+                    params.max = parseFloat(document.getElementById('maxUniforme').value);
+                    break;
+                default:
+                    break;
+            }
+
+            // Validaciones básicas
+            if (distribucion === 'binomial' && (params.p < 0 || params.p > 1)) {
+                alert('La probabilidad de éxito (p) debe estar entre 0 y 1.');
+                return;
+            }
+            if (distribucion === 'uniforme' && params.min >= params.max) {
+                alert('El valor mínimo (a) debe ser menor que el máximo (b).');
+                return;
+            }
+
+            // Obtener tamaño de la muestra y número de repeticiones
+            const n = parseInt(document.getElementById('tamanoMuestra').value);
+            const numRepeticiones = parseInt(document.getElementById('numRepeticiones').value);
+
+            // Calcular las propiedades teóricas de la distribución original
+            let mediaTeoricaX, sigmaTeoricaX;
+            switch(distribucion) {
+                case 'normal':
+                    mediaTeoricaX = params.media;
+                    sigmaTeoricaX = params.desviacion;
+                    break;
+                case 'binomial':
+                    mediaTeoricaX = params.n * params.p;
+                    sigmaTeoricaX = Math.sqrt(params.n * params.p * (1 - params.p));
+                    break;
+                case 'poisson':
+                    mediaTeoricaX = params.lambda;
+                    sigmaTeoricaX = Math.sqrt(params.lambda);
+                    break;
+                case 'exponencial':
+                    mediaTeoricaX = 1 / params.lambda;
+                    sigmaTeoricaX = 1 / params.lambda;
+                    break;
+                case 'uniforme':
+                    mediaTeoricaX = (params.min + params.max) / 2;
+                    sigmaTeoricaX = (params.max - params.min) / Math.sqrt(12);
+                    break;
+                default:
+                    mediaTeoricaX = jStat.mean([]);
+                    sigmaTeoricaX = jStat.stdev([], true);
+                    break;
+            }
+
+            // Calcular las propiedades teóricas de las medias muestrales
+            const mediaTeoricaMedias = mediaTeoricaX;
+            const sigmaTeoricaMedias = sigmaTeoricaX / Math.sqrt(n);
+
+            // Visualizar la distribución original de X (gráfico estático)
+            graficarX(distribucion, params, mediaTeoricaX, sigmaTeoricaX);
+
+            // Inicializar gráfico de medias muestrales con distribución teórica
+            graficarMediasInicial(mediaTeoricaMedias, sigmaTeoricaMedias);
+
+            // Guardar datos y parámetros en el objeto global para la animación
+            window.simulationData = {
+                distribucion,
+                params,
+                mediaTeoricaX,
+                sigmaTeoricaX,
+                n,
+                numRepeticiones,
+                mediaTeoricaMedias,
+                sigmaTeoricaMedias
+            };
+
+            // Limpiar la tabla al iniciar una nueva simulación
+            limpiarTabla();
+        }
+
+        // Función para iniciar la animación
+        async function iniciarAnimacion() {
+            if (isAnimating) return; // Evitar múltiples animaciones simultáneas
+
+            const simulationData = window.simulationData;
+            if (!simulationData) {
+                alert('Por favor, inicia una simulación primero.');
+                return;
+            }
+
+            const { distribucion, params, mediaTeoricaX, sigmaTeoricaX, n, numRepeticiones } = simulationData;
+            const stepTime = parseFloat(document.getElementById('stepTime').value) * 1000; // Convertir a ms
+            const graficoX = document.getElementById('graficoX');
+            const graficoMedias = document.getElementById('graficoMedias');
+            const currentValueMedias = document.getElementById('currentValueMedias');
+
+            // Activar estado de animación
+            isAnimating = true;
+            document.getElementById('iniciarAnimacion').disabled = true;
+            document.getElementById('detenerAnimacion').disabled = false;
+
+            for(let i = 0; i < numRepeticiones && isAnimating; i++) {
+                // Generar una muestra y calcular su media
+                let muestra = [];
+                for(let j = 0; j < n; j++) {
+                    let valor = generarValor(distribucion, params);
+                    muestra.push(valor);
+
+                    // Actualizar sumas para X simulados
+                    runningSumX += valor;
+                    runningSumSqX += valor * valor;
+                    countX++;
+                }
+                let media = jStat.mean(muestra);
+                sampleMeans.push(media); // Almacenar la media muestral
+
+                // Actualizar el gráfico de medias muestrales
+                Plotly.extendTraces(graficoMedias, { x: [[media]] }, [0]);
+
+                // Actualizar el valor actual mostrado
+                currentValueMedias.innerText = `Media Muestral Actual: ${media.toFixed(4)}`;
+
+                // Actualizar el gráfico de la distribución de X con la muestra actual
+                graficarMuestraX(muestra);
+
+                // Esperar el tiempo de paso
+                await new Promise(resolve => {
+                    animationInterval = setTimeout(resolve, stepTime);
+                });
+            }
+
+            // Desactivar el estado de animación
+            isAnimating = false;
+            document.getElementById('iniciarAnimacion').disabled = false;
+            document.getElementById('detenerAnimacion').disabled = true;
+
+            // Calcular y mostrar estadísticas simuladas
+            calcularYMostrarEstadisticas(simulationData.mediaTeoricaX, simulationData.sigmaTeoricaX, simulationData.n);
+        }
+
+        // Función para detener la animación
+        function detenerAnimacion() {
+            if (animationInterval) {
+                clearTimeout(animationInterval);
+                animationInterval = null;
+            }
+            isAnimating = false;
+            document.getElementById('iniciarAnimacion').disabled = false;
+            document.getElementById('detenerAnimacion').disabled = true;
+
+            // Calcular y mostrar estadísticas si hay datos
+            if (sampleMeans.length > 0) {
+                const simulationData = window.simulationData;
+                const { mediaTeoricaX, sigmaTeoricaX } = simulationData;
+
+                calcularYMostrarEstadisticas(mediaTeoricaX, sigmaTeoricaX, simulationData.n);
+            }
+        }
+
+        // Función para graficar la distribución original de X
+        function graficarX(tipo, params, mediaTeoricaX, sigmaTeoricaX) {
+            const graficoX = document.getElementById('graficoX');
+            Plotly.purge(graficoX); // Limpiar gráfico previo
+
+            let title = '';
+            let xaxisTitle = 'Valores de X';
+            let yaxisTitle = 'Densidad de Probabilidad';
+
+            switch(tipo) {
+                case 'normal':
+                    title = `Distribución Normal (μ=${params.media}, σ=${params.desviacion})`;
+                    break;
+                case 'binomial':
+                    title = `Distribución Binomial (n=${params.n}, p=${params.p})`;
+                    break;
+                case 'poisson':
+                    title = `Distribución Poisson (λ=${params.lambda})`;
+                    break;
+                case 'exponencial':
+                    title = `Distribución Exponencial (λ=${params.lambda})`;
+                    break;
+                case 'uniforme':
+                    title = `Distribución Uniforme (a=${params.min}, b=${params.max})`;
+                    break;
+                default:
+                    title = `Distribución de X`;
+                    break;
+            }
+
+            // Generar datos para el histograma de la distribución original
+            const dataX = {
+                x: generarValoresParaGraficoX(tipo, params),
+                type: 'histogram',
+                marker: {
+                    color: '#4CAF50',
+                    opacity: 0.7,
+                },
+                name: 'Valores de X',
+                nbinsx: 100,
+                histnorm: 'probability density'
+            };
+
+            // Añadir una curva de densidad teórica si es aplicable
+            let traceTeoricaX = null;
+            if (tipo === 'normal' || tipo === 'exponencial' || tipo === 'uniforme') { // Continuas
+                const numPoints = 1000;
+                const xMin = jStat.min(dataX.x);
+                const xMax = jStat.max(dataX.x);
+                const step = (xMax - xMin) / numPoints;
+                const xValues = [];
+                const yValues = [];
+
+                for(let i = 0; i <= numPoints; i++) {
+                    const x = xMin + i * step;
+                    xValues.push(x);
+                    switch(tipo) {
+                        case 'normal':
+                            yValues.push(jStat.normal.pdf(x, mediaTeoricaX, sigmaTeoricaX));
+                            break;
+                        case 'exponencial':
+                            yValues.push(jStat.exponential.pdf(x, params.lambda));
+                            break;
+                        case 'uniforme':
+                            yValues.push(jStat.uniform.pdf(x, params.min, params.max));
+                            break;
+                        default:
+                            yValues.push(0);
+                            break;
+                    }
+                }
+
+                traceTeoricaX = {
+                    x: xValues,
+                    y: yValues,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: `Densidad Teórica`,
+                    line: { color: 'blue', dash: 'dash' }
+                };
+            }
+
+            // Definir layout
+            const layout = {
+                title: title,
+                xaxis: { title: xaxisTitle },
+                yaxis: { title: yaxisTitle },
+                bargap: 0.05,
+                showlegend: true
+            };
+
+            // Añadir trazos al gráfico
+            const trazos = [dataX];
+            if (traceTeoricaX) trazos.push(traceTeoricaX);
+
+            Plotly.newPlot(graficoX, trazos, layout);
+        }
+
+        // Función para generar valores para el gráfico de X
+        function generarValoresParaGraficoX(tipo, params) {
+            const numDatosX = 10000; // Número de datos para la distribución original de X
+            const datosX = [];
+            for(let i = 0; i < numDatosX; i++) {
+                datosX.push(generarValor(tipo, params));
+            }
+            return datosX;
+        }
+
+        // Función para graficar el gráfico inicial de medias muestrales con distribución teórica
+        function graficarMediasInicial(mediaTeoricaMedias, sigmaTeoricaMedias) {
+            const graficoMedias = document.getElementById('graficoMedias');
+            Plotly.purge(graficoMedias); // Limpiar gráfico previo
+
+            // Crear trace para el histograma de medias muestrales
+            const traceMedias = {
+                x: [],
+                type: 'histogram',
+                marker: {
+                    color: '#FF5733',
+                    opacity: 0.7,
+                },
+                name: 'Medias Muestrales',
+                nbinsx: 100,
+                histnorm: 'probability density'
+            };
+
+            // Generar valores para la distribución teórica
+            const numPoints = 1000;
+            const xMin = mediaTeoricaMedias - 4 * sigmaTeoricaMedias;
+            const xMax = mediaTeoricaMedias + 4 * sigmaTeoricaMedias;
+            const xValues = [];
+            const yValues = [];
+
+            const step = (xMax - xMin) / numPoints;
+            for(let i = 0; i <= numPoints; i++) {
+                const x = xMin + i * step;
+                xValues.push(x);
+                yValues.push(jStat.normal.pdf(x, mediaTeoricaMedias, sigmaTeoricaMedias));
+            }
+
+            // Crear trace para la distribución teórica
+            const traceTeorica = {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                name: `Distribución Teórica N(${mediaTeoricaMedias.toFixed(2)}, ${sigmaTeoricaMedias.toFixed(2)})`,
+                line: { color: 'blue', dash: 'dash' }
+            };
+
+            // Definir layout
+            const layoutMedias = {
+               // title: 'Distribución de las Medias Muestrales',
+                xaxis: { title: 'Medias Muestrales' },
+                yaxis: { title: 'Densidad de Probabilidad' },
+                bargap: 0.05,
+                showlegend: true
+            };
+
+            // Plotear ambos trazos: histograma y distribución teórica
+            Plotly.newPlot(graficoMedias, [traceMedias, traceTeorica], layoutMedias);
+        }
+
+        // Función para generar un valor aleatorio según la distribución
+        function generarValor(tipo, params) {
+            switch(tipo) {
+                case 'normal':
+                    return jStat.normal.sample(params.media, params.desviacion);
+                case 'binomial':
+                    return binomialSample(params.n, params.p); // Usar la función personalizada
+                case 'poisson':
+                    return jStat.poisson.sample(params.lambda);
+                case 'exponencial':
+                    return jStat.exponential.sample(params.lambda);
+                case 'uniforme':
+                    return jStat.uniform.sample(params.min, params.max);
+                default:
+                    return 0;
+            }
+        }
+
+        // Función para graficar la distribución de los valores de X en la muestra actual
+        function graficarMuestraX(muestra) {
+            const graficoX = document.getElementById('graficoX');
+            Plotly.purge(graficoX); // Limpiar gráfico previo
+
+            // Obtener distribución seleccionada y sus parámetros
+            const distribucion = document.getElementById('distribucion').value;
+            let params = {};
+            switch(distribucion) {
+                case 'normal':
+                    params.media = parseFloat(document.getElementById('media').value);
+                    params.desviacion = parseFloat(document.getElementById('desviacion').value);
+                    break;
+                case 'binomial':
+                    params.n = parseInt(document.getElementById('nBinomial').value);
+                    params.p = parseFloat(document.getElementById('pBinomial').value);
+                    break;
+                case 'poisson':
+                    params.lambda = parseFloat(document.getElementById('lambda').value);
+                    break;
+                case 'exponencial':
+                    params.lambda = parseFloat(document.getElementById('lambdaExponencial').value);
+                    break;
+                case 'uniforme':
+                    params.min = parseFloat(document.getElementById('minUniforme').value);
+                    params.max = parseFloat(document.getElementById('maxUniforme').value);
+                    break;
+                default:
+                    break;
+            }
+
+            // Calcular las propiedades teóricas de la distribución original
+            let mediaTeoricaX, sigmaTeoricaX;
+            switch(distribucion) {
+                case 'normal':
+                    mediaTeoricaX = params.media;
+                    sigmaTeoricaX = params.desviacion;
+                    break;
+                case 'binomial':
+                    mediaTeoricaX = params.n * params.p;
+                    sigmaTeoricaX = Math.sqrt(params.n * params.p * (1 - params.p));
+                    break;
+                case 'poisson':
+                    mediaTeoricaX = params.lambda;
+                    sigmaTeoricaX = Math.sqrt(params.lambda);
+                    break;
+                case 'exponencial':
+                    mediaTeoricaX = 1 / params.lambda;
+                    sigmaTeoricaX = 1 / params.lambda;
+                    break;
+                case 'uniforme':
+                    mediaTeoricaX = (params.min + params.max) / 2;
+                    sigmaTeoricaX = (params.max - params.min) / Math.sqrt(12);
+                    break;
+                default:
+                    mediaTeoricaX = jStat.mean([]);
+                    sigmaTeoricaX = jStat.stdev([], true);
+                    break;
+            }
+
+            // Generar datos para el histograma de la muestra actual
+            const traceMuestra = {
+                x: muestra,
+                type: 'histogram',
+                marker: {
+                    color: '#4CAF50',
+                    opacity: 0.7,
+                },
+                name: 'Valores de X (Muestra)',
+                nbinsx: 100,
+                histnorm: 'probability density'
+            };
+
+            // Definir layout
+            const layoutMuestra = {
+               // title: 'Distribución de los Valores de X en la Muestra',
+                xaxis: { title: 'Valores de X' },
+                yaxis: { title: 'Densidad de Probabilidad' },
+                bargap: 0.05,
+                showlegend: true
+            };
+
+            // Plotear el histograma de la muestra
+            Plotly.newPlot(graficoX, [traceMuestra], layoutMuestra);
+        }
+
+        // Función para calcular y mostrar estadísticas simuladas
+        function calcularYMostrarEstadisticas(mediaTeoricaX, sigmaTeoricaX, n) {
+            // Calcular estadísticas para las medias muestrales
+            const mediaSimuladaMedias = jStat.mean(sampleMeans);
+            const sigmaSimuladaMedias = jStat.stdev(sampleMeans, true); // Desviación estándar muestral
+
+            // Actualizar la tabla con los resultados teóricos
+            document.getElementById('mediaTeoricaMedias').innerText = mediaTeoricaX.toFixed(4); // TCL: Media teórica de las medias muestrales igual a la media teórica de X
+            document.getElementById('sigmaTeoricaMedias').innerText = (sigmaTeoricaX / Math.sqrt(n)).toFixed(4);
+
+            // Actualizar la tabla con los resultados de la simulación
+            document.getElementById('mediaSimuladaMedias').innerText = mediaSimuladaMedias.toFixed(4);
+            document.getElementById('sigmaSimuladaMedias').innerText = sigmaSimuladaMedias.toFixed(4);
+        }
+    </script>
+</body>
+</html>

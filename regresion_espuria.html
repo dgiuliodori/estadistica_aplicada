@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluimos la biblioteca mathjs y jStat -->
+    <script src="js_lib/math.min.js"></script>
+    <script src="js_lib/jstat.min.js"></script>
+    <script src="js_lib/tex-mml-chtml.js" defer></script>
+    <!-- Luego otros scripts -->
+    <script src="js_lib/chart.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <style>
+        /* Estilos para mostrar el valor actual de los deslizadores */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .slider-container label {
+            flex: 1;
+        }
+        .slider-container input[type="range"] {
+            flex: 3;
+            margin: 0 10px;
+        }
+        .slider-value {
+            width: 50px;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Regresión Espúria vs Cointegración</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <div class="col-md-4">
+                <h4>Parámetros</h4>
+                <!-- Número de puntos -->
+                <div class="slider-container">
+                    <label for="numPuntos">Observaciones:</label>
+                    <input type="range" id="numPuntos" min="10" max="1000" step="10" value="100">
+                    <span id="numPuntosValor" class="slider-value">100</span>
+                </div>
+                
+                <!-- Nivel de significancia -->
+                <div class="form-group">
+                    <label for="nivelSignificancia">Nivel de significancia (%):</label>
+                    <select id="nivelSignificancia" class="form-control">
+                        <option value="1" selected>1%</option>
+                        <option value="5">5%</option>
+                        <option value="10">10%</option>
+                    </select>
+                </div>
+                
+                <!-- Parámetros para Regresión Espuria -->
+                <h5>Regresión Espuria</h5>
+                <div class="slider-container">
+                    <label for="pendienteEspuria">Pendiente:</label>
+                    <input type="range" id="pendienteEspuria" min="-5" max="5" step="0.1" value="1" disabled>
+                    <span id="pendienteEspuriaValor" class="slider-value">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <label for="interceptoEspuria">Ordenada al origen:</label>
+                    <input type="range" id="interceptoEspuria" min="-10" max="10" step="0.1" value="0" disabled>
+                    <span id="interceptoEspuriaValor" class="slider-value">0.0</span>
+                </div>
+                
+                <!-- Parámetros para Cointegración -->
+                <h5>Cointegración</h5>
+                <div class="slider-container">
+                    <label for="pendienteCointeg">Pendiente:</label>
+                    <input type="range" id="pendienteCointeg" min="-5" max="5" step="0.1" value="1" disabled>
+                    <span id="pendienteCointegValor" class="slider-value">1.0</span>
+                </div>
+                <div class="slider-container">
+                    <label for="interceptoCointeg">Ordenada al origen:</label>
+                    <input type="range" id="interceptoCointeg" min="-10" max="10" step="0.1" value="0" disabled>
+                    <span id="interceptoCointegValor" class="slider-value">0.0</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <main id="content"> 
+        <h1 class="text-center mb-5">Regresión Espuria</h1>
+        
+        <!-- Sección Teórica -->
+        <!-- ... (sección teórica omitida para brevedad, se mantiene igual) -->
+
+        <!-- Sección Interactiva -->
+        <section id="interactivo" class="mt-5">
+            <div class="equations" >
+                <h2>Proceso Estocástico Generador de Datos</h2>
+                \[
+                \begin{cases}
+                x_{t}= x_{t-1} + \epsilon_{t}, \qquad ~~~ \epsilon_{t} \sim N(0,1) \\
+                y_{t}= y_{t-1} + \epsilon^{*}_{t}, \qquad ~~~ \epsilon^{*}_{t} \sim N(0,1)
+                \end{cases}
+                \]
+
+                \begin{equation} 
+                y_{t}=\beta_{0}+\beta_{1} x_{t} + u_{t}
+                \end{equation}
+            </div>
+            <!-- Caso 1: Regresión Espuria -->
+            <div class="row">
+                <div class="grafico">
+                    <h3>Evolución de las Series Temporales - Regresión Espuria</h3>
+                    <div id="graficoSeriesEspuria_div" style="width: 100%; height: 400px;">
+                        <canvas id="graficoSeriesEspuria" width="1000" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="resultados">
+                <h4>Estimación por Mínimos Cuadrados Ordinarios - Regresión Espuria</h4>
+                <div id="tablaRegresionEspuria"></div>
+            </div>
+            <div class="resultados">
+                <h4>Prueba de Dickey-Fuller Aumentada (ADF) en Residuos</h4>
+                <div id="tablaADFEspuria"></div>
+            </div>
+        </br>
+            <!-- Caso 2: Cointegración -->
+            <h1 class="text-center mb-5">Cointegración</h1>
+            <div class="row">
+                <div class="equations" >
+                    <h2>Proceso Estocástico Generador de Datos</h2>
+                    \[
+                    \begin{cases}
+                    x_{t}= x_{t-1} + \epsilon_{t}, \qquad ~~~ \epsilon_{t} \sim N(0,1) \\
+                    y_{t}= \beta_{0} + \beta_{1} x_{t}  + \epsilon^{*}_{t}, \qquad ~~~ \epsilon_{t}^{*} \sim N(0,1) \\
+                    \end{cases}
+                    \]
+                </div>
+                <div class="grafico">
+                    <h3>Evolución de las Series Temporales - Cointegración</h3>
+                    <div id="graficoSeriesCointegracion_div" style="width: 100%; height: 400px;">
+                        <canvas id="graficoSeriesCointegracion" width="1000" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="resultados">
+                <h4>Estimación por Mínimos Cuadrados Ordinarios - Datos Cointegrados</h4>
+                <div id="tablaRegresionCointegracion"></div>
+            </div>
+            <div class="resultados">
+                <h4>Prueba de Dickey-Fuller Aumentada (ADF) en Residuos</h4>
+                <div id="tablaADFCointegracion"></div>
+            </div>
+        </section>
+
+        <!-- Sección de Explicación -->
+        <!-- ... (sección de explicación y conclusiones se mantiene igual) -->
+
+    </main>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Script Personalizado -->
+    <script>
+        // Función para generar una serie con raíz unitaria
+        function generarSerieRaizUnitaria(n, pendiente, intercepto) {
+            let serie = [intercepto];
+            let burnIn = 50; // Número de observaciones a descartar
+            let totalObservaciones = n + burnIn;
+            
+            for (let i = 1; i < totalObservaciones; i++) {
+                let epsilon = jStat.normal.sample(0, 1); // Generar ε ~ N(0, 1)
+                serie.push(pendiente * serie[i - 1] + epsilon);
+            }
+            
+            // Eliminar las primeras 50 observaciones
+            return serie.slice(burnIn);
+        }
+
+        // Función para generar series cointegradas
+        function generarSerieCointegrada(n, pendiente, intercepto) {
+            let serie1 = [intercepto];
+            let serie2 = [intercepto];
+            let burnIn = 50; // Número de observaciones a descartar
+            let totalObservaciones = n + burnIn;
+            for (let i = 1; i < totalObservaciones; i++) {
+                let epsilon1 = jStat.normal.sample(0, 1);
+                let epsilon2 = jStat.normal.sample(0, 1);
+                serie1.push(pendiente * serie1[i - 1] + epsilon1);
+                // Serie 2 depende de serie 1 más un error estacionario
+                serie2.push(pendiente * serie1[i] + epsilon2); // Cointegradas
+            }
+            // Eliminar las primeras 50 observaciones
+            return { serie1: serie1.slice(burnIn), serie2: serie2.slice(burnIn) };
+        }
+        
+        function calcularRegresion(x, y) {
+            let n = x.length;
+            let sum_x = 0, sum_y = 0, sum_xy = 0, sum_xx = 0, sum_yy = 0;
+        
+            for (let i = 0; i < n; i++) {
+                sum_x += x[i];
+                sum_y += y[i];
+                sum_xy += x[i] * y[i];
+                sum_xx += x[i] * x[i];
+                sum_yy += y[i] * y[i];
+            }
+        
+            let pendiente = (n * sum_xy - sum_x * sum_y) / (n * sum_xx - sum_x * sum_x);
+            let intercepto = (sum_y - pendiente * sum_x) / n;
+        
+            // Coeficiente de correlación
+            let r = (n * sum_xy - sum_x * sum_y) / Math.sqrt((n * sum_xx - sum_x * sum_x) * (n * sum_yy - sum_y * sum_y));
+        
+            // Coeficiente de determinación
+            let r2 = r * r;
+
+            // Calcular residuos
+            let residuos = [];
+            for (let i = 0; i < n; i++) {
+                let y_pred = pendiente * x[i] + intercepto;
+                residuos.push(y[i] - y_pred);
+            }
+
+            // Calcular el error estándar del coeficiente
+            let sse = residuos.reduce((acc, val) => acc + val * val, 0);
+            let se2 = sse / (n - 2);
+            let sxx = sum_xx - (sum_x * sum_x) / n;
+            let sePendiente = Math.sqrt(se2 / sxx);
+
+            // Estadístico t y valor p para el coeficiente de regresión
+            let t_estadistico = pendiente / sePendiente;
+            let df = n - 2;
+            let p_valor = 2 * (1 - jStat.studentt.cdf(Math.abs(t_estadistico), df));
+            // alert(jStat.studentt.cdf(Math.abs(t_estadistico), df));
+            return { pendiente, intercepto, r, r2, residuos, t_estadistico, p_valor};
+        }
+        
+        // Función para obtener valores críticos aproximados para la prueba ADF
+        function obtenerValorCriticoADF(nivelSignificancia, n) {
+            // Valores críticos aproximados para modelos sin constante ni tendencia
+            // Puedes ajustar estos valores o utilizar tablas más precisas
+            let valoresCriticos = {
+                1: -2.58,
+                5: -1.95,
+                10: -1.62
+            };
+            return valoresCriticos[nivelSignificancia];
+        }
+        
+        // Función simplificada para la prueba ADF en residuos
+        function pruebaADF(serie, nivelSignificancia) {
+            // Diferenciar la serie
+            let diffSerie = [];
+            for (let i = 1; i < serie.length; i++) {
+                diffSerie.push(serie[i] - serie[i - 1]);
+            }
+        
+            // Regresión de la diferencia contra el lag
+            let y = diffSerie.slice(0);
+            let x = serie.slice(0, serie.length - 1);
+        
+            let regresion = calcularRegresion(x, y);
+        
+            // Valor t simplificado
+            let se = Math.sqrt((1 / (y.length - 2)) * y.reduce((acc, val, idx) => acc + Math.pow(val - (regresion.pendiente * x[idx] + regresion.intercepto), 2), 0));
+            let sxx = x.reduce((acc, val) => acc + Math.pow(val - (sumArray(x) / x.length), 2), 0);
+            let t_estadistico = regresion.pendiente / (se / Math.sqrt(sxx));
+        
+            // Obtener el valor crítico según el nivel de significancia
+            let valorCritico = obtenerValorCriticoADF(nivelSignificancia, serie.length);
+        
+            let estacionaria = t_estadistico < valorCritico;
+        
+            return { estacionaria, t_estadistico: t_estadistico.toFixed(4), valorCritico };
+        }
+        
+        // Función para sumar elementos de un array
+        function sumArray(arr) {
+            return arr.reduce((a, b) => a + b, 0);
+        }
+
+        // Función para truncar decimales
+        function truncar(value, decimals) {
+            return Number(Math.round(value+'e'+decimals)+'e-'+decimals).toFixed(decimals);
+        }
+
+        // Función principal para generar y mostrar todas las simulaciones
+        function generarSimulaciones() {
+            let n = parseInt(document.getElementById('numPuntos').value);
+            let nivelSignificancia = parseInt(document.getElementById('nivelSignificancia').value);
+            
+            // Parámetros Regresión Espuria
+            let pendienteEspuria = parseFloat(document.getElementById('pendienteEspuria').value);
+            let interceptoEspuria = parseFloat(document.getElementById('interceptoEspuria').value);
+            
+            // Parámetros Cointegración
+            let pendienteCointeg = parseFloat(document.getElementById('pendienteCointeg').value);
+            let interceptoCointeg = parseFloat(document.getElementById('interceptoCointeg').value);
+           // let desviacionCointeg = parseFloat(document.getElementById('desviacionCointeg').value);
+        
+            // Validaciones básicas
+            if (isNaN(n) || n < 10) {
+                alert('Por favor, ingresa un número válido de puntos (mínimo 10).');
+                return;
+            }
+            // if (isNaN(pendienteEspuria) || isNaN(interceptoEspuria) || isNaN(pendienteCointeg) || isNaN(interceptoCointeg) || isNaN(desviacionCointeg)) {
+            //     alert('Por favor, completa todos los parámetros numéricos correctamente.');
+            //     return;
+            // }
+        
+            // Caso 1: Regresión Espuria
+            let serie1Espuria = generarSerieRaizUnitaria(n, pendienteEspuria, interceptoEspuria);
+            let serie2Espuria = generarSerieRaizUnitaria(n, pendienteEspuria, interceptoEspuria);
+        
+            let regresionEspuria = calcularRegresion(serie1Espuria, serie2Espuria);
+            let adfEspuria = pruebaADF(regresionEspuria.residuos, nivelSignificancia);
+        
+            // Graficar series espurias
+            let ctxEspuria = document.getElementById('graficoSeriesEspuria').getContext('2d');
+            if (window.graficoEspuria) {
+                window.graficoEspuria.destroy();
+            }
+            window.graficoEspuria = new Chart(ctxEspuria, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: n}, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: 'x',
+                            data: serie1Espuria,
+                            borderColor: 'blue',
+                            fill: false
+                        },
+                        {
+                            label: 'y',
+                            data: serie2Espuria,
+                            borderColor: 'red',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Series Temporales Generadas - Regresión Espuria'
+                        }
+                    }
+                }
+            });
+        
+            // Mostrar resultados de la regresión espuria en tabla
+            let htmlTablaRegEspuria = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ecuación de la recta estimada</td>
+                        <td>y = ${regresionEspuria.pendiente.toFixed(3)}x + ${regresionEspuria.intercepto.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Coeficiente de correlación (r)</td>
+                        <td>${regresionEspuria.r.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Coeficiente de determinación (R²)</td>
+                        <td>${regresionEspuria.r2.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Estadístico t del coeficiente</td>
+                        <td>${regresionEspuria.t_estadistico.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>-p-valor</td>
+                        <td>${regresionEspuria.p_valor.toFixed(3)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            `;
+            document.getElementById('tablaRegresionEspuria').innerHTML = htmlTablaRegEspuria;
+
+            // Mostrar resultados de la prueba ADF en tabla
+            let htmlTablaADFEspuria = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estadístico observado</th>
+                        <th>Valor crítico al ${nivelSignificancia}%</th>
+                        <th>¿Residuos estacionarios?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${truncar(adfEspuria.t_estadistico, 3)}</td>
+                        <td>${adfEspuria.valorCritico}</td>
+                        <td>${adfEspuria.estacionaria ? 'Sí' : 'No'}</td>
+                    </tr>
+                </tbody>
+            </table>
+            `;
+            document.getElementById('tablaADFEspuria').innerHTML = htmlTablaADFEspuria;
+
+            // Caso 2: Cointegración
+            let seriesCointegradas = generarSerieCointegrada(n, pendienteCointeg, interceptoCointeg);
+            let serie1Cointeg = seriesCointegradas.serie1;
+            let serie2Cointeg = seriesCointegradas.serie2;
+        
+            let regresionCointeg = calcularRegresion(serie1Cointeg, serie2Cointeg);
+            let adfCointeg = pruebaADF(regresionCointeg.residuos, nivelSignificancia);
+        
+            // Graficar series cointegradas
+            let ctxCointeg = document.getElementById('graficoSeriesCointegracion').getContext('2d');
+            if (window.graficoCointeg) {
+                window.graficoCointeg.destroy();
+            }
+            window.graficoCointeg = new Chart(ctxCointeg, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: n}, (_, i) => i + 1),
+                    datasets: [
+                        {
+                            label: 'x',
+                            data: serie1Cointeg,
+                            borderColor: 'green',
+                            fill: false
+                        },
+                        {
+                            label: 'y',
+                            data: serie2Cointeg,
+                            borderColor: 'purple',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Series Temporales Generadas - Cointegración'
+                        }
+                    }
+                }
+            });
+        
+            // Mostrar resultados de la regresión cointegrada en tabla
+            let htmlTablaRegCointeg = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parámetro</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ecuación de la recta estimada</td>
+                        <td>y = ${regresionCointeg.pendiente.toFixed(3)}x + ${regresionCointeg.intercepto.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Coeficiente de correlación (r)</td>
+                        <td>${regresionCointeg.r.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Coeficiente de determinación (R²)</td>
+                        <td>${regresionCointeg.r2.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Estadístico t del coeficiente</td>
+                        <td>${regresionCointeg.t_estadistico.toFixed(3)}</td>
+                    </tr>
+                    <tr>
+                        <td>Valor p del coeficiente</td>
+                        <td>${regresionCointeg.p_valor.toFixed(3)}</td>
+                    </tr>
+                </tbody>
+            </table>
+            `;
+            document.getElementById('tablaRegresionCointegracion').innerHTML = htmlTablaRegCointeg;
+
+            // Mostrar resultados de la prueba ADF en tabla
+            let htmlTablaADFCointeg = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Estadístico observado</th>
+                        <th>Valor crítico al ${nivelSignificancia}%</th>
+                        <th>¿Residuos estacionarios?</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>${truncar(adfCointeg.t_estadistico, 3)}</td>
+                        <td>${adfCointeg.valorCritico}</td>
+                        <td>${adfCointeg.estacionaria ? 'Sí' : 'No'}</td>
+                    </tr>
+                </tbody>
+            </table>
+            `;
+            document.getElementById('tablaADFCointegracion').innerHTML = htmlTablaADFCointeg;
+        }
+
+        // Función para actualizar el valor mostrado al lado del deslizador
+        function actualizarValor(idInput, idSpan) {
+            let input = document.getElementById(idInput);
+            let span = document.getElementById(idSpan);
+            span.textContent = parseFloat(input.value).toFixed(1);
+        }
+
+        // Event listeners para detectar cambios en los parámetros y generar simulaciones automáticamente
+        function agregarEventListeners() {
+            const sliders = [
+                {idInput: 'numPuntos', idSpan: 'numPuntosValor'},
+                {idInput: 'pendienteEspuria', idSpan: 'pendienteEspuriaValor'},
+                {idInput: 'interceptoEspuria', idSpan: 'interceptoEspuriaValor'},
+                {idInput: 'pendienteCointeg', idSpan: 'pendienteCointegValor'},
+                {idInput: 'interceptoCointeg', idSpan: 'interceptoCointegValor'}
+            //   {idInput: 'desviacionCointeg', idSpan: 'desviacionCointegValor'}
+            ];
+
+            sliders.forEach(function(slider) {
+                let input = document.getElementById(slider.idInput);
+                let span = document.getElementById(slider.idSpan);
+                
+                // Actualizar el valor inicial
+                actualizarValor(slider.idInput, slider.idSpan);
+                
+                // Añadir el event listener
+                input.addEventListener('input', function() {
+                    actualizarValor(slider.idInput, slider.idSpan);
+                    generarSimulaciones();
+                });
+            });
+
+            // Event listener para el select de nivel de significancia
+            document.getElementById('nivelSignificancia').addEventListener('change', generarSimulaciones);
+        }
+
+        // Generar simulaciones al cargar la página
+        window.onload = function() {
+            agregarEventListeners();
+            generarSimulaciones();
+        };
+
+        // Otras funciones (generar series, calcular regresión, prueba ADF) se mantienen iguales
+    </script>
+</body>
+</html>

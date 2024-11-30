@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística Aplicada - Límite en el Punto de una Función</title>
+    <!-- Incluir las librerías necesarias -->
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <!-- Incluir math.js para evaluar funciones matemáticas -->
+    <script src="js_lib/math.min.js"></script>
+    <script id="MathJax-script" async
+        src="js_lib/tex-mml-chtml.js">
+    </script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <style>
+
+     
+        #regressionCanvas {
+            display: block;
+            background: #fff;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+        }
+
+        .legend {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .line-legend {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 14px;
+        }
+        .line-box {
+            display: inline-block;
+            width: 12px;
+            height: 2px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        /* Añadimos estilos para el canvas y su contenedor */
+        .canvas-container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Mínimo Cuadrados Ordinarios</h1>
+    </header>
+    <nav></nav>
+    <div class="container">
+        <div class="parametros">
+            <aside id="sidebar">
+                <div id="controls">
+                    <h2>Parámetros</h2>
+                    <div class="slider-container">
+                        <div class="control-group">
+                        <button id="generateData">Generar Datos</button>
+                    </div>
+                    </br>
+                    <h2>Parámetros de la Recta Especificada por el Usuario</h2>
+                    <div class="slider-container">
+                        <label for="slope">Pendiente (m):</label>
+                        <input type="number" step="0.1" id="slope" value="1">
+                    </div>
+                    <div class="slider-container">
+                        <label for="intercept">Intercepto (b):</label>
+                        <input type="number" step="0.1" id="intercept" value="0">
+                    </div>
+                    <div class="slider-container">
+                        <button id="updateLine">Actualizar Parámetros</button>
+                    </div>
+                    <div class="slider-container">
+                        <label for="animationSpeed">Velocidad de Animación (segundos):</label>
+                        <input type="number" step="0.1" id="animationSpeed" value="5">
+                    </div>
+                    <div class="slider-container">
+                        <button id="animateToOLS">Estimación MCO</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+        <main id="content"> 
+            <div class="ecuacion">
+                <h2>Definición de Límite</h2>
+            <p>
+                El método de Mínimos Cuadrados Ordinarios (MCO) es una técnica estadística utilizada en la regresión lineal simple para encontrar la recta que mejor se ajusta a un conjunto de datos.
+                MCO busca determinar los parámetros de una recta que minimizan la suma de los errores al cuadrado (SSE) entre los valores observados y los valores predichos por la recta.
+            </p>
+        </div>
+        <div class="ecuacion">
+            <h2><div id="sseDisplay">Suma de los errores al cuadrado (SSE): 0</div>
+            </div>
+        </h2>
+            <div class="legend">
+                <div class="line-legend">
+                    <span class="line-box" style="background-color:red; height:4px;"></span>Recta Especificada por el Usuario
+                </div>
+                <div class="line-legend">
+                    <span class="line-box" style="background-color:blue; height:4px;"></span>Estimación por MCO
+                </div>
+            </div>
+            <div class="canvas-container">
+                <canvas id="regressionCanvas" width="800" height="400"></canvas>
+            </div>
+            
+        </main>
+    </div>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <script>
+        const canvas = document.getElementById('regressionCanvas');
+        const ctx = canvas.getContext('2d');
+        const maxObservations = 30;
+        let dataPoints = [];
+        let olsSlope = 0;
+        let olsIntercept = 0;
+        let animationFrameId;
+        let isAnimating = false;
+
+        // Generar una muestra aleatoria de datos
+        function generateRandomData() {
+            dataPoints = [];
+            for (let i = 0; i < maxObservations; i++) {
+                const x = Math.random() * 10;  // rango en el eje X
+                const y = Math.random() * 10;  // rango en el eje Y
+                dataPoints.push({ x, y });
+            }
+            calculateOLS();
+        }
+
+        // Calcular la línea OLS basada en los datos actuales
+        function calculateOLS() {
+            // Calcular la pendiente (m) y el intercepto (b) para la línea OLS usando fórmulas de regresión lineal
+            const n = dataPoints.length;
+            if (n === 0) {
+                olsSlope = 0;
+                olsIntercept = 0;
+                return;
+            }
+
+            let sumX = 0;
+            let sumY = 0;
+            let sumXY = 0;
+            let sumX2 = 0;
+
+            for (const point of dataPoints) {
+                sumX += point.x;
+                sumY += point.y;
+                sumXY += point.x * point.y;
+                sumX2 += point.x * point.x;
+            }
+
+            const meanX = sumX / n;
+            const meanY = sumY / n;
+            // Fórmula de la pendiente OLS: m = [n*∑(x_i y_i) - (∑x_i)(∑y_i)] / [n*∑(x_i^2) - (∑x_i)^2]
+            olsSlope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            // Fórmula del intercepto OLS: b = meanY - m * meanX
+            olsIntercept = meanY - olsSlope * meanX;
+        }
+
+        // Función para dibujar el gráfico con los datos, las líneas y los errores
+        function drawDataAndErrors(m, b) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const margin = 50;
+            const width = canvas.width - 2 * margin;
+            const height = canvas.height - 2 * margin;
+
+            // Dibujar ejes con graduaciones y etiquetas
+            drawAxes(margin, width, height);
+
+            // Escalas para los puntos en el canvas
+            const xMax = 10;
+            const yMax = 10;
+            const xScale = width / xMax;
+            const yScale = height / yMax;
+
+            // Dibujar los datos como puntos en el canvas
+            dataPoints.forEach(point => {
+                const canvasX = margin + point.x * xScale;
+                const canvasY = margin + height - point.y * yScale;
+                drawDataPoint(canvasX, canvasY);
+            });
+
+            // Dibujar la línea de regresión del usuario en rojo
+            drawLine(m, b, xMax, margin, width, height, 'red');
+
+            // Dibujar la línea OLS en azul
+            drawLine(olsSlope, olsIntercept, xMax, margin, width, height, 'blue');
+
+            // Calcular y visualizar los errores cuadrados y la SSE para la línea del usuario
+            let sumOfSquaredErrors = 0;
+            dataPoints.forEach(point => {
+                const predictedY = m * point.x + b;
+                const error = point.y - predictedY;
+                const errorSquared = error * error;
+                sumOfSquaredErrors += errorSquared;
+
+                // Dibujar la línea del error vertical para la línea del usuario
+                const canvasX = margin + point.x * xScale;
+                const canvasActualY = margin + height - point.y * yScale;
+                const canvasPredictedY = margin + height - predictedY * yScale;
+                drawErrorLine(canvasX, canvasActualY, canvasPredictedY);
+
+                // Representar el error cuadrado como un cuadrado verde semitransparente
+                drawErrorSquare(canvasX, canvasPredictedY, error);
+            });
+
+            // Actualizar la visualización de la SSE
+            document.getElementById('sseDisplay').textContent = 
+                `Suma de los errores al cuadrado (SSE): ${sumOfSquaredErrors.toFixed(2)}`;
+        }
+
+        // Función para dibujar los ejes y graduaciones
+        function drawAxes(margin, width, height) {
+            const xTicks = 10;
+            const yTicks = 10;
+
+            // Eje X
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(margin, margin + height);
+            ctx.lineTo(margin + width, margin + height);
+            ctx.stroke();
+
+            // Eje Y
+            ctx.beginPath();
+            ctx.moveTo(margin, margin);
+            ctx.lineTo(margin, margin + height);
+            ctx.stroke();
+
+            // Ticks y etiquetas en eje X
+            const xTickSpacing = width / xTicks;
+            for (let i = 0; i <= xTicks; i++) {
+                const xPos = margin + i * xTickSpacing;
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.moveTo(xPos, margin + height);
+                ctx.lineTo(xPos, margin + height + 5);
+                ctx.stroke();
+                ctx.font = '12px Arial';
+                ctx.fillText((i).toFixed(1), xPos - 10, margin + height + 20);
+            }
+
+            // Ticks y etiquetas en eje Y
+            const yTickSpacing = height / yTicks;
+            for (let i = 0; i <= yTicks; i++) {
+                const yPos = margin + height - i * yTickSpacing;
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.moveTo(margin - 5, yPos);
+                ctx.lineTo(margin, yPos);
+                ctx.stroke();
+                ctx.font = '12px Arial';
+                ctx.fillText((i).toFixed(1), margin - 25, yPos + 4);
+            }
+        }
+
+        // Función para dibujar un punto de datos
+        function drawDataPoint(x, y) {
+            ctx.fillStyle = '#4285f4';
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.strokeStyle = '#fff';
+            ctx.stroke();
+        }
+
+        // Función para dibujar una línea dada una pendiente y un intercepto
+        function drawLine(m, b, xMax, margin, width, height, color) {
+            const xScale = width / xMax;
+            const yScale = height / xMax;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            const startLineX = 0;
+            const endLineX = xMax;
+            const startLineY = m * startLineX + b;
+            const endLineY = m * endLineX + b;
+
+            ctx.moveTo(margin + startLineX * xScale, margin + height - startLineY * yScale);
+            ctx.lineTo(margin + endLineX * xScale, margin + height - endLineY * yScale);
+            ctx.stroke();
+        }
+
+        // Función para dibujar una línea de error vertical
+        function drawErrorLine(x, actualY, predictedY) {
+            ctx.strokeStyle = '#a5d6a7';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x, actualY);
+            ctx.lineTo(x, predictedY);
+            ctx.stroke();
+        }
+
+        // Función para representar el error cuadrático como un cuadrado verde semitransparente
+        function drawErrorSquare(x, predictedY, error) {
+            const factor = 5; // Factor para escalar visualmente los cuadrados
+            const side = Math.abs(error) * factor;
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.4)';
+            ctx.fillRect(x - side / 2, predictedY - side / 2, side, side);
+            ctx.strokeStyle = 'rgba(76, 175, 80, 1)';
+            ctx.strokeRect(x - side / 2, predictedY - side / 2, side, side);
+        }
+
+        // Actualiza la línea con los valores de pendiente e intercepto del usuario
+        function updateLine() {
+            if (isAnimating) return;
+
+            const m = parseFloat(document.getElementById('slope').value);
+            const b = parseFloat(document.getElementById('intercept').value);
+            drawDataAndErrors(m, b);
+        }
+
+        // Función para animar la línea del usuario hasta la línea OLS
+        function animateToOLSLine() {
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const currentSlope = parseFloat(document.getElementById('slope').value);
+            const currentIntercept = parseFloat(document.getElementById('intercept').value);
+
+            const slopeDifference = olsSlope - currentSlope;
+            const interceptDifference = olsIntercept - currentIntercept;
+
+            // La velocidad de la animación será el número de segundos en que tardará en llegar a la OLS.
+            const animationSpeed = parseFloat(document.getElementById('animationSpeed').value);
+            // Asumiendo 60 frames por segundo, calculamos el número total de frames.
+            const fps = 60;
+            const totalFrames = Math.max(fps * animationSpeed, 1);  // Asegurarse de que sea al menos 1 frame
+            let currentFrame = 0;
+
+            function animate() {
+                if (currentFrame <= totalFrames) {
+                    const progress = currentFrame / totalFrames;
+
+                    const newSlope = currentSlope + slopeDifference * progress;
+                    const newIntercept = currentIntercept + interceptDifference * progress;
+
+                    document.getElementById('slope').value = newSlope.toFixed(3);
+                    document.getElementById('intercept').value = newIntercept.toFixed(3);
+
+                    drawDataAndErrors(newSlope, newIntercept);
+                    currentFrame++;
+                    animationFrameId = requestAnimationFrame(animate);
+                } else {
+                    isAnimating = false;
+                    cancelAnimationFrame(animationFrameId);
+                    // Asegurarse de que la línea se establezca exactamente a OLS al final
+                    document.getElementById('slope').value = olsSlope.toFixed(3);
+                    document.getElementById('intercept').value = olsIntercept.toFixed(3);
+                    drawDataAndErrors(olsSlope, olsIntercept);
+                }
+            }
+
+            animate();
+        }
+
+        // Manejo de eventos en los botones y campos
+        document.getElementById('updateLine').addEventListener('click', updateLine);
+        document.getElementById('generateData').addEventListener('click', () => {
+            generateRandomData();
+            updateLine();
+        });
+        document.getElementById('animateToOLS').addEventListener('click', animateToOLSLine);
+
+        // Inicializar la vista con datos aleatorios y línea por defecto
+        generateRandomData();
+        updateLine();
+    </script>
+</body>
+</html>

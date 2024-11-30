@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluir Chart.js desde CDN -->
+    <script src="js_lib/chart.js"></script>
+
+    <style>
+        /* Estilos adicionales para organizar los gráficos lado a lado */
+        .graficos-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .grafico {
+            flex: 1 1 45%; /* Ajusta el tamaño de los gráficos */
+            min-width: 300px;
+        }
+        /* Ajuste de las barras en el gráfico de odds */
+        .bar-chart .chartjs-render-monitor {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Modelo de Regresión Logística</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <h2>Parámetros de Simulación</h2>
+            <div class="input-group">
+                <label for="n">Tamaño de la muestra (n):</label>
+                <input type="number" id="n" value="1000" min="1">
+            </div>
+            <div class="input-group">
+                <label for="beta0">Coeficiente β<sub>0</sub> (β₀ ):</label>
+                <input type="number" id="beta0" value="-1" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="beta1">Coeficientes β<sub>i</sub> (Variables X):</label>
+                <input type="number" id="beta1" value="0.5" step="0.1">
+            </div>
+            <div class="input-group">
+                <input type="number" id="beta2" value="0.3" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="marginalEffectType">Tipo de Efectos Marginales:</label>
+                <select id="marginalEffectType">
+                    <option value="average">Efectos Marginales Promedio</option>
+                    <option value="atMean">Efectos Marginales en el Promedio</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label for="fixedX2">Valor fijo de X₂ para el gráfico de X₁:</label>
+                <input type="number" id="fixedX2" value="5" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="fixedX1">Valor fijo de X₁ para el gráfico de X₂:</label>
+                <input type="number" id="fixedX1" value="5" step="0.1">
+            </div>
+            <!-- Nuevos campos para el rango unificado de X₁ y X₂ -->
+            <div class="input-group">
+                <label for="xMin">Rango de X₁ y X₂ - Mínimo:</label>
+                <input type="number" id="xMin" value="0" step="0.1">
+            </div>
+            <div class="input-group">
+                <label for="xMax">Rango de X₁ y X₂ - Máximo:</label>
+                <input type="number" id="xMax" value="10" step="0.1">
+            </div>
+        </aside>
+        <main id="content">
+            <!-- Sección de Resultados -->
+            <div id="resultados">
+                <h2>Resultados del Modelo</h2>
+                
+                <!-- Tabla de Resumen de Coeficientes -->
+                <table id="summaryTable">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Coeficiente Estimado</th>
+                            <th>Errores Estándar</th>
+                            <th>Estadístico t</th>
+                            <th>p-valor</th>
+                            <th>Intervalo de Confianza (95%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los resultados se insertarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+                <p id="observations"></p>
+            
+                <!-- Tabla de Efectos Marginales -->
+                <h3>Efectos Marginales</h3>
+                <table id="marginalEffectsTable">
+                    <thead>
+                        <tr>
+                            <th>Variable</th>
+                            <th>Efecto Marginal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los efectos marginales se insertarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </br>
+            <!-- Contenedor de Gráficos -->
+            <div class="graficos-container">
+                <!-- Gráfico de Probabilidades -->
+                <div class="grafico">
+                    <h3>Probabilidad Marginal</h3>
+                    <div id="probabilityChart" style="width: 100%; height: 400px;">
+                        <canvas id="probabilityChartCanvas" width="500" height="400"></canvas>
+                    </div>
+                </div>
+                <!-- Gráfico de Odds -->
+                <div class="grafico">
+                    <h3>Odds</h3>
+                    <div id="oddsChart" style="width: 100%; height: 400px;">
+                        <canvas id="oddsChartCanvas" width="500" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+    </main>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+
+    <!-- Script JavaScript -->
+    <script>
+        // Función para simular datos
+        function simulateData(n, beta0, beta1, beta2) {
+            const data = [];
+            for (let i = 0; i < n; i++) {
+                // Simular regresores X1 y X2
+                const X1 = Math.random() * 10; // Entre 0 y 10
+                const X2 = Math.random() * 10;
+                // Calcular la probabilidad usando la función logística
+                const linear = beta0 + beta1 * X1 + beta2 * X2;
+                const prob = 1 / (1 + Math.exp(-linear));
+                // Simular la variable dependiente Y
+                const Y = Math.random() < prob ? 1 : 0;
+                data.push({ X1, X2, Y });
+            }
+            return data;
+        }
+
+        // Función para calcular el gradiente de la verosimilitud
+        function gradient(beta, data) {
+            const grad = [0, 0, 0];
+            data.forEach(d => {
+                const linear = beta[0] + beta[1] * d.X1 + beta[2] * d.X2;
+                const p = 1 / (1 + Math.exp(-linear));
+                const error = d.Y - p;
+                grad[0] += error;
+                grad[1] += error * d.X1;
+                grad[2] += error * d.X2;
+            });
+            return grad;
+        }
+
+        // Función para calcular la matriz Hessiana
+        function hessian(beta, data) {
+            const hess = [
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 0, 0]
+            ];
+            data.forEach(d => {
+                const linear = beta[0] + beta[1] * d.X1 + beta[2] * d.X2;
+                const p = 1 / (1 + Math.exp(-linear));
+                const w = p * (1 - p);
+                hess[0][0] += w;
+                hess[0][1] += w * d.X1;
+                hess[0][2] += w * d.X2;
+                hess[1][0] += w * d.X1;
+                hess[1][1] += w * d.X1 * d.X1;
+                hess[1][2] += w * d.X1 * d.X2;
+                hess[2][0] += w * d.X2;
+                hess[2][1] += w * d.X1 * d.X2;
+                hess[2][2] += w * d.X2 * d.X2;
+            });
+            return hess;
+        }
+
+        // Función para invertir una matriz 3x3
+        function invertMatrix(m) {
+            const a = m[0][0], b = m[0][1], c = m[0][2];
+            const d = m[1][0], e = m[1][1], f = m[1][2];
+            const g = m[2][0], h = m[2][1], i = m[2][2];
+
+            const A = e * i - f * h;
+            const B = -(d * i - f * g);
+            const C = d * h - e * g;
+            const D = -(b * i - c * h);
+            const E = a * i - c * g;
+            const F = -(a * h - b * g);
+            const G = b * f - c * e;
+            const H = -(a * f - c * d);
+            const I = a * e - b * d;
+
+            const det = a * A + b * B + c * C;
+            if (det === 0) {
+                throw new Error("Matriz singular, no se puede invertir");
+            }
+
+            return [
+                [A / det, D / det, G / det],
+                [B / det, E / det, H / det],
+                [C / det, F / det, I / det]
+            ];
+        }
+
+        // Función para multiplicar matriz 3x3 por vector 3x1
+        function multiplyMatrixVector(m, v) {
+            return [
+                m[0][0] * v[0] + m[0][1] * v[1] + m[0][2] * v[2],
+                m[1][0] * v[0] + m[1][1] * v[1] + m[1][2] * v[2],
+                m[2][0] * v[0] + m[2][1] * v[1] + m[2][2] * v[2]
+            ];
+        }
+
+        // Método de Newton-Raphson para maximizar la verosimilitud
+        function newtonRaphson(data, maxIter = 100, tol = 1e-6) {
+            // Inicializar los coeficientes
+            let beta = [0, 0, 0];
+            for (let iter = 0; iter < maxIter; iter++) {
+                const grad = gradient(beta, data);
+                const hess = hessian(beta, data);
+                let hessInv;
+                try {
+                    hessInv = invertMatrix(hess);
+                } catch (error) {
+                    console.error(error);
+                    break;
+                }
+                const step = multiplyMatrixVector(hessInv, grad);
+                // Actualizar los coeficientes
+                beta = beta.map((b, idx) => b + step[idx]);
+                // Verificar convergencia
+                if (step.every(s => Math.abs(s) < tol)) {
+                    break;
+                }
+            }
+            return beta;
+        }
+
+        // Función para calcular efectos marginales promedio
+        function calculateAverageMarginalEffects(beta, data) {
+            const marginalEffects = [0, 0]; // X1 y X2
+            data.forEach(d => {
+                const linear = beta[0] + beta[1] * d.X1 + beta[2] * d.X2;
+                const p = 1 / (1 + Math.exp(-linear));
+                // Derivadas parciales de p respecto a X1 y X2
+                marginalEffects[0] += p * (1 - p) * d.X1;
+                marginalEffects[1] += p * (1 - p) * d.X2;
+            });
+            // Promediar
+            return marginalEffects.map(me => me / data.length);
+        }
+
+        // Función para calcular efectos marginales en el promedio
+        function calculateMarginalEffectsAtMean(beta, data) {
+            // Calcular los valores medios de X1 y X2
+            const meanX1 = data.reduce((sum, d) => sum + d.X1, 0) / data.length;
+            const meanX2 = data.reduce((sum, d) => sum + d.X2, 0) / data.length;
+            const linear = beta[0] + beta[1] * meanX1 + beta[2] * meanX2;
+            const p = 1 / (1 + Math.exp(-linear));
+            // Derivadas parciales en el promedio
+            const meX1 = p * (1 - p) * meanX1;
+            const meX2 = p * (1 - p) * meanX2;
+            return [meX1, meX2];
+        }
+
+        // Función para calcular odds
+        function calculateOdds(beta) {
+            return {
+                intercept: Math.exp(beta[0]),
+                X1: Math.exp(beta[1]),
+                X2: Math.exp(beta[2])
+            };
+        }
+
+        // Función para la función de distribución acumulada de la normal estándar
+        // Usaremos una aproximación de la función error
+        function normalCDF(x) {
+            return (1 + Math.erf(x / Math.sqrt(2))) / 2;
+        }
+
+        // Polyfill para Math.erf en caso de que no esté disponible
+        if (!Math.erf) {
+            Math.erf = function (x) {
+                // Aproximación de Abramowitz y Segalstein
+                const sign = (x >= 0) ? 1 : -1;
+                x = Math.abs(x);
+                const a1 =  0.254829592;
+                const a2 = -0.284496736;
+                const a3 =  1.421413741;
+                const a4 = -1.453152027;
+                const a5 =  1.061405429;
+                const p  =  0.3275911;
+
+                const t = 1.0 / (1.0 + p * x);
+                const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+                return sign * y;
+            }
+        }
+
+        // Función para calcular p-valor de una estadística t
+        function calculatePValue(t) {
+            // p-valor para una prueba bilateral
+            return 2 * (1 - normalCDF(Math.abs(t)));
+        }
+
+        // Función principal para ejecutar la simulación y estimación
+        function runSimulation() {
+            // Obtener parámetros de entrada
+            const n = parseInt(document.getElementById("n").value);
+            const beta0 = parseFloat(document.getElementById("beta0").value);
+            const beta1 = parseFloat(document.getElementById("beta1").value);
+            const beta2 = parseFloat(document.getElementById("beta2").value);
+            const marginalEffectType = document.getElementById("marginalEffectType").value;
+            const fixedX2 = parseFloat(document.getElementById("fixedX2").value) || 5;
+            const fixedX1 = parseFloat(document.getElementById("fixedX1").value) || 5;
+
+            // Obtener el rango unificado de X1 y X2
+            const xMin = parseFloat(document.getElementById("xMin").value) || 0;
+            const xMax = parseFloat(document.getElementById("xMax").value) || 10;
+
+            // Validación básica de entrada
+            if (isNaN(n) || n <= 0) {
+                alert("Por favor, ingresa un tamaño de muestra válido (n > 0).");
+                return;
+            }
+            if ([beta0, beta1, beta2].some(beta => isNaN(beta))) {
+                alert("Por favor, asegúrate de que todos los coeficientes sean números válidos.");
+                return;
+            }
+            if (xMin >= xMax) {
+                alert("El valor mínimo de X debe ser menor que el máximo.");
+                return;
+            }
+
+            // Simular datos
+            const data = simulateData(n, beta0, beta1, beta2);
+
+            // Estimar el modelo logit
+            const estimatedBeta = newtonRaphson(data);
+
+            // Calcular la matriz Hessiana y su inversa para obtener errores estándar
+            const hess = hessian(estimatedBeta, data);
+            let hessInv;
+            try {
+                hessInv = invertMatrix(hess);
+            } catch (error) {
+                alert("Error al invertir la matriz Hessiana. Intenta con otros parámetros.");
+                console.error(error);
+                return;
+            }
+
+            // Calcular errores estándar (raíz cuadrada de la diagonal de la matriz de covarianza)
+            const stdErrors = [
+                Math.sqrt(hessInv[0][0]),
+                Math.sqrt(hessInv[1][1]),
+                Math.sqrt(hessInv[2][2])
+            ];
+
+            // Calcular estadísticos t
+            const tStats = estimatedBeta.map((b, idx) => b / stdErrors[idx]);
+
+            // Calcular p-valores
+            const pValues = tStats.map(t => calculatePValue(t));
+
+            // Calcular intervalos de confianza al 95%
+            const z = 1.96; // Valor crítico para 95%
+            const confidenceIntervals = estimatedBeta.map((b, idx) => {
+                const lower = b - z * stdErrors[idx];
+                const upper = b + z * stdErrors[idx];
+                return [lower, upper];
+            });
+
+            // Calcular efectos marginales según el tipo seleccionado
+            let marginalEffects = [];
+            if (marginalEffectType === "average") {
+                marginalEffects = calculateAverageMarginalEffects(estimatedBeta, data); // [ME_X1, ME_X2]
+            } else if (marginalEffectType === "atMean") {
+                marginalEffects = calculateMarginalEffectsAtMean(estimatedBeta, data); // [ME_X1, ME_X2]
+            } else {
+                alert("Tipo de Efectos Marginales no reconocido.");
+                return;
+            }
+
+            // Calcular odds
+            const odds = calculateOdds(estimatedBeta);
+
+            // Mostrar resultados en la tabla de coeficientes
+            const summaryTableBody = document.querySelector("#summaryTable tbody");
+            summaryTableBody.innerHTML = ""; // Limpiar tabla existente
+
+            const variables = ["Constante (b₀)", "Variable X₁", "Variable X₂"];
+            variables.forEach((varName, idx) => {
+                const row = document.createElement("tr");
+
+                const cellVar = document.createElement("td");
+                cellVar.innerText = varName;
+                row.appendChild(cellVar);
+
+                const cellCoef = document.createElement("td");
+                cellCoef.innerText = estimatedBeta[idx].toFixed(4);
+                row.appendChild(cellCoef);
+
+                const cellSE = document.createElement("td");
+                cellSE.innerText = stdErrors[idx].toFixed(4);
+                row.appendChild(cellSE);
+
+                const cellT = document.createElement("td");
+                cellT.innerText = tStats[idx].toFixed(4);
+                row.appendChild(cellT);
+
+                const cellP = document.createElement("td");
+                cellP.innerText = pValues[idx].toFixed(4);
+                row.appendChild(cellP);
+
+                const cellCI = document.createElement("td");
+                cellCI.innerText = `${confidenceIntervals[idx][0].toFixed(4)} , ${confidenceIntervals[idx][1].toFixed(4)}`;
+                row.appendChild(cellCI);
+
+                summaryTableBody.appendChild(row);
+            });
+
+            // Mostrar número de observaciones
+            document.getElementById("observations").innerText = `Número de observaciones: ${n}`;
+
+            // Mostrar efectos marginales en la tabla correspondiente
+            const marginalEffectsTableBody = document.querySelector("#marginalEffectsTable tbody");
+            marginalEffectsTableBody.innerHTML = ""; // Limpiar tabla existente
+
+            const marginalVariables = ["X₁", "X₂"];
+            marginalVariables.forEach((varName, idx) => {
+                const row = document.createElement("tr");
+
+                const cellVar = document.createElement("td");
+                cellVar.innerText = varName;
+                row.appendChild(cellVar);
+
+                const cellME = document.createElement("td");
+                cellME.innerText = marginalEffects[idx].toFixed(4);
+                row.appendChild(cellME);
+
+                marginalEffectsTableBody.appendChild(row);
+            });
+
+            // Generar gráficos con rango unificado
+            generateProbabilityChart(data, estimatedBeta, fixedX2, fixedX1, xMin, xMax);
+            generateOddsChart(odds);
+        }
+
+        // Función para generar un gráfico de probabilidades combinado
+        function generateProbabilityChart(data, beta, fixedX2, fixedX1, xMin, xMax) {
+            // Probabilidad vs X₁ (X₂ fijo)
+            const X1_vals = [];
+            const prob_X1 = [];
+            for (let x = xMin; x <= xMax; x += 0.5) {
+                const linear = beta[0] + beta[1] * x + beta[2] * fixedX2;
+                const prob = 1 / (1 + Math.exp(-linear));
+                X1_vals.push(x);
+                prob_X1.push(prob);
+            }
+
+            // Probabilidad vs X₂ (X₁ fijo)
+            const X2_vals = [];
+            const prob_X2 = [];
+            for (let x = xMin; x <= xMax; x += 0.5) {
+                const linear = beta[0] + beta[1] * fixedX1 + beta[2] * x;
+                const prob = 1 / (1 + Math.exp(-linear));
+                X2_vals.push(x);
+                prob_X2.push(prob);
+            }
+
+            // Crear un único conjunto de etiquetas que abarque el rango de ambas variables
+            const labelsSet = new Set([...X1_vals, ...X2_vals]);
+            const labels = Array.from(labelsSet).sort((a, b) => a - b);
+
+            // Interpolación para alinear ambas curvas en el mismo eje
+            // Aunque las variables son diferentes, para propósitos educativos, se muestran en el mismo gráfico
+            // Diferentes colores y etiquetas ayudan a distinguirlas
+            const probX1Interpolated = labels.map(x => {
+                const index = X1_vals.indexOf(x);
+                return index !== -1 ? prob_X1[index] : null;
+            });
+
+            const probX2Interpolated = labels.map(x => {
+                const index = X2_vals.indexOf(x);
+                return index !== -1 ? prob_X2[index] : null;
+            });
+
+            // Preparar los datasets
+            const datasets = [
+                {
+                    label: `Probabilidad de Y=1 vs X₁ (X₂ fijo en ${fixedX2})`,
+                    data: probX1Interpolated,
+                    borderColor: 'blue',
+                    backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                    fill: false,
+                    spanGaps: true
+                },
+                {
+                    label: `Probabilidad de Y=1 vs X₂ (X₁ fijo en ${fixedX1})`,
+                    data: probX2Interpolated,
+                    borderColor: 'green',
+                    backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                    fill: false,
+                    spanGaps: true
+                }
+            ];
+
+            // Obtener el contexto del nuevo canvas
+            const ctx = document.getElementById('probabilityChartCanvas').getContext('2d');
+            if (window.probChart) window.probChart.destroy(); // Destruir gráfico anterior si existe
+            window.probChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Comparación de Probabilidades de Y=1'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top',
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    },
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Valor de la Variable (X₁ o X₂)' 
+                            } 
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Probabilidad' 
+                            }, 
+                            min: 0, 
+                            max: 1 
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para generar un gráfico de Odds
+        function generateOddsChart(odds) {
+            const labels = ['Intercepto', 'X₁', 'X₂'];
+            const data = [odds.intercept, odds.X1, odds.X2];
+
+            // Obtener el contexto del nuevo canvas
+            const ctx = document.getElementById('oddsChartCanvas').getContext('2d');
+            if (window.oddsChartInstance) window.oddsChartInstance.destroy(); // Destruir gráfico anterior si existe
+            window.oddsChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Odds',
+                        data: data,
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                        // Ajustar el ancho de las barras
+                        barThickness: 20, // Más angosto
+                        maxBarThickness: 40,
+                        minBarLength: 2
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Odds de cada Variable'
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Odds' 
+                            }, 
+                            beginAtZero: true 
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para inicializar los event listeners para actualización automática
+        function initializeAutoUpdate() {
+            const inputs = document.querySelectorAll('#sidebar input, #sidebar select');
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    runSimulation();
+                });
+            });
+            // Ejecutar simulación inicial
+            runSimulation();
+        }
+
+        // Inicializar la aplicación una vez que la página ha cargado
+        window.onload = initializeAutoUpdate;
+    </script>
+        <script src="js/menuData.js"></script>
+        <script src="js/generarMenu.js"></script>
+</body>
+</html>

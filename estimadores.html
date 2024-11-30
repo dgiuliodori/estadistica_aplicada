@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadística Aplicada</title>
+    <!-- <link rel="stylesheet" type="text/css" href="css/styles.css"> -->
+    <script src="js_lib/tex-svg.js"></script>
+    <script src="js_lib/chart.js"></script>
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+
+    <style>
+        canvas {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #theory {
+            margin-top: 40px;
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        #theory h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        #probFormula {
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .mode-selection {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Consistencia y Sesgo de los Estimadores</h1>
+    </header>
+    <nav></nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <!-- Configuración de la Distribución y Parámetros -->
+            <h2>Parámetros</h2>
+            <div class="form-group">
+                <label class="form-label">Modo de Análisis:</label>
+                <div class="form-check mode-selection">
+                    <input class="form-check-input" type="radio" name="analysisMode" value="consistency" id="modeConsistency" checked>
+                    <label class="form-check-label" for="modeConsistency">Consistencia</label>
+                </div>
+                <div class="form-check mode-selection">
+                    <input class="form-check-input" type="radio" name="analysisMode" value="bias" id="modeBias">
+                    <label class="form-check-label" for="modeBias">Sesgo</label>
+                </div>
+            </div>
+            <!-- Eliminados los campos de Media (μ) y Desviación Estándar (σ) -->
+            
+            <div class="form-group">
+                <label class="form-label">Seleccionar Estimador:</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="estimator" value="mean" id="estimatorMean" checked>
+                    <label class="form-check-label" for="estimatorMean">Media Muestral</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="estimator" value="std" id="estimatorStd">
+                    <label class="form-check-label" for="estimatorStd">Desviación Estándar Muestral</label>
+                </div>
+            </div>
+            <div class="form-group" id="sampleSizeGroup">
+                <label for="sampleSizeStart" class="form-label">Tamaño de la Muestra Inicial (n<sub>ini</sub>):</label>
+                <input type="number" id="sampleSizeStart" class="form-control" value="10" min="1">
+            </div>
+            <div class="form-group" id="sampleSizeEndGroup">
+                <label for="sampleSizeEnd" class="form-label">Tamaño de la Muestra Final (n<sub>fin</sub>):</label>
+                <input type="number" id="sampleSizeEnd" class="form-control" value="2000" min="1">
+            </div>
+            <div class="form-group" id="stepSizeGroup">
+                <label for="stepSize" class="form-label">Paso entre Tamaños de Muestra (Δn):</label>
+                <input type="number" id="stepSize" class="form-control" value="20" min="1">
+            </div>
+            <div class="form-group" id="fixedSampleSizeGroup" style="display: none;">
+                <label for="fixedSampleSize" class="form-label">Tamaño de la Muestra (n):</label>
+                <input type="number" id="fixedSampleSize" class="form-control" value="50" min="1">
+            </div>
+            <!-- Nueva sección para la cantidad de simulaciones en modo Insesgamiento -->
+            <div class="form-group" id="numSimulationsGroup" style="display: none;">
+                <label for="numSimulations" class="form-label">Cantidad de Simulaciones:</label>
+                <input type="number" id="numSimulations" class="form-control" value="100" min="1">
+            </div>
+            <div class="form-group">
+                <label for="simulationSpeed" class="form-label">Velocidad de Simulación:</label>
+                <div class="slider-container">
+                    <span>Lenta</span>
+                    <input type="range" id="simulationSpeed" min="1" max="100" value="50">
+                    <span>Rápida</span>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="startSimulation()">Iniciar Simulación</button>
+            <br><br>
+            <button class="btn btn-warning" onclick="stopSimulation()">Detener Simulación</button>
+            <br><br>
+            <button class="btn btn-danger" onclick="resetSimulation()">Reiniciar</button>
+        </br>
+    </br>
+</br>
+</br>
+        </aside>
+
+    </div>
+
+    <main id="content" style="background-color: #f0f0f0;">
+        <div class="equation">
+        <h3>Sesgo y Consistencia</h3>
+        <p>
+            En estadística, las propiedades de los estimadores son fundamentales para evaluar su desempeño al inferir parámetros poblacionales. Dos de las propiedades más importantes son el sesgo y la consistencia.
+        </p>
+        <p><strong>Sesgo</strong></p>
+        <p>
+            
+            El sesgo mide la diferencia sistemática entre el valor esperado del estimador y el verdadero valor del parámetro que se desea estimar. Matemáticamente, el sesgo de un estimador <strong>\( \hat{\theta} \)</strong> se define como:
+                \[
+                \text{Sesgo}(\hat{\theta}) = \mathbb{E}[\hat{\theta}] - \theta,
+                \]
+            donde <strong>\( \mathbb{E}[\hat{\theta}] \)</strong>  es el valor esperado del estimador y <strong>\( \theta \)</strong>  es el valor verdadero del parámetro. Un estimador es <strong>insesgado</strong> si <strong>\( \text{Sesgo}(\hat{\theta}) = 0\)</strong>. Si existe un sesgo distinto de cero, el estimador subestima o sobreestima sistemáticamente el valor del parámetro.
+        </p>
+        <p><strong>Consistencia</strong></p>
+        <p>
+
+            Un estimador es <strong>consistente</strong> si, a medida que el tamaño de la muestra aumenta, el estimador converge en probabilidad hacia el verdadero valor del parámetro. Esto significa que para cualquier <strong>\( \epsilon > 0\)</strong>,
+                \[
+                \lim_{n \to \infty} P(|\hat{\theta}_n - \theta| > \epsilon) = 0,
+                \]
+            donde <strong>\( \hat{\theta}_n \)</strong> es el estimador basado en una muestra de tamaño <strong>\( n \)</strong> . La consistencia implica que, con suficiente información (es decir, una muestra suficientemente grande), el estimador se vuelve arbitrariamente cercano al valor verdadero.
+        </p>
+
+        <p><strong>Diferencia entre Sesgo y Consistencia</strong></p>
+
+        <p>
+
+        La principal diferencia entre estas dos propiedades radica en su naturaleza. El sesgo evalúa el desempeño de un estimador en muestras de tamaño finito, midiendo si existe un error sistemático en la estimación. Por otro lado, la consistencia evalúa el comportamiento del estimador en el límite, cuando el tamaño de la muestra tiende a infinito. Un estimador puede ser consistente y estar sesgado, siempre que el sesgo disminuya a medida que el tamaño de la muestra aumenta.
+
+        Por ejemplo, el estimador de la varianza muestral sin corregir:
+        $$\hat{\sigma}^2 = \frac{1}{n}\sum_{i=1}^n (X_i - \bar{X})^2$$
+         (<strong>biased sample variance</strong>) es sesgado, pero consistente, ya que el sesgo desaparece cuando  <strong>\(n \to \infty \)</strong>.
+
+        </p>
+
+
+
+
+
+    </div>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col-md-6 mb-4" style="background-color: #f0f0f0; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                    <!-- Cuadrante 1: Fórmula en LaTeX -->
+                    <h3>Métricas</h3>
+                    <div id="probFormula" style="background-color: #f0f0f0; font-size: 20px;">
+                        $$
+                        \begin{aligned}
+                        & \text{Estimador: } & \bar{X} = \frac{1}{n}\sum_{i=1}^n X_i & \\
+                            & \text{Probabilidad: }& P\left[|\bar{X} - \mu| > \epsilon\right] &= 0.0000 \\
+                            & \text{Sesgo: }& \left(\bar{X} - \mu\right) &= 0.0000 \\ 
+                            & \text{Varianza: }&  \text{Var}(\bar{X}) &= 0.0000
+                        \end{aligned}
+                        $$
+                    </div>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <canvas id="varianceChart" width="500" height="300"></canvas>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <canvas id="exceedEpsChart" width="500" height="300"></canvas>
+                </div>
+                <div class="col-md-6 mb-4">
+                    <!-- Cuadrante 4: Evolución del sesgo -->
+                    <canvas id="biasChart" width="500" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- <div id="theory" class="container">
+            <h2>Conceptos Teóricos</h2>
+            <h3>Consistencia de los Estimadores</h3>
+            <p>
+                Un estimador es <strong>consistente</strong> si, a medida que el tamaño de la muestra aumenta, el estimador converge en probabilidad al verdadero valor del parámetro que está estimando. Es decir, con muestras más grandes, el estimador se vuelve más preciso.
+            </p>
+            <h3>Ley de los Grandes Números</h3>
+            <p>
+                La <strong>Ley de los Grandes Números</strong> es un teorema fundamental que respalda la consistencia de ciertos estimadores, como la media muestral. Establece que, conforme el tamaño de la muestra aumenta, la media muestral se aproxima a la media poblacional.
+            </p>
+        </div> -->
+    </main>
+    </br>
+</br>
+</br>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <script>
+        // Variables globales
+        let simulationInterval = null;
+        let currentSampleSize = 0;
+        let sampleSizeStart = 10;
+        let sampleSizeEnd = 2000;
+        let stepSize = 20;
+        let simulationSpeed = 50;
+        let varianceChart = null;
+        let exceedEpsChart = null;
+        let biasChart = null;
+        let trueMean = 10; // Valor fijo de la media
+        let sigma = 1; // Valor fijo de sigma
+        let biasData = [];
+        let varianceEstimatorData = [];
+        let exceedEpsData = [];
+        let biasLabels = [];
+        let labels = [];
+        const numberOfSamples = 500; // Número de muestras por tamaño de muestra
+
+        // Variables para controlar la cantidad de simulaciones
+        let maxSimulations = 0;
+        let currentSimulationCount = 0;
+
+        // Función para obtener el estimador seleccionado
+        function getSelectedEstimator() {
+            const meanEstimator = document.getElementById('estimatorMean').checked;
+            const stdEstimator = document.getElementById('estimatorStd').checked;
+            if (meanEstimator) return 'mean';
+            if (stdEstimator) return 'std';
+            return 'mean'; // Valor por defecto
+        }
+
+        // Función para obtener el modo de análisis seleccionado
+        function getSelectedMode() {
+            const consistencyMode = document.getElementById('modeConsistency').checked;
+            const biasMode = document.getElementById('modeBias').checked;
+            if (consistencyMode) return 'consistency';
+            if (biasMode) return 'bias';
+            return 'consistency'; // Valor por defecto
+        }
+
+        // Función para manejar la visibilidad de los campos según el modo
+        function handleModeChange() {
+            const mode = getSelectedMode();
+            if (mode === 'consistency') {
+                document.getElementById('sampleSizeStart').parentElement.style.display = 'block';
+                document.getElementById('sampleSizeEnd').parentElement.style.display = 'block';
+                document.getElementById('stepSize').parentElement.style.display = 'block';
+                document.getElementById('fixedSampleSizeGroup').style.display = 'none';
+                document.getElementById('numSimulationsGroup').style.display = 'none';
+            } else if (mode === 'bias') {
+                document.getElementById('sampleSizeStart').parentElement.style.display = 'none';
+                document.getElementById('sampleSizeEnd').parentElement.style.display = 'none';
+                document.getElementById('stepSize').parentElement.style.display = 'none';
+                document.getElementById('fixedSampleSizeGroup').style.display = 'block';
+                document.getElementById('numSimulationsGroup').style.display = 'block';
+            }
+        }
+
+        // Añadir event listeners para cambiar el modo
+        document.addEventListener('DOMContentLoaded', () => {
+            const modeRadios = document.getElementsByName('analysisMode');
+            modeRadios.forEach(radio => {
+                radio.addEventListener('change', handleModeChange);
+            });
+            handleModeChange(); // Configurar la vista inicial
+        });
+
+        // Función para iniciar la simulación
+        function startSimulation() {
+            // Evitar múltiples simulaciones simultáneas
+            if (simulationInterval) return;
+
+            // Obtener parámetros fijos
+            trueMean = 10;
+            sigma = 1;
+
+            const mode = getSelectedMode();
+            const selectedEstimator = getSelectedEstimator();
+
+            // Reiniciar variables
+            labels = [];
+            biasData = [];
+            varianceEstimatorData = [];
+            exceedEpsData = [];
+            biasLabels = [];
+            currentSimulationCount = 0;
+
+            // Configurar los gráficos
+            setupVarianceChart();
+            setupExceedEpsChart();
+            setupBiasChart();
+
+            let fixedSampleSize = 100; // Valor por defecto
+            if (mode === 'consistency') {
+                sampleSizeStart = parseInt(document.getElementById('sampleSizeStart').value);
+                sampleSizeEnd = parseInt(document.getElementById('sampleSizeEnd').value);
+                stepSize = parseInt(document.getElementById('stepSize').value);
+                currentSampleSize = sampleSizeStart;
+            } else if (mode === 'bias') {
+                fixedSampleSize = parseInt(document.getElementById('fixedSampleSize').value);
+                sampleSizeStart = fixedSampleSize;
+                sampleSizeEnd = fixedSampleSize; // Mantener el tamaño fijo
+                stepSize = 0; // No se incrementa
+                maxSimulations = parseInt(document.getElementById('numSimulations').value);
+            }
+
+            const epsilonMultiplier = 0.1; // ε = 0.1 × sigma o mu según el estimador
+            simulationSpeed = getSpeedInterval();
+
+            // Iniciar la simulación con un intervalo basado en la velocidad
+            simulationInterval = setInterval(() => {
+                if (mode === 'consistency' && currentSampleSize > sampleSizeEnd) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                    return;
+                }
+
+                if (mode === 'bias' && currentSimulationCount >= maxSimulations) {
+                    clearInterval(simulationInterval);
+                    simulationInterval = null;
+                    return;
+                }
+
+                let estimators = [];
+                let exceedEpsCount = 0;
+                let epsilon;
+
+                if (selectedEstimator === 'mean') {
+                    epsilon = 0.1;
+                    // epsilon = epsilonMultiplier * trueMean;
+                } else if (selectedEstimator === 'std') {
+                    epsilon = epsilonMultiplier * sigma;
+                }
+
+                for (let i = 0; i < numberOfSamples; i++) {
+                    const sampleSize = (sampleSizeStart === sampleSizeEnd) ? sampleSizeStart : currentSampleSize;
+                    const sample = generateSample(trueMean, sigma, sampleSize);
+
+                    if (selectedEstimator === 'mean') {
+                        const estimatorMean = calculateMean(sample);
+                        estimators.push(estimatorMean);
+
+                        // Verificar la desigualdad |media_muestral - media_real| > eps
+                        if (Math.abs(estimatorMean - trueMean) > epsilon) {
+                            exceedEpsCount++;
+                        }
+                    } else if (selectedEstimator === 'std') {
+                        const estimatorStd = calculateSampleStd(sample);
+                        estimators.push(estimatorStd);
+
+                        // Verificar la desigualdad |desv_std_muestral - sigma| > eps
+                        if (Math.abs(estimatorStd - sigma) > epsilon) {
+                            exceedEpsCount++;
+                        }
+                    }
+                }
+                exceedEpsCount = exceedEpsCount / numberOfSamples;
+
+                // Calcular la varianza del estimador
+                const meanEstimators = calculateMean(estimators);
+                const varianceEstimator = calculateVariance(estimators, meanEstimators, selectedEstimator);
+
+                // Calcular el sesgo como el promedio de (estimador_i - parámetro)
+                let bias = 0;
+                for (let i = 0; i < estimators.length; i++) {
+                    let diff;
+                    if (selectedEstimator === 'mean') {
+                        diff = estimators[i] - trueMean;
+                    } else if (selectedEstimator === 'std') {
+                        diff = estimators[i] - sigma;
+                    }
+                    bias += diff;
+                }
+                bias /= numberOfSamples;
+
+                // Actualizar la fórmula en LaTeX con 4 decimales y agregar la varianza promedio debajo
+                let formulaLatex = '';
+                if (selectedEstimator === 'mean') {
+                    if (mode === 'consistency') {
+                        formulaLatex = `
+                            $$ 
+                            \\begin{aligned} 
+                            & \\text{Estimador: } & \\bar{X} = \\frac{1}{n}\\sum_{i=1}^n X_i & \\\\
+                                &\\text{Probabilidad: }&  P\\left[|\\bar{X} - \\mu| > \\epsilon\\right] &= ${exceedEpsCount.toFixed(4)} \\\\ 
+                                &\\text{Sesgo: }& \\left(\\bar{X} - \\mu\\right) &= ${bias.toFixed(4)} \\\\
+                                &\\text{Varianza: }& \\text{Var}(\\bar{X}) &= ${varianceEstimator.toFixed(4)} 
+                            \\end{aligned} 
+                            $$`;
+                    } else if (mode === 'bias') {
+                        formulaLatex = `
+                            $$ 
+                            \\begin{aligned} 
+                                & \\text{Estimador: } & \\bar{X} = \\frac{1}{n}\\sum_{i=1}^n X_i & \\\\
+                                &\\text{Probabilidad: }&  P\\left[|\\bar{X} - \\mu| > \\epsilon\\right] &= ${exceedEpsCount.toFixed(4)} \\\\ 
+                                &\\text{Sesgo: }& \\left(\\bar{X} - \\mu\\right) &= ${bias.toFixed(4)} \\\\
+                                &\\text{Varianza: }& \\text{Var}(\\bar{X}) &= ${varianceEstimator.toFixed(4)} 
+                            \\end{aligned} 
+                            $$`;
+                    }
+                } else if (selectedEstimator === 'std') {
+                    if (mode === 'consistency') {
+                        formulaLatex = `
+                            $$ 
+                            \\begin{aligned} 
+                                & \\text{Estimador: } & \\hat{\\sigma} = \\sqrt{\\frac{1}{n}\\sum_{i=1}^n (X_i - \\bar{X})^2} & \\\\
+                                &\\text{Probabilidad: }&  P\\left[|\\hat{\\sigma} - \\sigma| > \\epsilon\\right] &= ${exceedEpsCount.toFixed(4)} \\\\ 
+                                &\\text{Sesgo: }& \\left(\\hat{\\sigma} - \\sigma\\right) &= ${bias.toFixed(4)} \\\\
+                                &\\text{Varianza: }& \\text{Var}(\\hat{\\sigma}) &= ${varianceEstimator.toFixed(4)} 
+                            \\end{aligned} 
+                            $$`;
+                    } else if (mode === 'bias') {
+                        formulaLatex = `
+                            $$ 
+                            \\begin{aligned} 
+                            & \\text{Estimador: } & \\hat{\\sigma} = \\sqrt{\\frac{1}{n}\\sum_{i=1}^n (X_i - \\bar{X})^2} & \\\\
+                                &\\text{Probabilidad: }&  P\\left[|\\hat{\\sigma} - \\sigma| > \\epsilon\\right] &= ${exceedEpsCount.toFixed(4)} \\\\ 
+                                &\\text{Sesgo: }& \\left(\\hat{\\sigma} - \\sigma\\right) &= ${bias.toFixed(4)} \\\\
+                                &\\text{Varianza: }& \\text{Var}(\\hat{\\sigma}) &= ${varianceEstimator.toFixed(4)} 
+                            \\end{aligned} 
+                            $$`;
+                    }
+                }
+                document.getElementById('probFormula').innerHTML = formulaLatex;
+                MathJax.typeset();
+
+                // Guardar los datos
+                if (mode === 'consistency') {
+                    labels.push(currentSampleSize);
+                    biasData.push(bias);
+                    varianceEstimatorData.push(varianceEstimator);
+                    exceedEpsData.push(exceedEpsCount);
+
+                    // Actualizar los gráficos
+                    updateVarianceChart();
+                    updateExceedEpsChart();
+                    updateBiasChart();
+
+                    // Incrementar el tamaño de la muestra
+                    currentSampleSize += stepSize;
+                } else if (mode === 'bias') {
+                    labels.push('Simulación ' + (currentSimulationCount + 1));
+                    biasData.push(bias);
+                    varianceEstimatorData.push(varianceEstimator);
+                    exceedEpsData.push(exceedEpsCount);
+
+                    // Actualizar los gráficos
+                    updateVarianceChart();
+                    updateExceedEpsChart();
+                    updateBiasChart();
+
+                    // Incrementar el contador de simulaciones
+                    currentSimulationCount++;
+                }
+            }, getSpeedInterval());
+        }
+
+        // Función para calcular la media
+        function calculateMean(arr) {
+            const sum = arr.reduce((a, b) => a + b, 0);
+            return sum / arr.length;
+        }
+
+        // Función para calcular la varianza
+        function calculateVariance(arr, mean, estimator) {
+            const squaredDiffs = arr.map(value => Math.pow(value - mean, 2));
+            let variance;
+            if (estimator === 'mean') {
+                variance = squaredDiffs.reduce((a, b) => a + b, 0) / (arr.length - 1);
+            } else if (estimator === 'std') {
+                variance = squaredDiffs.reduce((a, b) => a + b, 0) / (arr.length - 1);
+            }
+            return variance;
+        }
+
+        // Función para calcular la desviación estándar muestral dividiendo por n
+        function calculateSampleStd(sample) {
+            const mean = calculateMean(sample);
+            const squaredDiffs = sample.map(x => Math.pow(x - mean, 2));
+            const variance = squaredDiffs.reduce((a, b) => a + b, 0) / sample.length; // Dividiendo por n
+            return Math.sqrt(variance);
+        }
+
+        // Función para configurar el gráfico de la varianza del estimador
+        function setupVarianceChart() {
+            const ctx = document.getElementById('varianceChart').getContext('2d');
+            if (varianceChart) {
+                varianceChart.destroy();
+            }
+            varianceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Varianza del Estimador',
+                        data: varianceEstimatorData,
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tamaño de la Muestra (n)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Varianza del Estimador'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para configurar el gráfico de frecuencia de desigualdad
+        function setupExceedEpsChart() {
+            const ctx = document.getElementById('exceedEpsChart').getContext('2d');
+            if (exceedEpsChart) {
+                exceedEpsChart.destroy();
+            }
+            exceedEpsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Probabilidad de |estimador - parámetro| > ε',
+                        data: exceedEpsData,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tamaño de la Muestra (n)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Probabilidad de Desigualdad'
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 0.1,
+                                callback: function(value) {
+                                    return value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para configurar el gráfico del sesgo
+        function setupBiasChart() {
+            const ctx = document.getElementById('biasChart').getContext('2d');
+            if (biasChart) {
+                biasChart.destroy();
+            }
+            biasChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: biasLabels,
+                    datasets: [{
+                        label: 'Sesgo Promedio',
+                        data: biasData,
+                        borderColor: 'rgba(255, 159, 64, 1)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tamaño de la Muestra (n)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Sesgo Promedio'
+                            },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Función para actualizar el gráfico de la varianza del estimador
+        function updateVarianceChart() {
+            varianceChart.data.labels = labels;
+            varianceChart.data.datasets[0].data = varianceEstimatorData;
+            varianceChart.update();
+        }
+
+        // Función para actualizar el gráfico de frecuencia de desigualdad
+        function updateExceedEpsChart() {
+            exceedEpsChart.data.labels = labels;
+            exceedEpsChart.data.datasets[0].data = exceedEpsData;
+            exceedEpsChart.update();
+        }
+
+        // Función para actualizar el gráfico del sesgo
+        function updateBiasChart() {
+            biasChart.data.labels = labels;
+            biasChart.data.datasets[0].data = biasData;
+            biasChart.update();
+        }
+
+        // Función para detener la simulación
+        function stopSimulation() {
+            if (simulationInterval) {
+                clearInterval(simulationInterval);
+                simulationInterval = null;
+            }
+        }
+
+        // Función para reiniciar la simulación
+        function resetSimulation() {
+            stopSimulation();
+            labels = [];
+            biasData = [];
+            varianceEstimatorData = [];
+            exceedEpsData = [];
+            biasLabels = [];
+            currentSimulationCount = 0;
+            maxSimulations = 0;
+            if (varianceChart) varianceChart.destroy();
+            if (exceedEpsChart) exceedEpsChart.destroy();
+            if (biasChart) biasChart.destroy();
+            const mode = getSelectedMode();
+            const selectedEstimator = getSelectedEstimator();
+            let initialFormula = '';
+            if (selectedEstimator === 'mean') {
+                initialFormula = `
+                    $$ 
+                    \\begin{aligned}
+                        P\\left[|\\bar{X} - \\mu| > \\epsilon\\right] &= 0.0000 \\\\
+                        \\left(\\bar{X} - \\mu\\right) &= 0.0000  \\\\
+                        \\text{Var}(\\bar{X}) &= 0.0000
+                    \\end{aligned}
+                    $$`;
+            } else if (selectedEstimator === 'std') {
+                initialFormula = `
+                    $$ 
+                    \\begin{aligned}
+                        P\\left[|S - \\sigma| > \\epsilon\\right] &= 0.0000 \\\\
+                        \\left(S - \\sigma\\right) &= 0.0000  \\\\
+                        \\text{Var}(S) &= 0.0000
+                    \\end{aligned}
+                    $$`;
+            }
+            document.getElementById('probFormula').innerHTML = initialFormula;
+            MathJax.typeset();
+        }
+
+        // Función para generar una muestra aleatoria según la distribución seleccionada
+        function generateSample(param1, param2, size) {
+            let sample = [];
+            for (let i = 0; i < size; i++) {
+                let value;
+                
+                let u1 = Math.random();
+                let u2 = Math.random();
+                let z0 = Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+                value = z0 * param2 + param1;
+                
+                sample.push(value);
+            }
+            return sample;
+        }
+
+        function standardNormal() {
+            let u1 = Math.random();
+            let u2 = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
+        }
+
+        function getSpeedInterval() {
+            const sliderValue = document.getElementById('simulationSpeed').value;
+            return 101 - sliderValue;
+        }
+    </script>
+</body>
+</html>

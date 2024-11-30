@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulación ARMA(3,3) con Estimación Conjunta, Análisis de Residuos y Prueba ADF</title>
+    <!-- Incluir Plotly.js -->
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <script src="js/menuData.js"></script>
+    <script src="js/generarMenu.js"></script>
+    <style>
+        .control-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 5px;
+        }
+        input[type=number], select {
+            width: 150px;
+            padding: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+        .graph-container {
+            margin-top: 30px;
+        }
+        .estimation-container {
+            margin-top: 30px;
+        }
+        .estimation-container h2 {
+            margin-bottom: 10px;
+        }
+        .coefficients {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .coefficients div {
+            background-color: #f2f2f2;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .histogram-container {
+            margin-top: 30px;
+        }
+        .adf-container {
+            margin-top: 30px;
+        }
+        .adf-container h2 {
+            margin-bottom: 10px;
+        }
+        .adf-results {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        /* Estilos para la tabla de coeficientes */
+        .coefficients-table {
+            border-collapse: collapse;
+            width: 50%;
+            margin-top: 20px;
+        }
+        .coefficients-table th, .coefficients-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .coefficients-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Modelo ARMA</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <h1>Parámetros</h1>
+
+            <div class="control-panel">
+                <div class="control-group">
+                    <label for="n">Cantidad de Observaciones (n):</label>
+                    <input type="number" id="n" min="100" max="5000" value="1000">
+                </div>
+                <div class="control-group">
+                    <label for="p">Orden p (AR):</label>
+                    <input type="number" id="p" min="0" max="3" value="1">
+                </div>
+                <div class="control-group">
+                    <label for="q">Orden q (MA):</label>
+                    <input type="number" id="q" min="0" max="3" value="1">
+                </div>
+                <div class="control-group">
+                    <label for="ar1">Parámetro AR1:</label>
+                    <input type="number" id="ar1" step="0.01" min="-0.99" max="0.99" value="0.5">
+                </div>
+                <div class="control-group">
+                    <label for="ar2">Parámetro AR2:</label>
+                    <input type="number" id="ar2" step="0.01" min="-0.99" max="0.99" value="0.0">
+                </div>
+                <div class="control-group">
+                    <label for="ar3">Parámetro AR3:</label>
+                    <input type="number" id="ar3" step="0.01" min="-0.99" max="0.99" value="0.0">
+                </div>
+                <div class="control-group">
+                    <label for="ma1">Parámetro MA1:</label>
+                    <input type="number" id="ma1" step="0.01" min="-0.99" max="0.99" value="0.5">
+                </div>
+                <div class="control-group">
+                    <label for="ma2">Parámetro MA2:</label>
+                    <input type="number" id="ma2" step="0.01" min="-0.99" max="0.99" value="0.0">
+                </div>
+                <div class="control-group">
+                    <label for="ma3">Parámetro MA3:</label>
+                    <input type="number" id="ma3" step="0.01" min="-0.99" max="0.99" value="0.0">
+                </div>
+                <div class="control-group">
+                    <label for="nivelSignificancia">Nivel de Significancia:</label>
+                    <select id="nivelSignificancia">
+                        <option value="0.10">10%</option>
+                        <option value="0.05" selected>5%</option>
+                        <option value="0.01">1%</option>
+                    </select>
+                </div>
+            </div>
+            <button id="boton" onclick="simulateARMA()">Simular ARMA</button>
+        </aside>
+    </div>
+    <main id="content">
+        <div class="graph-container">
+            <h2>Serie Temporal Simulada</h2>
+            <div id="time-series"></div>
+
+            <h2>Función de Autocorrelación (ACF)</h2>
+            <div id="acf"></div>
+
+            <h2>Función de Autocorrelación Parcial (PACF)</h2>
+            <div id="pacf"></div>
+
+            <h2>Raíces del Polinomio Característico</h2>
+            <div id="roots"></div>
+        </div>
+
+        <div class="estimation-container">
+            <h2>Estimación de Coeficientes del Modelo AR y MA</h2>
+            <div id="estimated-coefficients" class="coefficients">
+                <!-- Los coeficientes estimados aparecerán aquí -->
+            </div>
+        </div>
+
+        <div class="graph-container">
+            <h2>Función de Autocorrelación (ACF) de los Residuos</h2>
+            <div id="acf-residuals"></div>
+
+            <h2>Función de Autocorrelación Parcial (PACF) de los Residuos</h2>
+            <div id="pacf-residuals"></div>
+        </div>
+
+        <div class="histogram-container">
+            <h2>Histograma de los Residuos</h2>
+            <div id="histogram-residuals"></div>
+        </div>
+
+        <div class="adf-container">
+            <h2>Prueba ADF (Dickey-Fuller Aumentada)</h2>
+            <div id="adf-results" class="adf-results">
+                <!-- Resultados de la prueba ADF aparecerán aquí -->
+            </div>
+        </div>
+    </main>
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+    <script>
+      
+        // Clase para manejar números complejos
+        class Complex {
+            constructor(re, im) {
+                this.re = re;
+                this.im = im;
+            }
+
+            add(other) {
+                return new Complex(this.re + other.re, this.im + other.im);
+            }
+
+            sub(other) {
+                return new Complex(this.re - other.re, this.im - other.im);
+            }
+
+            mul(other) {
+                return new Complex(
+                    this.re * other.re - this.im * other.im,
+                    this.re * other.im + this.im * other.re
+                );
+            }
+
+            div(other) {
+                const denominator = other.re * other.re + other.im * other.im;
+                return new Complex(
+                    (this.re * other.re + this.im * other.im) / denominator,
+                    (this.im * other.re - this.re * other.im) / denominator
+                );
+            }
+
+            magnitude() {
+                return Math.sqrt(this.re * this.re + this.im * this.im);
+            }
+
+            clone() {
+                return new Complex(this.re, this.im);
+            }
+        }
+
+        // Método de Durand-Kerner para encontrar raíces de un polinomio
+        function durandKerner(coeffs, maxIter = 1000, tol = 1e-12) {
+            const n = coeffs.length - 1;
+            if (n === 0) return [];
+
+            // Inicializar raíces con puntos en el círculo unitario
+            let roots = [];
+            for (let i = 0; i < n; i++) {
+                const angle = (2 * Math.PI * i) / n;
+                roots.push(new Complex(Math.cos(angle), Math.sin(angle)));
+            }
+
+            for (let iter = 0; iter < maxIter; iter++) {
+                let maxChange = 0;
+                for (let i = 0; i < n; i++) {
+                    // Evaluar el polinomio en la raíz actual
+                    let p = evaluatePolynomial(coeffs, roots[i]);
+
+                    // Producto (roots[i] - roots[j]) para j != i
+                    let prod = new Complex(1, 0);
+                    for (let j = 0; j < n; j++) {
+                        if (j !== i) {
+                            const diff = roots[i].sub(roots[j]);
+                            prod = prod.mul(diff);
+                        }
+                    }
+
+                    // Delta = p / producto
+                    const delta = p.div(prod);
+
+                    // Actualizar la raíz
+                    roots[i] = roots[i].sub(delta);
+
+                    // Actualizar el máximo cambio
+                    const change = delta.magnitude();
+                    if (change > maxChange) {
+                        maxChange = change;
+                    }
+                }
+
+                if (maxChange < tol) {
+                    break;
+                }
+            }
+
+            return roots;
+        }
+
+        // Evaluar un polinomio en un punto complejo usando Horner's método
+        function evaluatePolynomial(coeffs, z) {
+            let result = new Complex(0, 0);
+            for (let i = 0; i < coeffs.length; i++) {
+                result = result.mul(z).add(new Complex(coeffs[i], 0));
+            }
+            return result;
+        }
+
+        // Función para generar números aleatorios normales
+        function randn_bm() {
+            let u = 0, v = 0;
+            while(u === 0) u = Math.random(); // Convertir [0,1) a (0,1)
+            while(v === 0) v = Math.random();
+            return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+        }
+
+        /**
+         * Calcula el logaritmo de la verosimilitud para un modelo ARMA(p, q) asumiendo normalidad.
+         *
+         * @param {number[]} series - La serie temporal de datos.
+         * @param {number} p - Orden del modelo AR.
+         * @param {number} q - Orden del modelo MA.
+         * @param {number[]} phi - Coeficientes AR (longitud p).
+         * @param {number[]} theta - Coeficientes MA (longitud q).
+         * @returns {number} El logaritmo de la verosimilitud.
+         */
+        function logLikelihoodARMA(series, p, q, phi, theta) {
+            const T = series.length;
+            const e = new Array(T).fill(0); // Inicializa residuos con ceros
+
+            // Calcula los residuos e[t] = y[t] - AR - MA
+            for (let t = 0; t < T; t++) {
+                let arPart = 0;
+                for (let i = 1; i <= p; i++) {
+                    if (t - i >= 0) {
+                        arPart += phi[i - 1] * series[t - i];
+                    }
+                }
+
+                let maPart = 0;
+                for (let j = 1; j <= q; j++) {
+                    if (t - j >= 0) {
+                        maPart += theta[j - 1] * e[t - j];
+                    }
+                }
+
+                e[t] = series[t] - arPart - maPart;
+            }
+
+            // Estima la varianza sigma^2 como la media de los residuos al cuadrado
+            const sumSquaredResiduals = e.reduce((acc, val) => acc + val * val, 0);
+            const sigma2 = sumSquaredResiduals / T;
+
+            // Calcula el logaritmo de la verosimilitud
+            const logL = - (T / 2) * Math.log(2 * Math.PI * sigma2) - (sumSquaredResiduals) / (2 * sigma2);
+
+            return logL;
+        }
+
+        /**
+         * Optimiza los parámetros ARMA(p, q) para maximizar la log-verosimilitud usando el Método de Nelder-Mead.
+         *
+         * @param {number[]} series - La serie temporal de datos.
+         * @param {number} p - Orden del modelo AR.
+         * @param {number} q - Orden del modelo MA.
+         * @param {object} [options] - Opciones de optimización (tolerancia, iteraciones máximas, etc.).
+         * @returns {object} Objeto que contiene los mejores parámetros encontrados y la log-verosimilitud máxima.
+         */
+        function estimateARMA(series, p, q, options = {}) {
+            // Parámetros de configuración del optimizador
+            const maxIter = options.maxIter || 500;
+            const tol = options.tol || 1e-6;
+            const alpha = 1;    // Coeficiente de reflexión
+            const gamma = 2;    // Coeficiente de expansión
+            const rho = 0.5;    // Coeficiente de contracción
+            const sigma = 0.5;  // Coeficiente de reducción
+
+            // Número total de parámetros
+            const numParams = p + q;
+
+            if (numParams === 0) {
+                return {
+                    phi: [],
+                    theta: [],
+                    logLikelihood: logLikelihoodARMA(series, p, q, [], []),
+                    iterations: 0
+                };
+            }
+
+            // Inicialización: parámetros iniciales (puedes ajustar esto)
+            let params = [];
+            for (let i = 0; i < numParams; i++) {
+                params.push(0.1); // Inicializa todos los parámetros en 0.1
+            }
+
+            // Función objetivo: negativo de la log-verosimilitud
+            const objective = (x) => {
+                const phi = x.slice(0, p);
+                const theta = x.slice(p, p + q);
+                const logL = logLikelihoodARMA(series, p, q, phi, theta);
+                return -logL; // Negativo porque Nelder-Mead minimiza
+            };
+
+            // Inicializar el simplex
+            let simplex = [];
+            simplex.push(params.slice());
+            for (let i = 0; i < numParams; i++) {
+                let vertex = params.slice();
+                vertex[i] += 0.05; // Pequeño desplazamiento
+                simplex.push(vertex);
+            }
+
+            let iterations = 0;
+            while (iterations < maxIter) {
+                // Ordenar el simplex según la función objetivo
+                simplex.sort((a, b) => objective(a) - objective(b));
+
+                const best = simplex[0];
+                const worst = simplex[simplex.length - 1];
+                const secondWorst = simplex[simplex.length - 2];
+
+                // Comprobar la condición de convergencia
+                const funcValues = simplex.map(point => objective(point));
+                const maxDiff = Math.max(...funcValues) - Math.min(...funcValues);
+                if (maxDiff < tol) {
+                    break;
+                }
+
+                // Calcular el punto centroid
+                const centroid = [];
+                for (let i = 0; i < numParams; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < simplex.length - 1; j++) // Excluir el peor
+                        sum += simplex[j][i];
+                    centroid.push(sum / (simplex.length - 1));
+                }
+
+                // Reflexión
+                let reflected = centroid.map((c, idx) => c + alpha * (c - worst[idx]));
+                let fReflected = objective(reflected);
+
+                if (fReflected < objective(secondWorst)) {
+                    // Expansión
+                    let expanded = centroid.map((c, idx) => c + gamma * (reflected[idx] - centroid[idx]));
+                    if (objective(expanded) < fReflected) {
+                        simplex.splice(simplex.length - 1, 1, expanded);
+                    } else {
+                        simplex.splice(simplex.length - 1, 1, reflected);
+                    }
+                } else if (fReflected < objective(worst)) {
+                    simplex.splice(simplex.length - 1, 1, reflected);
+                } else {
+                    // Contracción
+                    let contracted = centroid.map((c, idx) => c + rho * (worst[idx] - centroid[idx]));
+                    if (objective(contracted) < objective(worst)) {
+                        simplex.splice(simplex.length - 1, 1, contracted);
+                    } else {
+                        // Reducción
+                        for (let i = 1; i < simplex.length; i++) {
+                            simplex[i] = simplex[0].map((c, idx) => c + sigma * (simplex[i][idx] - c));
+                        }
+                    }
+                }
+
+                iterations++;
+            }
+
+            // Obtener el mejor punto encontrado
+            simplex.sort((a, b) => objective(a) - objective(b));
+            const bestParams = simplex[0];
+            const bestPhi = bestParams.slice(0, p);
+            const bestTheta = bestParams.slice(p, p + q);
+            const bestLogL = -objective(bestParams);
+
+            // Cálculo del Hessiano numérico
+            const hessian = numericalHessian(objective, bestParams);
+
+            // Inversión del Hessiano
+            const invHessian = invertMatrix(hessian);
+
+            // Extraer las varianzas (diagonal de la matriz inversa)
+            const variances = invHessian.map((row, i) => invHessian[i][i]);
+
+            // Calcular los errores estándar
+            const standardErrors = variances.map(v => Math.sqrt(Math.abs(v)));
+
+            // Dividir los errores estándar para phi y theta
+            const phiStdErr = standardErrors.slice(0, p);
+            const thetaStdErr = standardErrors.slice(p, p + q);
+
+            return {
+                phi: bestPhi,
+                theta: bestTheta,
+                phiStdErr: phiStdErr,
+                thetaStdErr: thetaStdErr,
+                logLikelihood: bestLogL,
+                iterations: iterations
+            };
+        }
+
+        // Función para simular ARMA
+        function simulateARMA() {
+            // Obtener parámetros de la UI
+            const n = parseInt(document.getElementById('n').value);
+            const p = parseInt(document.getElementById('p').value);
+            const q = parseInt(document.getElementById('q').value);
+            const arParams = [
+                parseFloat(document.getElementById('ar1').value),
+                parseFloat(document.getElementById('ar2').value),
+                parseFloat(document.getElementById('ar3').value)
+            ].slice(0, p);
+            const maParams = [
+                parseFloat(document.getElementById('ma1').value),
+                parseFloat(document.getElementById('ma2').value),
+                parseFloat(document.getElementById('ma3').value)
+            ].slice(0, q);
+            const nivelSignificancia = parseFloat(document.getElementById('nivelSignificancia').value);
+
+            // Definir z-scores basados en el nivel de significancia
+            const zScores = {
+                0.10: 1.645,
+                0.05: 1.96,
+                0.01: 2.576
+            };
+            const z = zScores[nivelSignificancia] || 1.96; // Valor por defecto 5%
+            const criticalValue = z / Math.sqrt(n);
+
+            let y = [];
+            let e = [];
+
+            // Generar errores
+            for(let i=0; i<n; i++) {
+                e.push(randn_bm());
+            }
+
+            // Simular ARMA
+            for(let i=0; i<n; i++) {
+                let arTerm = 0;
+                for(let j=1; j<=p; j++) {
+                    if(i - j >= 0) {
+                        arTerm += arParams[j-1] * y[i - j];
+                    }
+                }
+                let maTerm = 0;
+                for(let j=1; j<=q; j++) {
+                    if(i - j >= 0) {
+                        maTerm += maParams[j-1] * e[i - j];
+                    }
+                }
+                y.push(arTerm + maTerm + e[i]);
+            }
+
+            // Graficar Serie Temporal
+            const trace1 = {
+                x: Array.from(Array(n).keys()),
+                y: y,
+                mode: 'lines',
+                name: 'Serie Simulada',
+                line: { color: '#17BECF' }
+            };
+            const layout1 = {
+                title: 'Serie Temporal Simulada (ARMA)',
+                xaxis: { title: 'Tiempo' },
+                yaxis: { title: 'Valor' }
+            };
+            Plotly.newPlot('time-series', [trace1], layout1);
+
+            // Calcular ACF excluyendo lag 0
+            const acfValues = calculateACF(y, 20);
+            const trace2 = {
+                x: Array.from({length: acfValues.length}, (_, i) => i + 1), // Comienza desde lag 1
+                y: acfValues,
+                type: 'bar',
+                name: 'ACF',
+                marker: { color: '#7F7F7F' }
+            };
+            const layout2 = {
+                title: 'Función de Autocorrelación (ACF)',
+                xaxis: { title: 'Lags' },
+                yaxis: { title: 'ACF',
+                        range: [-1, 1] // Ajuste de la escala vertical
+                            },
+                // Añadir líneas de significancia
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: 0,
+                        x1: 20,
+                        y0: criticalValue,
+                        y1: criticalValue,
+                        line: {
+                            color: 'black',
+                            width: 1,
+                            dash: 'dashdot'
+                        }
+                    },
+                    {
+                        type: 'line',
+                        x0: 0,
+                        x1: 20,
+                        y0: -criticalValue,
+                        y1: -criticalValue,
+                        line: {
+                            color: 'black',
+                            width: 1,
+                            dash: 'dashdot'
+                        }
+                    }
+                ]
+            };
+            Plotly.newPlot('acf', [trace2], layout2);
+
+            // Calcular PACF excluyendo lag 0
+            const pacfValues = calculatePACF(y, 20);
+            const trace3 = {
+                x: Array.from({length: pacfValues.length}, (_, i) => i + 1), // Comienza desde lag 1
+                y: pacfValues,
+                type: 'bar',
+                name: 'PACF',
+                marker: { color: '#FFA15A' }
+            };
+            const layout3 = {
+                title: 'Función de Autocorrelación Parcial (PACF)',
+                xaxis: { title: 'Lags' },
+                yaxis: { title: 'PACF',
+                        range: [-1, 1] // Ajuste de la escala vertical
+                            },
+                // Añadir líneas de significancia
+                shapes: [
+                    {
+                        type: 'line',
+                        x0: 0,
+                        x1: 20,
+                        y0: criticalValue,
+                        y1: criticalValue,
+                        line: {
+                            color: 'black',
+                            width: 1,
+                            dash: 'dashdot'
+                        }
+                    },
+                    {
+                        type: 'line',
+                        x0: 0,
+                        x1: 20,
+                        y0: -criticalValue,
+                        y1: -criticalValue,
+                        line: {
+                            color: 'black',
+                            width: 1,
+                            dash: 'dashdot'
+                        }
+                    }
+                ]
+            };
+            Plotly.newPlot('pacf', [trace3], layout3);
+
+            // Calcular y Graficar las Raíces del Polinomio Característico
+            plotRoots(arParams, maParams);
+
+            // Estimar y Mostrar Coeficientes AR y MA
+            let estimatedParams = null;
+            if (p > 0 || q > 0) {
+                console.log("Iniciando estimación de coeficientes ARMA...");
+                estimatedParams = estimateARMA(y, p, q, { maxIter: 1000, tol: 1e-6 });
+                console.log("Coeficientes AR y MA estimados:", estimatedParams);
+                displayEstimatedARMA(estimatedParams);
+            } else {
+                document.getElementById('estimated-coefficients').innerHTML = '<div>No hay términos AR o MA para estimar.</div>';
+            }
+
+            // Calcular Residuos si se estimaron parámetros
+            let residuals = [];
+            if (estimatedParams) {
+                residuals = calculateResiduals(y, p, q, estimatedParams.phi, estimatedParams.theta);
+            }
+
+            // Graficar ACF y PACF de los Residuos excluyendo lag 0
+            if (residuals.length > 0) {
+                const residualsACF = calculateACF(residuals, 20);
+                const residualsPACF = calculatePACF(residuals, 20);
+
+                const trace4 = {
+                    x: Array.from({length: residualsACF.length}, (_, i) => i + 1), // Comienza desde lag 1
+                    y: residualsACF,
+                    type: 'bar',
+                    name: 'ACF Residuos',
+                    marker: { color: '#7F7F7F' }
+                };
+                const layout4 = {
+                    title: 'Función de Autocorrelación (ACF) de los Residuos',
+                    xaxis: { title: 'Lags' },
+                    yaxis: { title: 'ACF',
+                             range: [-1, 1] // Ajuste de la escala vertical
+                            },
+                    // Añadir líneas de significancia
+                    shapes: [
+                        {
+                            type: 'line',
+                            x0: 0,
+                            x1: 20,
+                            y0: criticalValue,
+                            y1: criticalValue,
+                            line: {
+                                color: 'black',
+                                width: 1,
+                                dash: 'dashdot'
+                            }
+                        },
+                        {
+                            type: 'line',
+                            x0: 0,
+                            x1: 20,
+                            y0: -criticalValue,
+                            y1: -criticalValue,
+                            line: {
+                                color: 'black',
+                                width: 1,
+                                dash: 'dashdot'
+                            }
+                        }
+                    ]
+                };
+                Plotly.newPlot('acf-residuals', [trace4], layout4);
+
+                const trace5 = {
+                    x: Array.from({length: residualsPACF.length}, (_, i) => i + 1), // Comienza desde lag 1
+                    y: residualsPACF,
+                    type: 'bar',
+                    name: 'PACF Residuos',
+                    marker: { color: '#FFA15A' }
+                };
+                const layout5 = {
+                    title: 'Función de Autocorrelación Parcial (PACF) de los Residuos',
+                    xaxis: { title: 'Lags' },
+                    yaxis: { title: 'PACF',
+                        range: [-1, 1] // Ajuste de la escala vertical
+                            },
+                    // Añadir líneas de significancia
+                    shapes: [
+                        {
+                            type: 'line',
+                            x0: 0,
+                            x1: 20,
+                            y0: criticalValue,
+                            y1: criticalValue,
+                            line: {
+                                color: 'black',
+                                width: 1,
+                                dash: 'dashdot'
+                            }
+                        },
+                        {
+                            type: 'line',
+                            x0: 0,
+                            x1: 20,
+                            y0: -criticalValue,
+                            y1: -criticalValue,
+                            line: {
+                                color: 'black',
+                                width: 1,
+                                dash: 'dashdot'
+                            }
+                        }
+                    ]
+                };
+                Plotly.newPlot('pacf-residuals', [trace5], layout5);
+
+                // Generar Histograma de Residuos
+                const trace6 = {
+                    x: residuals,
+                    type: 'histogram',
+                    name: 'Histograma de Residuos',
+                    marker: {
+                        color: '#FF9999',
+                        line: {
+                            color: '#C0C0C0',
+                            width: 1
+                        }
+                    },
+                    opacity: 0.75
+                };
+                const layout6 = {
+                    title: 'Histograma de los Residuos',
+                    xaxis: { title: 'Residuos' },
+                    yaxis: { title: 'Frecuencia' },
+                    bargap: 0.05
+                };
+                Plotly.newPlot('histogram-residuals', [trace6], layout6);
+            } else {
+                document.getElementById('acf-residuals').innerHTML = '<div>No se calcularon residuos.</div>';
+                document.getElementById('pacf-residuals').innerHTML = '<div>No se calcularon residuos.</div>';
+                document.getElementById('histogram-residuals').innerHTML = '<div>No se generó el histograma de residuos.</div>';
+            }
+
+            // Realizar la Prueba ADF
+            realizarPruebaADF(y, nivelSignificancia);
+        }
+
+        // Función para calcular ACF excluyendo lag 0
+        function calculateACF(series, maxLag) {
+            const n = series.length;
+            const mean = series.reduce((a, b) => a + b, 0) / n;
+            let acf = [];
+            let denominator = 0;
+            for(let i = 0; i < n; i++) {
+                denominator += Math.pow(series[i] - mean, 2);
+            }
+            for(let lag = 1; lag <= maxLag; lag++) {
+                let numerator = 0;
+                for(let i = 0; i < n - lag; i++) {
+                    numerator += (series[i] - mean) * (series[i + lag] - mean);
+                }
+                acf.push(numerator / denominator);
+            }
+            return acf;
+        }
+
+        // Función para calcular PACF excluyendo lag 0
+        function calculatePACF(series, maxLag) {
+            const pacf = [];
+            const acfFull = [1].concat(calculateACF(series, maxLag));
+            let phi = new Array(maxLag + 1).fill(0);
+            let sigma_v = acfFull[0];
+
+            for(let k = 1; k <= maxLag; k++) {
+                let sum_phi_acf = 0;
+                for(let i = 1; i < k; i++) {
+                    sum_phi_acf += phi[i] * acfFull[k - i];
+                }
+                let phi_k = (acfFull[k] - sum_phi_acf) / sigma_v;
+                phi[k] = phi_k;
+                for(let j = 1; j < k; j++) {
+                    phi[j] = phi[j] - phi_k * phi[k - j];
+                }
+                sigma_v = sigma_v * (1 - phi_k * phi_k);
+                pacf.push(phi_k);
+            }
+
+            return pacf;
+        }
+
+        // Función para calcular y graficar las raíces
+        function plotRoots(arParams, maParams) {
+            // Crear los coeficientes de los polinomios AR y MA
+            // El polinomio AR es 1 - ar1*z - ar2*z^2 - ... - arp*z^p
+            let arCoeffs = [1];
+            for(let param of arParams) {
+                arCoeffs.push(-param);
+            }
+
+            // El polinomio MA es 1 + ma1*z + ma2*z^2 + ... + maq*z^q
+            let maCoeffs = [1];
+            for(let param of maParams) {
+                maCoeffs.push(param);
+            }
+
+            console.log("Coeficientes AR:", arCoeffs);
+            console.log("Coeficientes MA:", maCoeffs);
+
+            // Calcular las raíces usando Durand-Kerner
+            const arRoots = durandKerner(arCoeffs);
+            const maRoots = durandKerner(maCoeffs);
+
+            console.log("Raíces AR:", arRoots);
+            console.log("Raíces MA:", maRoots);
+
+            // Preparar datos para Plotly
+            let arX = [], arY = [];
+            arRoots.forEach(root => {
+                arX.push(root.re);
+                arY.push(root.im);
+            });
+
+            let maX = [], maY = [];
+            maRoots.forEach(root => {
+                maX.push(root.re);
+                maY.push(root.im);
+            });
+
+            // Crear el círculo unitario
+            const theta = Array.from(Array(100).keys()).map(i => (2 * Math.PI * i) / 100);
+            const circleX = theta.map(t => Math.cos(t));
+            const circleY = theta.map(t => Math.sin(t));
+
+            // Crear trazas para las raíces y el círculo
+            const traceCircle = {
+                x: circleX,
+                y: circleY,
+                mode: 'lines',
+                name: 'Círculo Unitario',
+                line: { dash: 'dash', color: 'lightgray' }
+            };
+
+            const traceAR = {
+                x: arX,
+                y: arY,
+                mode: 'markers',
+                name: 'Raíces AR',
+                marker: { symbol: 'circle', size: 10, color: 'blue' }
+            };
+
+            const traceMA = {
+                x: maX,
+                y: maY,
+                mode: 'markers',
+                name: 'Raíces MA',
+                marker: { symbol: 'square', size: 10, color: 'red' }
+            };
+
+            const layout = {
+                title: 'Raíces del Polinomio Característico',
+                xaxis: { title: 'Parte Real', range: [-1.5, 1.5], zeroline: true },
+                yaxis: { title: 'Parte Imaginaria', range: [-1.5, 1.5], zeroline: true },
+                width: 600,
+                height: 600,
+                showlegend: true,
+                legend: {
+                    orientation: 'h',
+                    x: 0.5,
+                    y: -0.1,
+                    xanchor: 'center',
+                    yanchor: 'top'
+                },
+                margin: { t: 50, b: 100 },
+                aspectratio: { x: 1, y: 1 }
+            };
+
+            Plotly.newPlot('roots', [traceCircle, traceAR, traceMA], layout);
+        }
+
+        // Función para mostrar los coeficientes AR y MA estimados
+        function displayEstimatedARMA(estimated) {
+            let html = '<table class="coefficients-table">';
+            html += '<tr><th>Parámetro</th><th>Estimación<br>(Error Estándar)</th><th>p-valor</th></tr>';
+            
+            // Función para calcular el p-valor
+            function calcularPValor(coef, stdErr) {
+                const z = coef / stdErr;
+                const pValor = 2 * (1 - cdfNormal(Math.abs(z)));
+                return pValor;
+            }
+
+            // Coeficientes AR
+            estimated.phi.forEach((coef, index) => {
+                const stdErr = estimated.phiStdErr[index];
+                const pValor = calcularPValor(coef, stdErr);
+                html += `<tr><td>AR${index + 1}</td><td>${coef.toFixed(3)}<br>(${stdErr.toFixed(4)})</td><td>${pValor.toFixed(4)}</td></tr>`;
+            });
+            if (estimated.phi.length === 0) {
+                html += '<tr><td colspan="3">No hay términos AR.</td></tr>';
+            }
+            
+            // Coeficientes MA
+            estimated.theta.forEach((coef, index) => {
+                const stdErr = estimated.thetaStdErr[index];
+                const pValor = calcularPValor(coef, stdErr);
+                html += `<tr><td>MA${index + 1}</td><td>${coef.toFixed(3)}<br>(${stdErr.toFixed(4)})</td><td>${pValor.toFixed(4)}</td></tr>`;
+            });
+            if (estimated.theta.length === 0) {
+                html += '<tr><td colspan="3">No hay términos MA.</td></tr>';
+            }
+            
+            html += `<tr><td><strong>Log-Verosimilitud</strong></td><td colspan="2">${estimated.logLikelihood.toFixed(2)}</td></tr>`;
+            html += `<tr><td><strong>Iteraciones</strong></td><td colspan="2">${estimated.iterations}</td></tr>`;
+            html += '</table>';
+            document.getElementById('estimated-coefficients').innerHTML = html;
+        }
+
+        // Función para calcular los residuos basados en AR y MA estimados
+        function calculateResiduals(series, p, q, phi, theta) {
+            let residuals = [];
+            for(let i=0; i<series.length; i++) {
+                let arTerm = 0;
+                for(let j=1; j<=p; j++) {
+                    if(i - j >= 0) {
+                        arTerm += phi[j-1] * series[i - j];
+                    }
+                }
+                let maTerm = 0;
+                for(let j=1; j<=q; j++) {
+                    if(i - j >= 0) {
+                        maTerm += theta[j-1] * residuals[i - j];
+                    }
+                }
+                let residual = series[i] - arTerm - maTerm;
+                residuals.push(residual);
+            }
+            return residuals;
+        }
+
+        // Función para realizar la Prueba ADF
+        function realizarPruebaADF(serie, nivelSignificancia) {
+            const resultadoADF = pruebaADF(serie, nivelSignificancia);
+            mostrarResultadoADF(resultadoADF);
+        }
+
+        // Función para mostrar los resultados de la prueba ADF en la UI
+        function mostrarResultadoADF(resultado) {
+            const adfDiv = document.getElementById('adf-results');
+            let html = `<p><strong>Estacionariedad:</strong> ${resultado.estacionaria ? 'Sí' : 'No'}</p>`;
+            html += `<p><strong>Valor t Estadístico:</strong> ${resultado.t_estadistico}</p>`;
+            html += `<p><strong>Valor Crítico:</strong> ${resultado.valorCritico}</p>`;
+            adfDiv.innerHTML = html;
+        }
+
+        // Función para realizar una Prueba ADF mejorada
+        function pruebaADF(serie, nivelSignificancia) {
+            // Diferenciar la serie
+            let diffSerie = [];
+            for (let i = 1; i < serie.length; i++) {
+                diffSerie.push(serie[i] - serie[i - 1]);
+            }
+        
+            // Regresión de la diferencia contra el lag
+            let y = diffSerie.slice(0);
+            let x = serie.slice(0, serie.length - 1);
+        
+            let regresion = calcularRegresion(x, y);
+        
+            // Valor t simplificado
+            let se = Math.sqrt((1 / (y.length - 2)) * y.reduce((acc, val, idx) => acc + Math.pow(val - (regresion.pendiente * x[idx] + regresion.intercepto), 0), 0));
+            let sxx = x.reduce((acc, val) => acc + Math.pow(val - (sumArray(x) / x.length), 2), 0);
+            let t_estadistico = regresion.pendiente / (se / Math.sqrt(sxx));
+
+            // Obtener el valor crítico según el nivel de significancia
+            let valorCritico = obtenerValorCriticoADF(nivelSignificancia, serie.length);
+        
+            let estacionaria = t_estadistico < valorCritico;
+        
+            return { estacionaria, t_estadistico: t_estadistico.toFixed(4), valorCritico };
+        }
+
+        // Función para calcular regresión lineal (y = a + b*x)
+        function calcularRegresion(x, y) {
+            const n = x.length;
+            const sumX = sumArray(x);
+            const sumY = sumArray(y);
+            const sumXY = x.reduce((acc, val, idx) => acc + val * y[idx], 0);
+            const sumX2 = x.reduce((acc, val) => acc + val * val, 0);
+
+            const pendiente = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+            const intercepto = (sumY - pendiente * sumX) / n;
+
+            return { pendiente, intercepto };
+        }
+
+        // Función para sumar los elementos de un array
+        function sumArray(arr) {
+            return arr.reduce((a, b) => a + b, 0);
+        }
+
+        // Función para obtener el valor crítico ADF según el nivel de significancia y tamaño de muestra
+        function obtenerValorCriticoADF(nivelSignificancia, n) {
+            // Valores críticos aproximados para la prueba ADF sin tendencia ni constante
+            // Estos valores son simplificados y no exactos. Para una implementación precisa, se deben usar tablas estadísticas.
+            // A continuación se proporcionan valores aproximados comunes:
+
+            const valoresCriticos = {
+                "0.10": -2.584,
+                "0.05": -3.430,
+                "0.01": -4.580
+            };
+
+            return valoresCriticos[nivelSignificancia.toString()] || -3.430; // Valor por defecto 5%
+        }
+
+        // Función para transponer una matriz
+        function transpose(matrix) {
+            return matrix[0].map((_, colIndex) => matrix.map(row => row[colIndex]));
+        }
+
+        // Función para multiplicar dos matrices
+        function multiplyMatrices(a, b) {
+            let result = [];
+            for(let i=0; i<a.length; i++) {
+                result[i] = [];
+                for(let j=0; j<b[0].length; j++) {
+                    let sum = 0;
+                    for(let k=0; k<a[0].length; k++) {
+                        sum += a[i][k] * b[k][j];
+                    }
+                    result[i][j] = sum;
+                }
+            }
+            return result;
+        }
+
+        // Función para calcular el Hessiano numéricamente
+        function numericalHessian(f, x, epsilon = 1e-5) {
+            const n = x.length;
+            const hessian = Array(n).fill(0).map(() => Array(n).fill(0));
+            const fx = f(x);
+
+            for (let i = 0; i < n; i++) {
+                const x_i_plus = x.slice();
+                const x_i_minus = x.slice();
+                x_i_plus[i] += epsilon;
+                x_i_minus[i] -= epsilon;
+
+                const f_i_plus = f(x_i_plus);
+                const f_i_minus = f(x_i_minus);
+
+                hessian[i][i] = (f_i_plus - 2 * fx + f_i_minus) / (epsilon * epsilon);
+
+                for (let j = i + 1; j < n; j++) {
+                    const x_ij_plus_plus = x.slice();
+                    const x_ij_plus_minus = x.slice();
+                    const x_ij_minus_plus = x.slice();
+                    const x_ij_minus_minus = x.slice();
+
+                    x_ij_plus_plus[i] += epsilon;
+                    x_ij_plus_plus[j] += epsilon;
+
+                    x_ij_plus_minus[i] += epsilon;
+                    x_ij_plus_minus[j] -= epsilon;
+
+                    x_ij_minus_plus[i] -= epsilon;
+                    x_ij_minus_plus[j] += epsilon;
+
+                    x_ij_minus_minus[i] -= epsilon;
+                    x_ij_minus_minus[j] -= epsilon;
+
+                    const f_ij_plus_plus = f(x_ij_plus_plus);
+                    const f_ij_plus_minus = f(x_ij_plus_minus);
+                    const f_ij_minus_plus = f(x_ij_minus_plus);
+                    const f_ij_minus_minus = f(x_ij_minus_minus);
+
+                    const second_derivative = (f_ij_plus_plus - f_ij_plus_minus - f_ij_minus_plus + f_ij_minus_minus) / (4 * epsilon * epsilon);
+
+                    hessian[i][j] = second_derivative;
+                    hessian[j][i] = second_derivative;
+                }
+            }
+            return hessian;
+        }
+
+        // Función para invertir una matriz cuadrada pequeña
+        function invertMatrix(matrix) {
+            const n = matrix.length;
+            const identity = [];
+            for (let i = 0; i < n; i++) {
+                identity[i] = [];
+                for (let j = 0; j < n; j++) {
+                    identity[i][j] = (i === j) ? 1 : 0;
+                }
+            }
+
+            // Copiar la matriz
+            const copy = matrix.map(row => row.slice());
+
+            for (let i = 0; i < n; i++) {
+                // Encontrar el pivote
+                let maxEl = Math.abs(copy[i][i]);
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(copy[k][i]) > maxEl) {
+                        maxEl = Math.abs(copy[k][i]);
+                        maxRow = k;
+                    }
+                }
+
+                // Intercambiar filas
+                if (maxRow !== i) {
+                    let temp = copy[i];
+                    copy[i] = copy[maxRow];
+                    copy[maxRow] = temp;
+
+                    temp = identity[i];
+                    identity[i] = identity[maxRow];
+                    identity[maxRow] = temp;
+                }
+
+                // Hacer cero las entradas debajo y encima del pivote
+                for (let k = 0; k < n; k++) {
+                    if (k !== i) {
+                        const c = copy[k][i] / copy[i][i];
+                        for (let j = 0; j < n; j++) {
+                            copy[k][j] -= c * copy[i][j];
+                            identity[k][j] -= c * identity[i][j];
+                        }
+                    }
+                }
+
+                // Normalizar la fila del pivote
+                const c = copy[i][i];
+                for (let j = 0; j < n; j++) {
+                    copy[i][j] /= c;
+                    identity[i][j] /= c;
+                }
+            }
+
+            return identity;
+        }
+
+        // Función para calcular el CDF de la distribución normal estándar
+        function cdfNormal(z) {
+            return (1.0 + erf(z / Math.sqrt(2))) / 2.0;
+        }
+
+        // Función para calcular la función de error (erf)
+        function erf(x) {
+            // Aproximación de Abramowitz y Stegun (7.1.26)
+            const a1 =  0.254829592;
+            const a2 = -0.284496736;
+            const a3 =  1.421413741;
+            const a4 = -1.453152027;
+            const a5 =  1.061405429;
+            const p  =  0.3275911;
+
+            const sign = (x >= 0) ? 1 : -1;
+            x = Math.abs(x);
+
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+
+            return sign * y;
+        }
+        window.addEventListener('load', function() {
+            document.getElementById('boton').click();
+        });
+      </script>
+
+</body>
+</html>

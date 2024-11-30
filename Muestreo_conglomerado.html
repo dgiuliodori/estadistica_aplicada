@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Estadística Aplicada</title>
+    <!-- Enlazamos el CSS externo -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- Incluimos las librerías necesarias -->
+    <script src="js_lib/math.min.js"></script>
+    <script src="js_lib/plotly-latest.min.js"></script>
+    <!-- Incluimos la biblioteca jStat -->
+    <script src="js_lib/jstat.min.js"></script>
+    <!-- Estilos para la tabla y centrado de gráficos -->
+</head>
+<body>
+    <header>
+        <h1>Muestreo por Conglomerados</h1>
+    </header>
+    <nav>
+        
+    </nav>
+    <div class="parametros">
+        <aside id="sidebar">
+            <h2>Parámetros</h2>
+            <!-- Número de Universidades -->
+            <label for="numUniversidades">Número de Universidades (U): <span id="numUniversidadesValor">30</span></label>
+            <input type="range" id="numUniversidades" min="10" max="100" value="30" step="1">
+
+            <!-- Tamaño Promedio por Universidad -->
+            <label for="tamanoPromedioUni">Tamaño Promedio por Universidad: <span id="tamanoPromedioUniValor">100</span></label>
+            <input type="range" id="tamanoPromedioUni" min="10" max="1000" value="100" step="10">
+
+            <h3>Proporciones de Jerarquías</h3>
+            <!-- Proporción de Asistentes -->
+            <label for="propAsistentes">Asistentes (%): <span id="propAsistentesValor">50</span></label>
+            <input type="range" id="propAsistentes" min="0" max="100" value="50" step="1">
+
+            <!-- Proporción de Asociados -->
+            <label for="propAsociados">Asociados (%): <span id="propAsociadosValor">30</span></label>
+            <input type="range" id="propAsociados" min="0" max="100" value="30" step="1">
+
+            <!-- Proporción de Titulares -->
+            <label for="propTitulares">Titulares (%): <span id="propTitularesValor">20</span></label>
+            <input type="range" id="propTitulares" min="0" max="100" value="20" step="1">
+
+            <h3>Tamaño de Muestra</h3>
+            <!-- Tamaño de la muestra para muestreo aleatorio simple -->
+            <label for="tamanoMuestraAleatorio">Muestreo Aleatorio Simple (n<sub>AS</sub>): <span id="tamanoMuestraAleatorioValor">100</span></label>
+            <input type="range" id="tamanoMuestraAleatorio" min="10" max="1000" value="100" step="10">
+
+            <!-- Número de conglomerados -->
+            <label for="numConglomerados">Número de Universidades a Muestrear (n<sub>C</sub>): <span id="numConglomeradosValor">10</span></label>
+        <input type="range" id="numConglomerados" min="1" max="10" value="10" step="1">
+
+            <!-- Número de simulaciones -->
+            <label for="numSimulaciones">Número de Simulaciones (M): <span id="numSimulacionesValor">500</span></label>
+            <input type="range" id="numSimulaciones" min="1" max="1000" value="500" step="10">
+        </aside>
+    </div>
+
+    <!-- Gráficos -->
+    <main id="content">
+        <h1>Comparación entre Muestreo Aleatorio Simple y por Conglomerados (Datos Simulados)</h1>
+        <div class="grafico centrado">
+            <h3>Distribución de Salarios en la Población</h3>
+            <div id="graficoPoblacion" style="width: 80%; height: 400px;"></div>
+        </div>
+        <!-- Sección para comparación de muestreos -->
+        <h3>Resultados de la Simulación</h3>
+        <div class="grafico centrado">
+            <h3>Distribución de las Medias Muestrales de Salarios (Monte Carlo)</h3>
+            <div id="graficoMediasSalarios" style="width: 80%; height: 400px;"></div>
+        </div>
+        <!-- Tabla comparativa -->
+        <div id="resultadosSimulacion"></div>
+    </main>
+
+    <footer>
+        &copy; 2024 Estadística Aplicada - dgiuliodori@unc.edu.ar - aleferodriguez@gmail.com 
+    </footer>
+
+    <script>
+        // Variables globales
+        let poblacion = [];
+        let U = 30; // Número de universidades
+        let tamanoPromedioUni = 100; // Tamaño promedio por universidad
+        let propAsistentes = 50; // Porcentaje de asistentes
+        let propAsociados = 30; // Porcentaje de asociados
+        let propTitulares = 20; // Porcentaje de titulares
+        let n_aleatorio = 100;   // Tamaño de la muestra para muestreo aleatorio simple
+        let n_conglomerados = 10; // Número de universidades a muestrear en muestreo por conglomerados
+        let M = 500;   // Número de simulaciones
+
+        let mediaSalarioPoblacional;
+
+        // Inicializar
+        inicializar();
+
+        function inicializar() {
+            actualizarParametros();
+            generarPoblacion();
+            calcularEstadisticosPoblacionales();
+            graficarPoblacion();
+            aplicarMuestreos(); // Ejecutar la simulación al cargar la página
+
+            // Agregar eventos a los campos de entrada
+            const inputs = document.querySelectorAll('#sidebar input[type="range"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    actualizarValorDisplay(this.id, this.value);
+                    actualizar();
+                });
+            });
+        }
+
+        // Función para actualizar los valores mostrados al lado de los sliders
+        function actualizarValorDisplay(id, valor) {
+            const spanId = id + 'Valor';
+            const span = document.getElementById(spanId);
+            if (span) {
+                span.textContent = valor;
+            }
+        }
+
+        // Función para actualizar parámetros
+        function actualizarParametros() {
+            U = parseInt(document.getElementById('numUniversidades').value);
+            tamanoPromedioUni = parseInt(document.getElementById('tamanoPromedioUni').value);
+            propAsistentes = parseFloat(document.getElementById('propAsistentes').value);
+            propAsociados = parseFloat(document.getElementById('propAsociados').value);
+            propTitulares = parseFloat(document.getElementById('propTitulares').value);
+            n_aleatorio = parseInt(document.getElementById('tamanoMuestraAleatorio').value);
+            n_conglomerados = parseInt(document.getElementById('numConglomerados').value);
+            M = parseInt(document.getElementById('numSimulaciones').value);
+        }
+
+        // Función para actualizar todo al cambiar parámetros
+        function actualizar() {
+            actualizarParametros();
+            generarPoblacion();
+            calcularEstadisticosPoblacionales();
+            graficarPoblacion();
+            aplicarMuestreos(); // Ejecutar la simulación al cambiar cualquier parámetro
+        }
+
+        // Función para generar la población
+        function generarPoblacion() {
+            poblacion = [];
+            let idProfesor = 0;
+
+            // Efectos fijos de los tipos de universidades en los salarios
+            let efectosUniversidad = {
+                'Tipo 1': -5000, // Menor salario
+                'Tipo 2': 0,     // Salario medio
+                'Tipo 3': 5000   // Mayor salario
+            };
+
+            // Distribución de tipos de universidades
+            let tiposUniversidad = ['Tipo 1', 'Tipo 2', 'Tipo 3'];
+            let probTipos = [0.4, 0.4, 0.2]; // Puedes ajustar las probabilidades
+
+            // Generar universidades
+            let universidades = [];
+            for (let i = 0; i < U; i++) {
+                let tipoUni = tiposUniversidad[weightedRandom(probTipos)];
+                let efectoUni = efectosUniversidad[tipoUni];
+                let tamanoUni = Math.max(10, Math.round(jStat.normal.sample(tamanoPromedioUni, 20)));
+                universidades.push({
+                    id: i,
+                    tipo: tipoUni,
+                    efecto: efectoUni,
+                    tamano: tamanoUni,
+                    profesores: []
+                });
+            }
+
+            // Generar profesores por universidad
+            universidades.forEach(uni => {
+                for (let i = 0; i < uni.tamano; i++) {
+                    let jerarquia = asignarJerarquia();
+                    let antiguedad = Math.max(1, Math.round(jStat.exponential.sample(1 / 60))); // Antigüedad en meses
+                    let salarioBase = 0;
+                    if (jerarquia === 'Asistente') {
+                        salarioBase = 30000;
+                    } else if (jerarquia === 'Asociado') {
+                        salarioBase = 50000;
+                    } else if (jerarquia === 'Titular') {
+                        salarioBase = 70000;
+                    }
+
+                    // Salario ajustado por antigüedad y efecto fijo de la universidad
+                    let salario = salarioBase + 200 * antiguedad + uni.efecto + jStat.normal.sample(0, 5000);
+
+                    uni.profesores.push({
+                        id: idProfesor++,
+                        universidad: uni.id,
+                        tipoUniversidad: uni.tipo,
+                        jerarquia: jerarquia,
+                        antiguedad: antiguedad,
+                        salario: salario
+                    });
+                }
+                // Agregar profesores de la universidad a la población
+                poblacion = poblacion.concat(uni.profesores);
+            });
+
+            // Guardar las universidades en la población
+            poblacion.universidades = universidades;
+        }
+
+        // Función para asignar jerarquía basado en las proporciones
+        function asignarJerarquia() {
+            let rnd = Math.random() * 100;
+            if (rnd < propAsistentes) {
+                return 'Asistente';
+            } else if (rnd < propAsistentes + propAsociados) {
+                return 'Asociado';
+            } else {
+                return 'Titular';
+            }
+        }
+
+        // Función para seleccionar un índice basado en probabilidades
+        function weightedRandom(prob) {
+            let sum = 0;
+            let rnd = Math.random();
+            for (let i = 0; i < prob.length; i++) {
+                sum += prob[i];
+                if (rnd < sum) return i;
+            }
+            return prob.length - 1;
+        }
+
+        // Función para calcular estadísticas poblacionales
+        function calcularEstadisticosPoblacionales() {
+            let salarios = poblacion.map(ind => ind.salario);
+            mediaSalarioPoblacional = jStat.mean(salarios);
+        }
+
+        // Función para graficar la población
+        function graficarPoblacion() {
+            let asistentes = poblacion.filter(ind => ind.jerarquia === 'Asistente');
+            let asociados = poblacion.filter(ind => ind.jerarquia === 'Asociado');
+            let titulares = poblacion.filter(ind => ind.jerarquia === 'Titular');
+
+            let traceAsistentes = {
+                x: asistentes.map(ind => ind.salario),
+                type: 'histogram',
+                opacity: 0.7,
+                name: 'Asistentes'
+            };
+
+            let traceAsociados = {
+                x: asociados.map(ind => ind.salario),
+                type: 'histogram',
+                opacity: 0.7,
+                name: 'Asociados'
+            };
+
+            let traceTitulares = {
+                x: titulares.map(ind => ind.salario),
+                type: 'histogram',
+                opacity: 0.7,
+                name: 'Titulares'
+            };
+
+            let layout = {
+                title: '',
+                xaxis: { title: 'Salario Anual ($)' },
+                yaxis: { title: 'Frecuencia' },
+                barmode: 'overlay',
+                showlegend: true,
+                autosize: true
+            };
+
+            Plotly.newPlot('graficoPoblacion', [traceAsistentes, traceAsociados, traceTitulares], layout, {responsive: true});
+        }
+
+        // Función para aplicar los muestreos con Monte Carlo
+        function aplicarMuestreos() {
+            let metodos = ['Aleatorio Simple', 'Por Conglomerados'];
+            let resultadosSimulacion = {
+                'Aleatorio Simple': [],
+                'Por Conglomerados': []
+            };
+
+            // Mostrar mensaje de carga
+            document.getElementById('resultadosSimulacion').innerHTML = '<p>Realizando simulaciones, por favor espera...</p>';
+
+            // Usar setTimeout para permitir que el mensaje se renderice
+            setTimeout(function() {
+                // Realizar M simulaciones
+                for (let m = 0; m < M; m++) {
+                    // Aplicar cada método de muestreo
+                    let muestras = {};
+                    muestras['Aleatorio Simple'] = muestreoAleatorioSimple(poblacion, n_aleatorio);
+                    muestras['Por Conglomerados'] = muestreoPorConglomerados(poblacion.universidades, n_conglomerados);
+
+                    // Para cada muestra, calcular estadísticas y almacenar
+                    for (let metodo of metodos) {
+                        let muestra = muestras[metodo];
+
+                        let salariosMuestra = muestra.map(ind => ind.salario);
+                        let mediaSalarioMuestra = salariosMuestra.length > 0 ? jStat.mean(salariosMuestra) : 0;
+
+                        // Sesgo
+                        let sesgoSalario = mediaSalarioMuestra - mediaSalarioPoblacional;
+
+                        resultadosSimulacion[metodo].push({
+                            mediaSalario: mediaSalarioMuestra,
+                            sesgoSalario: sesgoSalario
+                        });
+                    }
+                }
+
+                // Mostrar resultados
+                mostrarResultadosMonteCarlo(resultadosSimulacion, 'resultadosSimulacion', metodos, 'graficoMediasSalarios');
+
+            }, 100); // Fin de setTimeout
+        }
+
+        // Muestreo Aleatorio Simple sin reemplazo
+        function muestreoAleatorioSimple(poblacion, n) {
+            let indicesDisponibles = Array.from({ length: poblacion.length }, (_, i) => i);
+            let muestra = [];
+
+            for (let i = 0; i < n && indicesDisponibles.length > 0; i++) {
+                let indiceAleatorio = Math.floor(Math.random() * indicesDisponibles.length);
+                let indiceSeleccionado = indicesDisponibles.splice(indiceAleatorio, 1)[0];
+                muestra.push(poblacion[indiceSeleccionado]);
+            }
+            return muestra;
+        }
+
+        // Muestreo por Conglomerados (universidades)
+        function muestreoPorConglomerados(universidades, n_cong) {
+            let indicesDisponibles = Array.from({ length: universidades.length }, (_, i) => i);
+            let conglomeradosSeleccionados = [];
+
+            for (let i = 0; i < n_cong && indicesDisponibles.length > 0; i++) {
+                let indiceAleatorio = Math.floor(Math.random() * indicesDisponibles.length);
+                let indiceSeleccionado = indicesDisponibles.splice(indiceAleatorio, 1)[0];
+                conglomeradosSeleccionados.push(universidades[indiceSeleccionado]);
+            }
+
+            // Recolectar todos los profesores de las universidades seleccionadas
+            let muestra = [];
+            conglomeradosSeleccionados.forEach(uni => {
+                muestra = muestra.concat(uni.profesores);
+            });
+
+            return muestra;
+        }
+
+        // Función para mostrar resultados de la simulación de Monte Carlo
+        function mostrarResultadosMonteCarlo(resultadosSimulacion, containerId, metodos, graficoSalariosId) {
+            let resultadosDiv = document.getElementById(containerId);
+            let html = `<h2>Resultados de la Simulación de Monte Carlo (M = ${M})</h2>`;
+
+            html += `<p><strong>Media Salario Poblacional:</strong> $${mediaSalarioPoblacional.toFixed(2)}</p>`;
+
+            // Preparar datos para gráfica
+            let datosGraficaSalarios = [];
+
+            // Objeto para almacenar los resultados de cada método
+            let resultadosMetodos = {};
+
+            for (let metodo of metodos) {
+                let mediasSalarios = resultadosSimulacion[metodo].map(res => res.mediaSalario);
+                let sesgosSalarios = resultadosSimulacion[metodo].map(res => res.sesgoSalario);
+
+                // Calcular estadísticas de las simulaciones
+                let mediaSalarioPromedio = jStat.mean(mediasSalarios);
+                let sesgoSalarioPromedio = jStat.mean(sesgosSalarios);
+                let varianzaSalario = jStat.variance(mediasSalarios);
+
+                // Calcular RMSE
+                let mseSalario = varianzaSalario + Math.pow(sesgoSalarioPromedio, 2);
+                let rmseSalario = Math.sqrt(mseSalario);
+
+                // Guardar resultados en el objeto
+                resultadosMetodos[metodo] = {
+                    mediaSalarioPromedio: mediaSalarioPromedio,
+                    sesgoSalarioPromedio: sesgoSalarioPromedio,
+                    varianzaSalario: varianzaSalario,
+                    rmseSalario: rmseSalario
+                };
+
+                // Preparar datos para gráfica de Salarios
+                datosGraficaSalarios.push({
+                    x: mediasSalarios,
+                    type: 'histogram',
+                    opacity: 0.7,
+                    name: `${metodo}`
+                });
+            }
+
+            // Construir tabla comparativa con columnas como variables y filas como métodos
+            html += `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Método de Muestreo</th>
+                        <th>n</th>
+                        <th>Media de Medias de Salarios ($)</th>
+                        <th>Sesgo Promedio ($)</th>
+                        <th>Varianza de Medias de Salarios</th>
+                        <th>RMSE Salario<br>(√[Var + Sesgo²])</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            for (let metodo of metodos) {
+                let n_muestra;
+                if (metodo === 'Aleatorio Simple') {
+                    n_muestra = n_aleatorio;
+                } else if (metodo === 'Por Conglomerados') {
+                    n_muestra = n_conglomerados;
+                }
+
+                html += `
+                <tr>
+                    <td>${metodo}</td>
+                    <td>${n_muestra}</td>
+                    <td>$${resultadosMetodos[metodo].mediaSalarioPromedio.toFixed(2)}</td>
+                    <td>$${resultadosMetodos[metodo].sesgoSalarioPromedio.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].varianzaSalario.toFixed(2)}</td>
+                    <td>${resultadosMetodos[metodo].rmseSalario.toFixed(2)}</td>
+                </tr>
+                `;
+            }
+
+            html += `
+                </tbody>
+            </table>
+            `;
+
+            resultadosDiv.innerHTML = html;
+
+            // Graficar histogramas de las medias muestrales de Salarios
+            let layoutSalarios = {
+                title: '',
+                xaxis: { title: 'Valor de la Media Muestral de Salarios ($)' },
+                yaxis: { title: 'Frecuencia' },
+                barmode: 'overlay',
+                showlegend: true
+            };
+
+            Plotly.newPlot(graficoSalariosId, datosGraficaSalarios, layoutSalarios);
+        }
+    </script>
+    <script>
+        // Obtener referencias a los elementos relevantes
+        const numUniversidades = document.getElementById('numUniversidades');
+        const numUniversidadesValor = document.getElementById('numUniversidadesValor');
+
+        const numConglomerados = document.getElementById('numConglomerados');
+        const numConglomeradosValor = document.getElementById('numConglomeradosValor');
+
+        // Función para actualizar el valor mostrado y el max de numConglomerados
+        function actualizarConglomerados() {
+            const valorUniversidades = parseInt(numUniversidades.value, 10);
+            numUniversidadesValor.textContent = valorUniversidades;
+
+            // Actualizar el atributo max de numConglomerados
+            numConglomerados.max = valorUniversidades;
+
+            // Si el valor actual de numConglomerados excede el nuevo max, ajustarlo
+            if (parseInt(numConglomerados.value, 10) > valorUniversidades) {
+                numConglomerados.value = valorUniversidades;
+                numConglomeradosValor.textContent = valorUniversidades;
+            }
+        }
+
+        // Escuchar cambios en numUniversidades
+        numUniversidades.addEventListener('input', actualizarConglomerados);
+
+        // Escuchar cambios en numConglomerados para actualizar el valor mostrado
+        numConglomerados.addEventListener('input', function() {
+            numConglomeradosValor.textContent = numConglomerados.value;
+        });
+
+        // Inicializar los valores al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            actualizarConglomerados();
+            numConglomeradosValor.textContent = numConglomerados.value;
+        });
+    </script>
+        <script src="js/menuData.js"></script>
+        <script src="js/generarMenu.js"></script>
+</body>
+</html>
